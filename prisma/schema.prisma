@@ -6,6 +6,37 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+model Seller {
+  id           String        @id @default(uuid())
+  cod          Int           @unique
+  email        String        @unique
+  abbreviation String
+  fullName     String
+  isActive     Boolean       @default(true)
+  sellerAccess SellerAccess?
+  createdAt    DateTime      @default(now())
+  updateAt     DateTime      @default(now()) @updatedAt
+
+  @@map("sellers")
+}
+
+model SellerAccess {
+  id                   String    @id @default(uuid())
+  password             String
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+  seller               Seller    @relation(fields: [sellerId], references: [id])
+  sellerId             String    @unique
+  createdAt            DateTime  @default(now())
+  updateAt             DateTime  @default(now()) @updatedAt
+
+  @@map("seller_access")
+}
+
+//permissions
+//roles
+//refreshTokens
