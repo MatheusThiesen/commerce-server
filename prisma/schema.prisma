@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vendedor {
+  codigo        Int      @id @unique
+  nome          String
+  nomeGuerra    String
+  email         String   @unique
+  password      String
+  codGerente    Int?
+  codSupervisor Int?
+  eAtivo        Boolean  @default(true)
+  eGerente      Boolean  @default(false)
+  eSupervisor   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("vendedores")
+}
+
+model Cor {
+  codigo    Int      @id @unique
+  descricao String
+  hex       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cores")
+}
+
+model Linha {
+  codigo    Int      @id @unique
+  descricao String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("linhas")
+}
+
+model Colecao {
+  codigo    Int      @id @unique
+  descricao String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("colecoes")
+}
+
+model Grupo {
+  codigo    Int        @id @unique
+  descricao String
+  eAtivo    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  subGrupos SubGrupo[]
+
+  @@map("grupos")
+}
+
+model SubGrupo {
+  codigo      Int      @id @unique
+  descricao   String
+  eAtivo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  grupo       Grupo    @relation(fields: [codigoGrupo], references: [codigo])
+  codigoGrupo Int
+
+  @@map("subgrupos")
+}
+
+model Marca {
+  codigo    Int      @id @unique
+  descricao String
+  eAtivo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("marcas")
+}
+
+model Produto {
+  codigo                Int      @id @unique
+  codigoAlternativo     Int
+  referencia            String
+  descricao             String
+  descricaoComplementar String
+  precoVenda            Float
+  unidade               String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("produtos")
+}
