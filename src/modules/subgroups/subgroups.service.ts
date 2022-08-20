@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { ParseCsv } from '../../utils/ParseCsv';
+import { ParseCsv } from '../../utils/parseCsv.utils';
 import { CreateSubgroupDto } from './dto/create-subgroup.dto';
 import { UpdateSubgroupDto } from './dto/update-subgroup.dto';
 import { Subgroup } from './entities/subgroup.entity';

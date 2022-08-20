@@ -7,9 +7,10 @@ import { GroupsModule } from './modules/groups/groups.module';
 import { SubgroupsModule } from './modules/subgroups/subgroups.module';
 import { LinesModule } from './modules/lines/lines.module';
 import { CollectionsModule } from './modules/collections/collections.module';
+import { SellersModule } from './modules/sellers/sellers.module';
 
 @Module({
-  imports: [ColorsModule, PrismaModule, UtilsModule, BrandsModule, GroupsModule, SubgroupsModule, LinesModule, CollectionsModule],
+  imports: [ColorsModule, PrismaModule, UtilsModule, BrandsModule, GroupsModule, SubgroupsModule, LinesModule, CollectionsModule, SellersModule],
   controllers: [],
   providers: [],
 })

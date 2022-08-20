@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { ParseCsv } from './ParseCsv';
+import { ParseCsv } from './parseCsv.utils';
 
 @Global()
 @Module({

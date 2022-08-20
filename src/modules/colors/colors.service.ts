@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ParseCsv } from 'src/utils/ParseCsv';
 import { PrismaService } from '../../database/prisma.service';
+import { ParseCsv } from '../../utils/parseCsv.utils';
 import { CreateColorDto } from './dto/create-color.dto';
 import { UpdateColorDto } from './dto/update-color.dto';
 import { Color } from './entities/color.entity';
