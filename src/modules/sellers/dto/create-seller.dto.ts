@@ -27,5 +27,5 @@ export class CreateSellerDto extends Seller {
 
   @IsNotEmpty()
   @Matches(RegExHelper.password)
-  password: string;
+  senha: string;
 }

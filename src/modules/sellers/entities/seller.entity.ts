@@ -3,7 +3,8 @@ export class Seller {
   nome: string;
   nomeGuerra: string;
   email: string;
-  password: string;
+  senha: string;
+  senhaRefresh: string;
   codGerente?: number;
   codSupervisor?: number;
   eAtivo: boolean;

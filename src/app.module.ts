@@ -1,17 +1,38 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { AtGuard } from './common/guards';
 import { PrismaModule } from './database/prisma.module';
-import { ColorsModule } from './modules/colors/colors.module';
-import { UtilsModule } from './utils/utils.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { BrandsModule } from './modules/brands/brands.module';
-import { GroupsModule } from './modules/groups/groups.module';
-import { SubgroupsModule } from './modules/subgroups/subgroups.module';
-import { LinesModule } from './modules/lines/lines.module';
 import { CollectionsModule } from './modules/collections/collections.module';
+import { ColorsModule } from './modules/colors/colors.module';
+import { GroupsModule } from './modules/groups/groups.module';
+import { LinesModule } from './modules/lines/lines.module';
 import { SellersModule } from './modules/sellers/sellers.module';
+import { SubgroupsModule } from './modules/subgroups/subgroups.module';
+import { UtilsModule } from './utils/utils.module';
 
 @Module({
-  imports: [ColorsModule, PrismaModule, UtilsModule, BrandsModule, GroupsModule, SubgroupsModule, LinesModule, CollectionsModule, SellersModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    ColorsModule,
+    PrismaModule,
+    UtilsModule,
+    BrandsModule,
+    GroupsModule,
+    SubgroupsModule,
+    LinesModule,
+    CollectionsModule,
+    SellersModule,
+    AuthModule,
+  ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AtGuard,
+    },
+  ],
 })
 export class AppModule {}

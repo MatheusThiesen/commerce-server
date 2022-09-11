@@ -15,7 +15,8 @@ model Vendedor {
   nome          String
   nomeGuerra    String
   email         String   @unique
-  password      String
+  senha         String
+  senhaRefresh  String?
   codGerente    Int?
   codSupervisor Int?
   eAtivo        Boolean  @default(true)
@@ -23,18 +24,10 @@ model Vendedor {
   eSupervisor   Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  Marca         Marca    @relation(fields: [marcaCodigo], references: [codigo])
+  marcaCodigo   Int
 
   @@map("vendedores")
-}
-
-model Cor {
-  codigo    Int      @id @unique
-  descricao String
-  hex       String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("cores")
 }
 
 model Linha {
@@ -42,6 +35,8 @@ model Linha {
   descricao String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  produtos Produto[]
 
   @@map("linhas")
 }
@@ -52,28 +47,34 @@ model Colecao {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  produtos Produto[]
+
   @@map("colecoes")
 }
 
 model Grupo {
-  codigo    Int        @id @unique
+  codigo    Int      @id @unique
   descricao String
-  eAtivo    Boolean    @default(true)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  eAtivo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   subGrupos SubGrupo[]
+  produtos  Produto[]
 
   @@map("grupos")
 }
 
 model SubGrupo {
-  codigo      Int      @id @unique
-  descricao   String
-  eAtivo      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  grupo       Grupo    @relation(fields: [codigoGrupo], references: [codigo])
+  codigo    Int      @id @unique
+  descricao String
+  eAtivo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  grupo       Grupo     @relation(fields: [codigoGrupo], references: [codigo])
   codigoGrupo Int
+  produtos    Produto[]
 
   @@map("subgrupos")
 }
@@ -85,7 +86,33 @@ model Marca {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  produtos   Produto[]
+  vendedores Vendedor[]
+
   @@map("marcas")
+}
+
+model Cor {
+  codigo    Int      @id @unique
+  descricao String
+  hex       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  produtos      Produto[]
+  RelCorProduto RelCorProduto[]
+
+  @@map("cores")
+}
+
+model RelCorProduto {
+  id String @id() @default(uuid())
+
+  cor       Cor       @relation(fields: [corCodigo], references: [codigo])
+  corCodigo Int
+  Produto   Produto[]
+
+  @@map("relCorProdutos")
 }
 
 model Produto {
@@ -96,8 +123,24 @@ model Produto {
   descricaoComplementar String
   precoVenda            Float
   unidade               String
+  eAtivo                Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+
+  corPrimaria       Cor?           @relation(fields: [corPrimariaCodigo], references: [codigo])
+  corPrimariaCodigo Int?
+  corSecundaria     RelCorProduto? @relation(fields: [relCorProdutoId], references: [id])
+  marca             Marca          @relation(fields: [codigoMarca], references: [codigo])
+  codigoMarca       Int
+  colecao           Colecao?       @relation(fields: [codigoColecao], references: [codigo])
+  codigoColecao     Int?
+  linha             Linha?         @relation(fields: [codigoLinha], references: [codigo])
+  codigoLinha       Int?
+  grupo             Grupo?         @relation(fields: [codigoGrupo], references: [codigo])
+  codigoGrupo       Int?
+  subGrupo          SubGrupo?      @relation(fields: [codigoSubGrupo], references: [codigo])
+  codigoSubGrupo    Int?
+  relCorProdutoId   String?
 
   @@map("produtos")
 }

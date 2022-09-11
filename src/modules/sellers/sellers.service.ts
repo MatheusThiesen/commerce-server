@@ -28,7 +28,7 @@ export class SellersService {
     const seller = new Seller();
     Object.assign(seller, {
       ...createSellerDto,
-      password: await hash(createSellerDto.password),
+      senha: await hash(createSellerDto.senha),
     });
 
     const sellerExists = await this.prisma.vendedor.findUnique({
@@ -69,8 +69,8 @@ export class SellersService {
     const seller = new Seller();
     Object.assign(seller, {
       ...updateSellerDto,
-      password: updateSellerDto.password
-        ? await hash(updateSellerDto.password)
+      senha: updateSellerDto.senha
+        ? await hash(updateSellerDto.senha)
         : undefined,
     });
 
