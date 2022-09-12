@@ -24,8 +24,7 @@ model Vendedor {
   eSupervisor   Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  Marca         Marca    @relation(fields: [marcaCodigo], references: [codigo])
-  marcaCodigo   Int
+  marcas        Marca[]
 
   @@map("vendedores")
 }
