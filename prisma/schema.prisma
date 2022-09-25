@@ -107,9 +107,11 @@ model Cor {
 model RelCorProduto {
   id String @id() @default(uuid())
 
-  cor       Cor       @relation(fields: [corCodigo], references: [codigo])
+  cor       Cor @relation(fields: [corCodigo], references: [codigo])
   corCodigo Int
-  Produto   Produto[]
+
+  produto       Produto? @relation(fields: [codigoProduto], references: [codigo])
+  codigoProduto Int?     @unique
 
   @@map("relCorProdutos")
 }
@@ -128,7 +130,7 @@ model Produto {
 
   corPrimaria       Cor?           @relation(fields: [corPrimariaCodigo], references: [codigo])
   corPrimariaCodigo Int?
-  corSecundaria     RelCorProduto? @relation(fields: [relCorProdutoId], references: [id])
+  corSecundaria     RelCorProduto?
   marca             Marca          @relation(fields: [codigoMarca], references: [codigo])
   codigoMarca       Int
   colecao           Colecao?       @relation(fields: [codigoColecao], references: [codigo])
@@ -139,7 +141,6 @@ model Produto {
   codigoGrupo       Int?
   subGrupo          SubGrupo?      @relation(fields: [codigoSubGrupo], references: [codigo])
   codigoSubGrupo    Int?
-  relCorProdutoId   String?
 
   @@map("produtos")
 }

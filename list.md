@@ -1,3 +1,58 @@
+# Entidades
+
+- [ ] Vendedor
+  - [x] Criação
+  - [x] Listagem
+  - [x] Detalhe
+  - [x] Update
+  - [ ] Importação
+- [x] Cor
+  - [x] Criação
+  - [x] Listagem
+  - [x] Detalhe
+  - [x] Update
+  - [x] Importação
+- [x] Marca
+  - [x] Criação
+  - [x] Listagem
+  - [x] Detalhe
+  - [x] Update
+  - [x] Importação
+- [x] Grupo
+  - [x] Criação
+  - [x] Listagem
+  - [x] Detalhe
+  - [x] Update
+  - [x] Importação
+- [x] SubGrupo
+  - [x] Criação
+  - [x] Listagem
+  - [x] Detalhe
+  - [x] Update
+  - [x] Importação
+- [ ] Produto
+  - [ ] Criação
+  - [ ] Listagem
+  - [ ] Detalhe
+  - [ ] Update
+  - [ ] Importação
+- [ ] Colecao
+  - [ ] Criação
+  - [ ] Listagem
+  - [ ] Detalhe
+  - [ ] Update
+  - [ ] Importação
+- [ ] Linha
+  - [ ] Criação
+  - [ ] Listagem
+  - [ ] Detalhe
+  - [ ] Update
+  - [ ] Importação
+
+---
+
+Relatório SIGER
+
 - [x] Vendedor (2500)
 - [x] Cor (2502)
 - [ ] Produto (2503)
@@ -15,5 +70,3 @@
 - [ ] Gêneros
 - [ ] Grade
 - [ ] Ean
-
-produtos 242
