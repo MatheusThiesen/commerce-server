@@ -45,7 +45,7 @@ export class SubgroupsService {
       throw new Error('SubGroup does not exist');
     }
 
-    return;
+    return subgroup;
   }
 
   async update(codigo: number, updateSubgroupDto: UpdateSubgroupDto) {

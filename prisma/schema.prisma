@@ -32,6 +32,7 @@ model Vendedor {
 model Linha {
   codigo    Int      @id @unique
   descricao String
+  eAtivo    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -43,6 +44,7 @@ model Linha {
 model Colecao {
   codigo    Int      @id @unique
   descricao String
+  eAtivo    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

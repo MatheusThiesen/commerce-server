@@ -1,7 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { LinesService } from './lines.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateLineDto } from './dto/create-line.dto';
 import { UpdateLineDto } from './dto/update-line.dto';
+import { LinesService } from './lines.service';
 
 @Controller('lines')
 export class LinesController {
@@ -22,7 +33,7 @@ export class LinesController {
     return this.linesService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateLineDto: UpdateLineDto) {
     return this.linesService.update(+id, updateLineDto);
   }
@@ -30,5 +41,11 @@ export class LinesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.linesService.remove(+id);
+  }
+
+  @Post('import')
+  @UseInterceptors(FileInterceptor('file'))
+  import(@UploadedFile() file: Express.Multer.File) {
+    return this.linesService.import(file);
   }
 }
