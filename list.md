@@ -36,18 +36,18 @@
   - [ ] Detalhe
   - [ ] Update
   - [ ] Importação
-- [ ] Colecao
-  - [ ] Criação
-  - [ ] Listagem
-  - [ ] Detalhe
-  - [ ] Update
-  - [ ] Importação
-- [ ] Linha
-  - [ ] Criação
-  - [ ] Listagem
-  - [ ] Detalhe
-  - [ ] Update
-  - [ ] Importação
+- [x] Colecao
+  - [x] Criação
+  - [x] Listagem
+  - [x] Detalhe
+  - [x] Update
+  - [x] Importação
+- [x] Linha
+  - [x] Criação
+  - [x] Listagem
+  - [x] Detalhe
+  - [x] Update
+  - [x] Importação
 
 ---
 

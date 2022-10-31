@@ -18,23 +18,29 @@ export class AuthController {
     return this.authService.signin(dto);
   }
 
+  @Public()
+  @Post('signup')
+  signup(@Body() dto: AuthDto) {
+    return this.authService.signup(dto);
+  }
+
   @Post('logout')
-  logout(@GetCurrentUserId() userCod: number) {
-    return this.authService.logout(userCod);
+  logout(@GetCurrentUserId() userId: string) {
+    return this.authService.logout(userId);
   }
 
   @Public()
   @UseGuards(RtGuard)
   @Post('refresh')
   refreshTokens(
-    @GetCurrentUserId() userCod: number,
+    @GetCurrentUserId() userId: string,
     @GetCurrentUser('refreshToken') refreshToken: string,
   ) {
-    return this.authService.refreshTokens(userCod, refreshToken);
+    return this.authService.refreshTokens(userId, refreshToken);
   }
 
   @Get('me')
-  me(@GetCurrentUserId() userCod: number) {
-    return this.authService.me(userCod);
+  me(@GetCurrentUserId() userId: string) {
+    return this.authService.me(userId);
   }
 }

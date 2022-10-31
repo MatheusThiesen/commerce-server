@@ -9,9 +9,11 @@ import { CollectionsModule } from './modules/collections/collections.module';
 import { ColorsModule } from './modules/colors/colors.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { LinesModule } from './modules/lines/lines.module';
+import { ProductsModule } from './modules/products/products.module';
 import { SellersModule } from './modules/sellers/sellers.module';
 import { SubgroupsModule } from './modules/subgroups/subgroups.module';
 import { UtilsModule } from './utils/utils.module';
+import { StockLocationsModule } from './modules/stock-locations/stock-locations.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { UtilsModule } from './utils/utils.module';
     CollectionsModule,
     SellersModule,
     AuthModule,
+    ProductsModule,
+    StockLocationsModule,
   ],
   controllers: [],
   providers: [

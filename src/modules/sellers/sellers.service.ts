@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { hash } from 'argon2';
 import { PrismaService } from '../../database/prisma.service';
-import { ParseCsv } from '../../utils/parseCsv.utils';
+import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { CreateSellerDto } from './dto/create-seller.dto';
 import { UpdateSellerDto } from './dto/update-seller.dto';
 import { Seller } from './entities/seller.entity';
 
 @Injectable()
 export class SellersService {
-  private selectSeller = {
+  private readonly selectSeller = {
     codigo: true,
     nome: true,
     nomeGuerra: true,
@@ -28,7 +27,6 @@ export class SellersService {
     const seller = new Seller();
     Object.assign(seller, {
       ...createSellerDto,
-      senha: await hash(createSellerDto.senha),
     });
 
     const sellerExists = await this.prisma.vendedor.findUnique({
@@ -39,9 +37,21 @@ export class SellersService {
       throw new Error('Seller already exists');
     }
 
+    const userExists = seller.usuarioId
+      ? (
+          await this.prisma.usuario.findUnique({
+            where: { id: seller.usuarioId },
+          })
+        ).id
+      : undefined;
+
+    if (userExists) {
+      throw new Error('User already exists');
+    }
+
     const createdSeller = await this.prisma.vendedor.create({
       select: this.selectSeller,
-      data: seller,
+      data: { ...seller, usuarioId: userExists },
     });
 
     return createdSeller;
@@ -69,9 +79,6 @@ export class SellersService {
     const seller = new Seller();
     Object.assign(seller, {
       ...updateSellerDto,
-      senha: updateSellerDto.senha
-        ? await hash(updateSellerDto.senha)
-        : undefined,
     });
 
     await this.findOne(codigo);

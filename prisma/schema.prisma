@@ -10,13 +10,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Usuario {
+  id String @id @unique @default(uuid())
+
+  email        String   @unique
+  senha        String
+  tokenRefresh String?
+  eAtivo       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  eVendedor Boolean    @default(false)
+  vendedor  Vendedor[]
+
+  @@map("usuarios")
+}
+
 model Vendedor {
   codigo        Int      @id @unique
   nome          String
   nomeGuerra    String
-  email         String   @unique
-  senha         String
-  senhaRefresh  String?
+  email         String
   codGerente    Int?
   codSupervisor Int?
   eAtivo        Boolean  @default(true)
@@ -24,7 +38,10 @@ model Vendedor {
   eSupervisor   Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  marcas        Marca[]
+
+  marcas    Marca[]
+  Usuario   Usuario? @relation(fields: [usuarioId], references: [id])
+  usuarioId String?
 
   @@map("vendedores")
 }
@@ -120,29 +137,62 @@ model RelCorProduto {
 
 model Produto {
   codigo                Int      @id @unique
-  codigoAlternativo     Int
+  codigoAlternativo     String
   referencia            String
   descricao             String
-  descricaoComplementar String
+  descricaoComplementar String?
+  descricaoAdicional    String?
   precoVenda            Float
   unidade               String
   eAtivo                Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  corPrimaria       Cor?           @relation(fields: [corPrimariaCodigo], references: [codigo])
-  corPrimariaCodigo Int?
-  corSecundaria     RelCorProduto?
-  marca             Marca          @relation(fields: [codigoMarca], references: [codigo])
-  codigoMarca       Int
-  colecao           Colecao?       @relation(fields: [codigoColecao], references: [codigo])
-  codigoColecao     Int?
-  linha             Linha?         @relation(fields: [codigoLinha], references: [codigo])
-  codigoLinha       Int?
-  grupo             Grupo?         @relation(fields: [codigoGrupo], references: [codigo])
-  codigoGrupo       Int?
-  subGrupo          SubGrupo?      @relation(fields: [codigoSubGrupo], references: [codigo])
-  codigoSubGrupo    Int?
+  locaisEstoque LocalEstoque[]
+
+  corPrimaria         Cor?           @relation(fields: [corPrimariaCodigo], references: [codigo])
+  corPrimariaCodigo   Int?
+  corSecundaria       RelCorProduto?
+  corSecundariaCodigo Int?
+  marca               Marca          @relation(fields: [marcaCodigo], references: [codigo])
+  marcaCodigo         Int
+  colecao             Colecao?       @relation(fields: [colecaoCodigo], references: [codigo])
+  colecaoCodigo       Int?
+  linha               Linha?         @relation(fields: [linhaCodigo], references: [codigo])
+  linhaCodigo         Int?
+  grupo               Grupo?         @relation(fields: [grupoCodigo], references: [codigo])
+  grupoCodigo         Int?
+  subGrupo            SubGrupo?      @relation(fields: [subgrupoCodigo], references: [codigo])
+  subgrupoCodigo      Int?
+  genero              Genero?        @relation(fields: [generoCodigo], references: [codigo])
+  generoCodigo        Int?
 
   @@map("produtos")
+}
+
+model LocalEstoque {
+  id         String   @id @unique @default(uuid())
+  periodo    String
+  descricao  String
+  quantidade Int
+  eAtivo     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  Produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
+  produtoCodigo Int
+
+  @@map("locaisEstoque")
+}
+
+model Genero {
+  codigo    Int      @id @unique
+  descricao String
+  eAtivo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  produtos Produto[]
+
+  @@map("generos")
 }

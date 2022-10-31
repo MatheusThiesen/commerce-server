@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { PrismaService } from './../../database/prisma.service';
-import { ParseCsv } from './../../utils/parseCsv.utils';
 import { CreateLineDto } from './dto/create-line.dto';
 import { UpdateLineDto } from './dto/update-line.dto';
 import { Line } from './entities/line.entity';
@@ -12,8 +12,6 @@ export class LinesService {
   async create(createLineDto: CreateLineDto) {
     const line = new Line();
     Object.assign(line, createLineDto);
-
-    console.log(line);
 
     const LineExists = await this.prisma.linha.findUnique({
       where: {
@@ -83,14 +81,14 @@ export class LinesService {
         eAtivo: Number(situacao) === 1,
       });
 
-      const subGroupExists = await this.prisma.subGrupo.findUnique({
+      const lineExists = await this.prisma.linha.findUnique({
         where: {
           codigo: line.codigo,
         },
       });
 
-      if (subGroupExists) {
-        await this.update(subGroupExists.codigo, line);
+      if (lineExists) {
+        await this.update(lineExists.codigo, line);
       } else {
         await this.create(line);
       }

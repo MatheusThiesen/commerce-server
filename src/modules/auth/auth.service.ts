@@ -1,9 +1,15 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon from 'argon2';
+import { hash } from 'argon2';
 import { PrismaService } from '../../database/prisma.service';
 import { AuthDto } from './dto/auth.dto';
+import { User } from './entities/user.entity';
 import { JwtPayload } from './types/jwtPayload.type';
 import { Tokens } from './types/tokens.type';
 
@@ -15,96 +21,104 @@ export class AuthService {
     private config: ConfigService,
   ) {}
 
-  async me(userCod: number) {
-    const user = await this.prisma.vendedor.findUnique({
+  async me(userId: string) {
+    const user = await this.prisma.usuario.findUnique({
       select: {
-        codigo: true,
-        nome: true,
-        nomeGuerra: true,
+        id: true,
         email: true,
-        codGerente: true,
-        codSupervisor: true,
-        eAtivo: true,
-        eGerente: true,
-        eSupervisor: true,
-        senhaRefresh: true,
+        eVendedor: true,
+        vendedor: {
+          select: {
+            codigo: true,
+            nome: true,
+            nomeGuerra: true,
+            marcas: {
+              select: {
+                codigo: true,
+                descricao: true,
+              },
+            },
+          },
+        },
+        tokenRefresh: true,
       },
       where: {
-        codigo: userCod,
+        id: userId,
       },
     });
 
-    if (!user || !user.senhaRefresh)
-      throw new ForbiddenException('Access Denied');
+    if (!user || !user.tokenRefresh) {
+      throw new UnauthorizedException('Access Denied');
+    }
 
-    delete user.senhaRefresh;
+    delete user.tokenRefresh;
 
     return user;
   }
-  async refreshTokens(userCod: number, rt: string): Promise<Tokens> {
-    const user = await this.prisma.vendedor.findUnique({
+  async refreshTokens(userId: string, rt: string): Promise<Tokens> {
+    const user = await this.prisma.usuario.findUnique({
       where: {
-        codigo: userCod,
+        id: userId,
       },
     });
-    if (!user || !user.senhaRefresh)
-      throw new ForbiddenException('Access Denied');
+    if (!user || !user.tokenRefresh)
+      throw new UnauthorizedException('Access Denied');
 
-    const rtMatches = await argon.verify(user.senhaRefresh, rt);
-    if (!rtMatches) throw new ForbiddenException('Access Denied');
+    const rtMatches = await argon.verify(user.tokenRefresh, rt);
+    if (!rtMatches) throw new UnauthorizedException('Access Denied');
 
-    const tokens = await this.getTokens(user.codigo, user.email);
-    await this.updateRtPassword(user.codigo, tokens.refresh_token);
+    const tokens = await this.getTokens(user.id, user.email);
+    await this.updateRtPassword(user.id, tokens.refresh_token);
 
     return tokens;
   }
   async signin(dto: AuthDto) {
-    const user = await this.prisma.vendedor.findUnique({
+    const user = await this.prisma.usuario.findUnique({
       where: {
         email: dto.email,
       },
     });
 
-    if (!user) throw new ForbiddenException('Access Denied');
+    if (!user) throw new UnauthorizedException('Access Denied');
 
     const passwordMatches = await argon.verify(user.senha, dto.senha);
-    if (!passwordMatches) throw new ForbiddenException('Access Denied');
+    if (!passwordMatches) throw new UnauthorizedException('Access Denied');
 
-    const tokens = await this.getTokens(user.codigo, user.email);
-    await this.updateRtPassword(user.codigo, tokens.refresh_token);
+    const tokens = await this.getTokens(user.id, user.email);
+    await this.updateRtPassword(user.id, tokens.refresh_token);
 
     return tokens;
   }
-  async logout(userCod: number) {
-    await this.prisma.vendedor.updateMany({
+  async logout(userId: string) {
+    await this.prisma.usuario.updateMany({
       where: {
-        codigo: userCod,
-        senhaRefresh: {
+        id: userId,
+        tokenRefresh: {
           not: null,
         },
       },
       data: {
-        senhaRefresh: null,
+        tokenRefresh: null,
       },
     });
     return true;
   }
 
-  async updateRtPassword(userCod: number, rt: string): Promise<void> {
-    const senhaRefresh = await argon.hash(rt);
-    await this.prisma.vendedor.update({
+  async updateRtPassword(userId: string, rt: string): Promise<void> {
+    const tokenRefresh = await argon.hash(rt);
+    await this.prisma.usuario.update({
       where: {
-        codigo: userCod,
+        id: userId,
       },
       data: {
-        senhaRefresh: senhaRefresh,
+        tokenRefresh: tokenRefresh,
       },
     });
   }
 
-  async getTokens(userCod: number, email: string): Promise<Tokens> {
+  async getTokens(userId: string, email: string): Promise<Tokens> {
     const jwtPayload: JwtPayload = {
-      sub: userCod,
+      sub: userId,
       email: email,
     };
 
@@ -123,5 +137,30 @@ export class AuthService {
       access_token: at,
       refresh_token: rt,
     };
+  }
+
+  async signup(dto: AuthDto) {
+    const findUser = await this.prisma.usuario.findUnique({
+      where: {
+        email: dto.email,
+      },
+    });
+
+    if (findUser) throw new BadRequestException('User already exists');
+
+    const user = new User();
+    Object.assign(user, {
+      ...dto,
+      senha: await hash(dto.senha),
+    });
+
+    const createdUser = await this.prisma.usuario.create({
+      data: user,
+    });
+
+    const tokens = await this.getTokens(createdUser.id, createdUser.email);
+    await this.updateRtPassword(createdUser.id, tokens.refresh_token);
+
+    return tokens;
   }
 }

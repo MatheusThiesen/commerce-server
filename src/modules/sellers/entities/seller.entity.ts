@@ -1,10 +1,9 @@
 export class Seller {
+  usuarioId?: string;
   codigo: number;
   nome: string;
   nomeGuerra: string;
   email: string;
-  senha: string;
-  senhaRefresh: string;
   codGerente?: number;
   codSupervisor?: number;
   eAtivo: boolean;
