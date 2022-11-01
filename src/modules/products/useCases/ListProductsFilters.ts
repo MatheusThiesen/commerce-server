@@ -98,7 +98,7 @@ export class ListProductsFilters {
       },
     });
     const genders = await this.prisma.produto.findMany({
-      distinct: 'grupoCodigo',
+      distinct: 'generoCodigo',
       where: where,
       select: {
         genero: {

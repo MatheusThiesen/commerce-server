@@ -95,6 +95,12 @@ export class GenerateCatalog {
         descricaoAdicional: true,
         precoVenda: true,
         descricaoComplementar: true,
+        genero: {
+          select: {
+            codigo: true,
+            descricao: true,
+          },
+        },
         marca: {
           select: {
             descricao: true,
@@ -141,9 +147,14 @@ export class GenerateCatalog {
           in: codProducts,
         },
       },
-      orderBy: {
-        precoVenda: 'asc',
-      },
+      orderBy: [
+        {
+          generoCodigo: 'asc',
+        },
+        {
+          precoVenda: 'asc',
+        },
+      ],
     });
 
     const background = ``;
@@ -170,7 +181,7 @@ export class GenerateCatalog {
         }),
         brand: product.marca.descricao,
         colection: product.colecao.descricao,
-        genre: '-',
+        genre: product.genero.descricao,
         group: product.grupo.descricao,
         subgroup: product.subGrupo.descricao,
         line: product.linha.descricao,

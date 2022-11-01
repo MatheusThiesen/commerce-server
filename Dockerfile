@@ -7,6 +7,7 @@ RUN npm install
 # Bundle app source
 COPY . .
 
+RUN npx prisma generate
 RUN npm run build
 
 EXPOSE 4444
