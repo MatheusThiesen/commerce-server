@@ -66,9 +66,10 @@ export class ProductsController {
   }
 
   @Post('catalog')
-  catalog(@Body() { codProducts }) {
+  catalog(@Body() { codProducts, orderBy }) {
     return this.generateCatalog.execute({
       codProducts,
+      orderBy,
     });
   }
 }

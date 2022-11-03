@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
+import { OrderBy } from '../../../utils/OrderBy.utils';
 
 interface ListProductsFiltersProps {
   codProducts: number[];
+  orderBy: string;
 }
 
 interface generatePagesProps {
@@ -32,7 +34,7 @@ export class GenerateCatalog {
     'https://alpar.sfo3.digitaloceanspaces.com/Alpar/no-image.jpg';
   readonly spaceLink = 'https://alpar.sfo3.digitaloceanspaces.com/';
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private orderByProcess: OrderBy) {}
 
   async generatePages({ pages, dateNow }: generatePagesProps): Promise<string> {
     let pagesHtml = '';
@@ -86,7 +88,10 @@ export class GenerateCatalog {
     return pagesHtml;
   }
 
-  async execute({ codProducts }: ListProductsFiltersProps): Promise<string> {
+  async execute({
+    codProducts,
+    orderBy,
+  }: ListProductsFiltersProps): Promise<string> {
     const products = await this.prisma.produto.findMany({
       select: {
         referencia: true,
@@ -151,9 +156,7 @@ export class GenerateCatalog {
         {
           generoCodigo: 'asc',
         },
-        {
-          precoVenda: 'asc',
-        },
+        this.orderByProcess.execute(orderBy),
       ],
     });
 

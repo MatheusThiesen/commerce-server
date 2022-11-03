@@ -145,6 +145,7 @@ model Produto {
   precoVenda            Float
   unidade               String
   eAtivo                Boolean  @default(true)
+  possuiFoto            Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 

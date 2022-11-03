@@ -8,6 +8,7 @@ export class Product {
   precoVenda: number;
   unidade: string;
   eAtivo?: boolean;
+  possuiFoto?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 

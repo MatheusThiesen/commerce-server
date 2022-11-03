@@ -1,4 +1,7 @@
+import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { AxiosError } from 'axios';
+import { catchError, firstValueFrom } from 'rxjs';
 import { PrismaService } from '../../database/prisma.service';
 import { OrderBy } from '../../utils/OrderBy.utils';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
@@ -13,6 +16,7 @@ import { VariationsProduct } from './useCases/VariationsProduct';
 @Injectable()
 export class ProductsService {
   constructor(
+    private readonly httpService: HttpService,
     private prisma: PrismaService,
     private parseCsv: ParseCsv,
     private orderBy: OrderBy,
@@ -22,8 +26,10 @@ export class ProductsService {
   ) {}
 
   async create(createProductDto: CreateProductDto) {
+    const possuiFoto = await this.testImage(createProductDto.referencia);
+
     const product = new Product();
-    Object.assign(product, createProductDto);
+    Object.assign(product, { ...createProductDto, possuiFoto });
 
     const productVerifyRelation = await this.verifyRelation(product);
 
@@ -52,8 +58,10 @@ export class ProductsService {
   }
 
   async update(codigo: number, updateProductDto: UpdateProductDto) {
+    const possuiFoto = await this.testImage(updateProductDto.referencia);
+
     const product = new Product();
-    Object.assign(product, updateProductDto);
+    Object.assign(product, { ...updateProductDto, possuiFoto });
 
     await this.findOne(codigo);
 
@@ -80,7 +88,17 @@ export class ProductsService {
   ) {
     const orderByNormalized = this.orderBy.execute(orderBy);
     const filtersAvailable = await this.listProductsFilters.execute({
-      where: { eAtivo: true },
+      where: {
+        eAtivo: true,
+        possuiFoto: true,
+        locaisEstoque: {
+          some: {
+            quantidade: {
+              gte: 1,
+            },
+          },
+        },
+      },
     });
 
     const filterNormalized = filters
@@ -128,7 +146,15 @@ export class ProductsService {
       },
       where: {
         eAtivo: true,
-        OR: filterNormalized,
+        possuiFoto: true,
+        locaisEstoque: {
+          some: {
+            quantidade: {
+              gte: 1,
+            },
+          },
+        },
+        AND: filterNormalized,
       },
     });
     const productsTotal = await this.prisma.produto.findMany({
@@ -136,7 +162,15 @@ export class ProductsService {
       select: { codigo: true },
       where: {
         eAtivo: true,
-        OR: filterNormalized,
+        possuiFoto: true,
+        locaisEstoque: {
+          some: {
+            quantidade: {
+              gte: 1,
+            },
+          },
+        },
+        AND: filterNormalized,
       },
     });
 
@@ -255,6 +289,8 @@ export class ProductsService {
         subgrupoCodigo,
       ] = productsArr;
 
+      const possuiFoto = await this.testImage(referencia);
+
       const product = new Product();
       Object.assign(product, {
         codigo: Number(codigo),
@@ -264,6 +300,7 @@ export class ProductsService {
         descricao,
         descricaoComplementar,
         descricaoAdicional,
+        possuiFoto,
         precoVenda: Number(precoVenda),
         unidade,
         marcaCodigo: this.stringToNumberOrUndefined.execute(marcaCodigo),
@@ -344,5 +381,25 @@ export class ProductsService {
     // corSecundariaCodigo
 
     return product;
+  }
+
+  async testImage(reference: string): Promise<boolean> {
+    try {
+      await firstValueFrom(
+        this.httpService
+          .get<any>(
+            `https://alpar.sfo3.digitaloceanspaces.com/Produtos/${reference}_01`,
+          )
+          .pipe(
+            catchError((_error: AxiosError) => {
+              throw 'An error happened!';
+            }),
+          ),
+      );
+
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }
