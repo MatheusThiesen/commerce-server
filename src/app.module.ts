@@ -21,7 +21,7 @@ import { UtilsModule } from './utils/utils.module';
     ConfigModule.forRoot({ isGlobal: true }),
     BullModule.forRoot({
       redis: {
-        host: '127.0.0.1',
+        host: 'redis',
         port: 6828,
       },
     }),
