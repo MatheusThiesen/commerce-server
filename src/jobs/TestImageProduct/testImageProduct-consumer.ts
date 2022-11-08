@@ -26,7 +26,7 @@ class TestImageProductConsumer {
         referencia: true,
       },
       where: {
-        possuiFoto: true,
+        possuiFoto: false,
       },
     });
 
