@@ -126,8 +126,6 @@ export class ProductsService {
     filters: ItemFilter[],
     userId: string,
   ) {
-    await this.testImageProductProducerService.execute({});
-
     const user = await this.prisma.usuario.findUnique({
       select: {
         eVendedor: true,
