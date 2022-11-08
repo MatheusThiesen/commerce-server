@@ -22,7 +22,7 @@ import { UtilsModule } from './utils/utils.module';
     BullModule.forRoot({
       redis: {
         host: 'redis',
-        port: 6828,
+        port: 6379,
       },
     }),
     PrismaModule,
