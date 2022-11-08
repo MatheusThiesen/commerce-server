@@ -9,8 +9,10 @@ services:
       - 5469:4444
     depends_on:
       - db
+      - redis
     links:
       - db
+      - redis
   db:
     container_name: commerce-server-db
     image: postgres:13
@@ -21,3 +23,12 @@ services:
       POSTGRES_USER: commerce
       POSTGRES_PASSWORD: Y29tbWVyY2Utc2VuaGEtZGItZm9kYQ
       POSTGRES_DB: commerce
+
+  redis:
+    build: redis/.
+    restart: always
+    command: redis-server
+    ports:
+      - 6379:6828
+      - 6828:6379
+    container_name: commerce-server-redis

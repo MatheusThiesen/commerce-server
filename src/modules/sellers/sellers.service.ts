@@ -37,21 +37,9 @@ export class SellersService {
       throw new Error('Seller already exists');
     }
 
-    const userExists = seller.usuarioId
-      ? (
-          await this.prisma.usuario.findUnique({
-            where: { id: seller.usuarioId },
-          })
-        ).id
-      : undefined;
-
-    if (userExists) {
-      throw new Error('User already exists');
-    }
-
     const createdSeller = await this.prisma.vendedor.create({
       select: this.selectSeller,
-      data: { ...seller, usuarioId: userExists },
+      data: { ...seller },
     });
 
     return createdSeller;

@@ -80,17 +80,17 @@ export class StockLocationsService {
         quantidade: Number(quantidade),
       });
 
-      const stockLocationExists = await this.prisma.localEstoque.findFirst({
-        select: {
-          id: true,
-        },
-        where: {
-          produtoCodigo: stockLocation.produtoCodigo,
-          periodo: stockLocation.periodo,
-        },
-      });
-
       try {
+        const stockLocationExists = await this.prisma.localEstoque.findFirst({
+          select: {
+            id: true,
+          },
+          where: {
+            produtoCodigo: stockLocation.produtoCodigo,
+            periodo: stockLocation.periodo,
+          },
+        });
+
         if (stockLocationExists) {
           await this.update(stockLocationExists.id, stockLocation);
         } else {

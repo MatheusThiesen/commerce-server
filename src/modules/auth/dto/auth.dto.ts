@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { RegExHelper } from '../../../helpers/regex.helper';
 
 export class AuthDto {
   @IsNotEmpty()
@@ -6,6 +7,6 @@ export class AuthDto {
   email: string;
 
   @IsNotEmpty()
-  @IsString()
+  @Matches(RegExHelper.password)
   senha: string;
 }

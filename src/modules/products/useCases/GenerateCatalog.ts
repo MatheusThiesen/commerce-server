@@ -182,12 +182,12 @@ export class GenerateCatalog {
           style: 'currency',
           currency: 'BRL',
         }),
-        brand: product.marca.descricao,
-        colection: product.colecao.descricao,
-        genre: product.genero.descricao,
-        group: product.grupo.descricao,
-        subgroup: product.subGrupo.descricao,
-        line: product.linha.descricao,
+        brand: product?.marca?.descricao ?? '-',
+        colection: product?.colecao?.descricao ?? '-',
+        genre: product?.genero?.descricao ?? '-',
+        group: product?.grupo?.descricao ?? '-',
+        subgroup: product?.subGrupo?.descricao ?? '-',
+        line: product?.linha?.descricao ?? '-',
       })),
     });
 
@@ -240,6 +240,8 @@ export class GenerateCatalog {
           background-size: contain;
           background-repeat: round;
         }
+
+        @page { size: landscape; }
   
         @media print {
           body {
@@ -434,8 +436,13 @@ export class GenerateCatalog {
       </style>
     </head>
       <body>
-
         ${pages}
+
+        <script>
+          document.addEventListener("DOMContentLoaded", function(){
+            alert('carregou');
+          })
+        </script>
       </body>
     </html>
     `;

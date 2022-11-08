@@ -1,11 +1,4 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  Matches,
-} from 'class-validator';
-import { RegExHelper } from '../../../helpers/regex.helper';
+import { IsEmail, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { Seller } from '../entities/seller.entity';
 
 export class CreateSellerDto extends Seller {
@@ -24,8 +17,4 @@ export class CreateSellerDto extends Seller {
   @IsNotEmpty()
   @IsEmail()
   email: string;
-
-  @IsNotEmpty()
-  @Matches(RegExHelper.password)
-  senha: string;
 }

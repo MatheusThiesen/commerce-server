@@ -27,19 +27,6 @@ export class AuthService {
         id: true,
         email: true,
         eVendedor: true,
-        vendedor: {
-          select: {
-            codigo: true,
-            nome: true,
-            nomeGuerra: true,
-            marcas: {
-              select: {
-                codigo: true,
-                descricao: true,
-              },
-            },
-          },
-        },
         tokenRefresh: true,
       },
       where: {

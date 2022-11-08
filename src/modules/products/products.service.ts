@@ -2,7 +2,9 @@ import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
+import { TestImageProductProducerService } from 'src/jobs/TestImageProduct/testImageProduct-producer-service';
 import { PrismaService } from '../../database/prisma.service';
+
 import { OrderBy } from '../../utils/OrderBy.utils';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { StringToNumberOrUndefined } from '../../utils/StringToNumberOrUndefined.utils';
@@ -15,6 +17,18 @@ import { VariationsProduct } from './useCases/VariationsProduct';
 
 @Injectable()
 export class ProductsService {
+  private readonly listingRule = {
+    eAtivo: true,
+    possuiFoto: true,
+    locaisEstoque: {
+      some: {
+        quantidade: {
+          gte: 1,
+        },
+      },
+    },
+  };
+
   constructor(
     private readonly httpService: HttpService,
     private prisma: PrismaService,
@@ -23,13 +37,12 @@ export class ProductsService {
     private stringToNumberOrUndefined: StringToNumberOrUndefined,
     private listProductsFilters: ListProductsFilters,
     private variationsProduct: VariationsProduct,
+    private readonly testImageProductProducerService: TestImageProductProducerService,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
-    const possuiFoto = await this.testImage(createProductDto.referencia);
-
     const product = new Product();
-    Object.assign(product, { ...createProductDto, possuiFoto });
+    Object.assign(product, { ...createProductDto, possuiFoto: false });
 
     const productVerifyRelation = await this.verifyRelation(product);
 
@@ -46,11 +59,13 @@ export class ProductsService {
     const createdProduct = await this.prisma.produto.create({
       data: {
         ...productVerifyRelation,
-        corSecundaria: {
-          create: {
-            corCodigo: productVerifyRelation.corSecundariaCodigo,
-          },
-        },
+        corSecundaria: !!productVerifyRelation.corSecundariaCodigo
+          ? {
+              create: {
+                corCodigo: productVerifyRelation.corSecundariaCodigo,
+              },
+            }
+          : undefined,
       },
     });
 
@@ -58,22 +73,46 @@ export class ProductsService {
   }
 
   async update(codigo: number, updateProductDto: UpdateProductDto) {
-    const possuiFoto = await this.testImage(updateProductDto.referencia);
-
     const product = new Product();
-    Object.assign(product, { ...updateProductDto, possuiFoto });
+    Object.assign(product, updateProductDto);
+    const productVerifyRelation = await this.verifyRelation(product);
 
-    await this.findOne(codigo);
+    const productExist = await this.findOne(codigo);
 
-    const updatedProduct = await this.prisma.produto.update({
-      data: {
-        ...product,
-        corSecundaria: {
-          create: {
-            corCodigo: product.corSecundariaCodigo,
+    if (
+      productVerifyRelation.corSecundariaCodigo >= 1 &&
+      productExist.corSecundariaCodigo !==
+        productVerifyRelation.corSecundariaCodigo
+    ) {
+      if (productExist.corSecundaria) {
+        await this.prisma.produto.update({
+          data: {
+            corSecundaria: {
+              delete: true,
+            },
+          },
+          where: {
+            codigo: productExist.codigo,
+          },
+        });
+      }
+      await this.prisma.produto.update({
+        data: {
+          corSecundariaCodigo: product.corSecundariaCodigo,
+          corSecundaria: {
+            create: {
+              corCodigo: product.corSecundariaCodigo,
+            },
           },
         },
-      },
+        where: {
+          codigo: productExist.codigo,
+        },
+      });
+    }
+
+    const updatedProduct = await this.prisma.produto.update({
+      data: productVerifyRelation,
       where: { codigo },
     });
 
@@ -85,39 +124,43 @@ export class ProductsService {
     pagesize: number,
     orderBy: string,
     filters: ItemFilter[],
+    userId: string,
   ) {
-    const orderByNormalized = this.orderBy.execute(orderBy);
-    const filtersAvailable = await this.listProductsFilters.execute({
-      where: {
-        eAtivo: true,
-        possuiFoto: true,
-        locaisEstoque: {
-          some: {
-            quantidade: {
-              gte: 1,
+    await this.testImageProductProducerService.execute({});
+
+    const user = await this.prisma.usuario.findUnique({
+      select: {
+        eVendedor: true,
+        vendedor: {
+          select: {
+            marcas: {
+              select: {
+                codigo: true,
+              },
             },
           },
         },
       },
+      where: {
+        id: userId,
+      },
     });
 
-    const filterNormalized = filters
-      ?.filter((filter) =>
-        filtersAvailable.map((item) => item.name).includes(filter.name),
-      )
-      ?.map((filter) => {
-        if (['locaisEstoque'].includes(filter.name)) {
-          return {
-            locaisEstoque: {
-              some: {
-                periodo: String(filter.value),
-              },
+    const orderByNormalized = this.orderBy.execute(orderBy);
+
+    const filterNormalized = filters?.map((filter) => {
+      if (['locaisEstoque'].includes(filter.name)) {
+        return {
+          locaisEstoque: {
+            some: {
+              periodo: String(filter.value),
             },
-          };
-        } else {
-          return { [filter.name]: filter.value };
-        }
-      });
+          },
+        };
+      } else {
+        return { [filter.name]: filter.value };
+      }
+    });
 
     const products = await this.prisma.produto.findMany({
       distinct: 'referencia',
@@ -145,15 +188,12 @@ export class ProductsService {
         },
       },
       where: {
-        eAtivo: true,
-        possuiFoto: true,
-        locaisEstoque: {
-          some: {
-            quantidade: {
-              gte: 1,
-            },
-          },
-        },
+        ...this.listingRule,
+        marcaCodigo: user.eVendedor
+          ? {
+              in: user.vendedor.marcas.map((marca) => marca.codigo),
+            }
+          : undefined,
         AND: filterNormalized,
       },
     });
@@ -161,26 +201,52 @@ export class ProductsService {
       distinct: 'referencia',
       select: { codigo: true },
       where: {
-        eAtivo: true,
-        possuiFoto: true,
-        locaisEstoque: {
-          some: {
-            quantidade: {
-              gte: 1,
-            },
-          },
-        },
+        marcaCodigo: user.eVendedor
+          ? {
+              in: user.vendedor.marcas.map((marca) => marca.codigo),
+            }
+          : undefined,
+        ...this.listingRule,
         AND: filterNormalized,
       },
     });
 
     return {
       data: products,
-      filters: filtersAvailable,
       page,
       pagesize,
       total: productsTotal.length,
     };
+  }
+
+  async getFiltersForFindAll(userId: string) {
+    const user = await this.prisma.usuario.findUnique({
+      select: {
+        eVendedor: true,
+        vendedor: {
+          select: {
+            marcas: {
+              select: {
+                codigo: true,
+              },
+            },
+          },
+        },
+      },
+      where: {
+        id: userId,
+      },
+    });
+    return await this.listProductsFilters.execute({
+      where: {
+        ...this.listingRule,
+        marcaCodigo: user.eVendedor
+          ? {
+              in: user.vendedor.marcas.map((marca) => marca.codigo),
+            }
+          : undefined,
+      },
+    });
   }
 
   async findOne(codigo: number) {
@@ -193,6 +259,7 @@ export class ProductsService {
         descricaoComplementar: true,
         descricaoAdicional: true,
         unidade: true,
+        possuiFoto: true,
         grupo: {
           select: {
             codigo: true,
@@ -218,6 +285,7 @@ export class ProductsService {
             descricao: true,
           },
         },
+        corSecundariaCodigo: true,
         corSecundaria: {
           select: {
             cor: {
@@ -269,6 +337,9 @@ export class ProductsService {
   async import(file: Express.Multer.File) {
     const products = await this.parseCsv.execute(file);
 
+    const productsCreate: Product[] = [];
+    const productsUpdate: Product[] = [];
+
     for (const productsArr of products) {
       const [
         codigo,
@@ -288,9 +359,6 @@ export class ProductsService {
         grupoCodigo,
         subgrupoCodigo,
       ] = productsArr;
-
-      const possuiFoto = await this.testImage(referencia);
-
       const product = new Product();
       Object.assign(product, {
         codigo: Number(codigo),
@@ -300,7 +368,6 @@ export class ProductsService {
         descricao,
         descricaoComplementar,
         descricaoAdicional,
-        possuiFoto,
         precoVenda: Number(precoVenda),
         unidade,
         marcaCodigo: this.stringToNumberOrUndefined.execute(marcaCodigo),
@@ -313,24 +380,35 @@ export class ProductsService {
         grupoCodigo: this.stringToNumberOrUndefined.execute(grupoCodigo),
         subgrupoCodigo: this.stringToNumberOrUndefined.execute(subgrupoCodigo),
       });
-
       const productExists = await this.prisma.produto.findUnique({
         where: {
-          codigo: product.codigo,
+          codigo: Number(codigo),
         },
       });
 
-      try {
-        if (productExists) {
-          await this.update(productExists.codigo, product);
-        } else {
-          await this.create(product);
-        }
-      } catch (error) {
-        console.log(product);
-        console.log(error);
+      if (productExists) {
+        productsUpdate.push(product);
+      } else {
+        productsCreate.push(product);
       }
     }
+
+    console.log('productsCreate', productsCreate.length);
+    console.log('productsUpdate', productsUpdate.length);
+
+    try {
+      for (const product of productsCreate) {
+        await this.create(product);
+      }
+
+      for (const product of productsUpdate) {
+        await this.update(product.codigo, product);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
+    await this.testImageProductProducerService.execute({});
 
     return;
   }
@@ -349,6 +427,13 @@ export class ProductsService {
       },
     });
     if (!alreadyExistColorPrimary) delete product.corPrimariaCodigo;
+
+    const alreadyExistColorSecondary = await this.prisma.cor.findUnique({
+      where: {
+        codigo: product.corSecundariaCodigo,
+      },
+    });
+    if (!alreadyExistColorSecondary) delete product.corSecundariaCodigo;
 
     const alreadyExistCollection = await this.prisma.colecao.findUnique({
       where: {
@@ -378,17 +463,15 @@ export class ProductsService {
     });
     if (!alreadyExistSubgroup) delete product.subgrupoCodigo;
 
-    // corSecundariaCodigo
-
     return product;
   }
 
   async testImage(reference: string): Promise<boolean> {
     try {
-      await firstValueFrom(
+      const response = await firstValueFrom(
         this.httpService
           .get<any>(
-            `https://alpar.sfo3.digitaloceanspaces.com/Produtos/${reference}_01`,
+            `https://alpar.sfo3.digitaloceanspaces.com/?prefix=Produtos%2F${reference}_01&max-keys=10`,
           )
           .pipe(
             catchError((_error: AxiosError) => {
@@ -397,7 +480,9 @@ export class ProductsService {
           ),
       );
 
-      return true;
+      const findImage = String(response.data).indexOf('<Contents>');
+
+      return findImage === -1 ? false : true;
     } catch (error) {
       return false;
     }

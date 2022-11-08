@@ -11,6 +11,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { GetCurrentUserId } from '../../common/decorators';
 import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProducts } from './dto/query-products.type';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -31,6 +32,7 @@ export class ProductsController {
 
   @Get()
   findAll(
+    @GetCurrentUserId() userId: string,
     @Query() { page = '0', pagesize = '10', orderby, filters }: QueryProducts,
   ) {
     return this.productsService.findAll(
@@ -38,7 +40,13 @@ export class ProductsController {
       Number(pagesize),
       orderby,
       filters?.map((f) => JSON.parse(f as string)),
+      userId,
     );
+  }
+
+  @Get('filters')
+  getFilters(@GetCurrentUserId() userId: string) {
+    return this.productsService.getFiltersForFindAll(userId);
   }
 
   @Get(':codigo')

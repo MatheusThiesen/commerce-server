@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
@@ -18,9 +19,15 @@ import { UtilsModule } from './utils/utils.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ColorsModule,
+    BullModule.forRoot({
+      redis: {
+        host: '127.0.0.1',
+        port: 6828,
+      },
+    }),
     PrismaModule,
     UtilsModule,
+    ColorsModule,
     BrandsModule,
     GroupsModule,
     SubgroupsModule,
@@ -31,7 +38,6 @@ import { UtilsModule } from './utils/utils.module';
     ProductsModule,
     StockLocationsModule,
   ],
-  controllers: [],
   providers: [
     {
       provide: APP_GUARD,

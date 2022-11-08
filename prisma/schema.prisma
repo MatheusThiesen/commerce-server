@@ -20,8 +20,9 @@ model Usuario {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  eVendedor Boolean    @default(false)
-  vendedor  Vendedor[]
+  eVendedor      Boolean   @default(false)
+  vendedor       Vendedor? @relation(fields: [vendedorCodigo], references: [codigo])
+  vendedorCodigo Int?
 
   @@map("usuarios")
 }
@@ -39,9 +40,8 @@ model Vendedor {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  marcas    Marca[]
-  Usuario   Usuario? @relation(fields: [usuarioId], references: [id])
-  usuarioId String?
+  marcas  Marca[]
+  Usuario Usuario[]
 
   @@map("vendedores")
 }

@@ -148,10 +148,12 @@ export class ListProductsFilters {
       {
         label: 'Linha',
         name: 'linhaCodigo',
-        data: lines.map((line) => ({
-          name: line.linha.descricao,
-          value: line.linha.codigo,
-        })),
+        data: lines
+          .filter((f) => f.linha)
+          .map((line) => ({
+            name: line.linha.descricao,
+            value: line.linha.codigo,
+          })),
       },
       {
         label: 'Coleção',
@@ -172,10 +174,12 @@ export class ListProductsFilters {
       {
         label: 'Subgrupo',
         name: 'subgrupoCodigo',
-        data: subgroups.map((subgroup) => ({
-          name: subgroup.subGrupo.descricao,
-          value: subgroup.subGrupo.codigo,
-        })),
+        data: subgroups
+          .filter((f) => f.subGrupo)
+          .map((subgroup) => ({
+            name: subgroup.subGrupo.descricao,
+            value: subgroup.subGrupo.codigo,
+          })),
       },
       {
         label: 'Gênero',
