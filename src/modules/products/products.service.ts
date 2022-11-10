@@ -4,6 +4,7 @@ import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { PrismaService } from '../../database/prisma.service';
 import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
+import { GroupByObj } from '../../utils/GroupByObj.utils';
 import { OrderBy } from '../../utils/OrderBy.utils';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { StringToNumberOrUndefined } from '../../utils/StringToNumberOrUndefined.utils';
@@ -39,6 +40,7 @@ export class ProductsService {
     private variationsProduct: VariationsProduct,
     private agroupGridProduct: AgroupGridProduct,
     private readonly testImageProductProducerService: TestImageProductProducerService,
+    private readonly groupByObj: GroupByObj,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
@@ -147,31 +149,62 @@ export class ProductsService {
 
     const orderByNormalized = this.orderBy.execute(orderBy);
 
-    const filterNormalized = [
-      {
-        AND: filters
-          // ?.filter((f) => f.name === 'locaisEstoque')
-          ?.map((filter) => {
-            if (['locaisEstoque'].includes(filter.name)) {
-              return {
-                locaisEstoque: {
-                  some: {
-                    periodo: String(filter.value),
-                  },
-                },
-              };
-            } else {
-              return { [filter.name]: filter.value };
-            }
-          }),
-      },
+    let filterNormalized = [];
 
-      // {
-      //   OR: filters
-      //     ?.filter((f) => f.name !== 'locaisEstoque')
-      //     ?.map((filter) => ({ [filter.name]: filter.value })),
-      // },
-    ];
+    if (filters) {
+      const groupFilters = this.groupByObj.execute(
+        filters,
+        (item) => item.name,
+      );
+
+      filterNormalized = groupFilters.map((filterGroup) => {
+        if (filterGroup.value === 'locaisEstoque') {
+          return {
+            locaisEstoque: {
+              some: {
+                periodo: {
+                  in: filterGroup.data.map((item) => item.value),
+                },
+              },
+            },
+          };
+        }
+
+        return {
+          [filterGroup.value as string]: {
+            in: filterGroup.data.map((item) => item.value),
+          },
+        };
+      });
+    }
+
+    // const filterNormalized = [
+    //   {
+    //     AND: filters
+    //       // ?.filter((f) => f.name === 'locaisEstoque')
+    //       ?.map((filter) => {
+    //         if (['locaisEstoque'].includes(filter.name)) {
+    //           return {
+    //             locaisEstoque: {
+    //               some: {
+    //                 periodo: String(filter.value),
+    //               },
+    //             },
+    //           };
+    //         } else {
+    //           return { [filter.name]: filter.value };
+    //         }
+    //       }),
+    //   },
+
+    //   // {
+    //   //   OR: filters
+    //   //     ?.filter((f) => f.name !== 'locaisEstoque')
+    //   //     ?.map((filter) => ({ [filter.name]: filter.value })),
+    //   // },
+    // ];
+
+    console.log(JSON.stringify(filterNormalized, null, 2));
 
     const products = await this.prisma.produto.findMany({
       distinct: 'referencia',
