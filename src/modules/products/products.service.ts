@@ -2,9 +2,8 @@ import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
-import { TestImageProductProducerService } from 'src/jobs/TestImageProduct/testImageProduct-producer-service';
 import { PrismaService } from '../../database/prisma.service';
-
+import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
 import { OrderBy } from '../../utils/OrderBy.utils';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { StringToNumberOrUndefined } from '../../utils/StringToNumberOrUndefined.utils';
@@ -12,12 +11,13 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { ItemFilter } from './dto/query-products.type';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
+import { AgroupGridProduct } from './useCases/AgroupGridProduct';
 import { ListProductsFilters } from './useCases/ListProductsFilters';
 import { VariationsProduct } from './useCases/VariationsProduct';
 
 @Injectable()
 export class ProductsService {
-  private readonly listingRule = {
+  readonly listingRule = {
     eAtivo: true,
     possuiFoto: true,
     locaisEstoque: {
@@ -37,6 +37,7 @@ export class ProductsService {
     private stringToNumberOrUndefined: StringToNumberOrUndefined,
     private listProductsFilters: ListProductsFilters,
     private variationsProduct: VariationsProduct,
+    private agroupGridProduct: AgroupGridProduct,
     private readonly testImageProductProducerService: TestImageProductProducerService,
   ) {}
 
@@ -146,19 +147,31 @@ export class ProductsService {
 
     const orderByNormalized = this.orderBy.execute(orderBy);
 
-    const filterNormalized = filters?.map((filter) => {
-      if (['locaisEstoque'].includes(filter.name)) {
-        return {
-          locaisEstoque: {
-            some: {
-              periodo: String(filter.value),
-            },
-          },
-        };
-      } else {
-        return { [filter.name]: filter.value };
-      }
-    });
+    const filterNormalized = [
+      {
+        AND: filters
+          // ?.filter((f) => f.name === 'locaisEstoque')
+          ?.map((filter) => {
+            if (['locaisEstoque'].includes(filter.name)) {
+              return {
+                locaisEstoque: {
+                  some: {
+                    periodo: String(filter.value),
+                  },
+                },
+              };
+            } else {
+              return { [filter.name]: filter.value };
+            }
+          }),
+      },
+
+      // {
+      //   OR: filters
+      //     ?.filter((f) => f.name !== 'locaisEstoque')
+      //     ?.map((filter) => ({ [filter.name]: filter.value })),
+      // },
+    ];
 
     const products = await this.prisma.produto.findMany({
       distinct: 'referencia',
@@ -264,6 +277,12 @@ export class ProductsService {
             descricao: true,
           },
         },
+        subGrupo: {
+          select: {
+            codigo: true,
+            descricao: true,
+          },
+        },
         precoVenda: true,
         marca: {
           select: {
@@ -272,6 +291,18 @@ export class ProductsService {
           },
         },
         colecao: {
+          select: {
+            codigo: true,
+            descricao: true,
+          },
+        },
+        genero: {
+          select: {
+            codigo: true,
+            descricao: true,
+          },
+        },
+        linha: {
           select: {
             codigo: true,
             descricao: true,
@@ -294,6 +325,7 @@ export class ProductsService {
             },
           },
         },
+
         locaisEstoque: {
           orderBy: {
             periodo: 'asc',
@@ -320,10 +352,15 @@ export class ProductsService {
     }
 
     const variacoes = await this.variationsProduct.execute({
-      cod: product.codigo,
+      alternativeCode: product.codigoAlternativo,
+      query: this.listingRule,
+    });
+    const grades = await this.agroupGridProduct.execute({
+      reference: product.referencia,
+      query: this.listingRule,
     });
 
-    return { ...product, variacoes };
+    return { ...product, variacoes, grades };
   }
 
   async remove(codigo: number) {
@@ -334,9 +371,6 @@ export class ProductsService {
 
   async import(file: Express.Multer.File) {
     const products = await this.parseCsv.execute(file);
-
-    const productsCreate: Product[] = [];
-    const productsUpdate: Product[] = [];
 
     for (const productsArr of products) {
       const [
@@ -384,26 +418,15 @@ export class ProductsService {
         },
       });
 
-      if (productExists) {
-        productsUpdate.push(product);
-      } else {
-        productsCreate.push(product);
+      try {
+        if (productExists) {
+          await this.update(product.codigo, product);
+        } else {
+          await this.create(product);
+        }
+      } catch (error) {
+        console.log(error);
       }
-    }
-
-    console.log('productsCreate', productsCreate.length);
-    console.log('productsUpdate', productsUpdate.length);
-
-    try {
-      for (const product of productsCreate) {
-        await this.create(product);
-      }
-
-      for (const product of productsUpdate) {
-        await this.update(product.codigo, product);
-      }
-    } catch (error) {
-      console.log(error);
     }
 
     await this.testImageProductProducerService.execute({});
@@ -456,10 +479,14 @@ export class ProductsService {
 
     const alreadyExistSubgroup = await this.prisma.subGrupo.findUnique({
       where: {
-        codigo: product.subgrupoCodigo,
+        codigo_codigoGrupo: {
+          codigo: product.subgrupoCodigo,
+          codigoGrupo: product.grupoCodigo,
+        },
       },
     });
-    if (!alreadyExistSubgroup) delete product.subgrupoCodigo;
+    delete product.subgrupoCodigo;
+    if (alreadyExistSubgroup) product.subGrupoId = alreadyExistSubgroup.id;
 
     return product;
   }

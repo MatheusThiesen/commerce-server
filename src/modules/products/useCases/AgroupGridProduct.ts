@@ -2,27 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 
 @Injectable()
-export class VariationsProduct {
+export class AgroupGridProduct {
   constructor(private prisma: PrismaService) {}
 
-  async execute({
-    alternativeCode,
-    query,
-  }: {
-    alternativeCode: string;
-    query: object;
-  }) {
+  async execute({ reference, query }: { reference: string; query: object }) {
     const products = await this.prisma.produto.findMany({
-      distinct: 'referencia',
       select: {
         codigo: true,
-        referencia: true,
-        codigoAlternativo: true,
-        descricao: true,
+        descricaoAdicional: true,
       },
       where: {
-        codigoAlternativo: alternativeCode,
-
+        referencia: reference,
         ...query,
       },
     });

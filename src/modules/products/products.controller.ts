@@ -5,16 +5,13 @@ import {
   Get,
   Param,
   Post,
-  Put,
   Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetCurrentUserId } from '../../common/decorators';
-import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProducts } from './dto/query-products.type';
-import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
 import { GenerateCatalog } from './useCases/GenerateCatalog';
 
@@ -24,11 +21,6 @@ export class ProductsController {
     private readonly productsService: ProductsService,
     private readonly generateCatalog: GenerateCatalog,
   ) {}
-
-  @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
-  }
 
   @Get()
   findAll(
@@ -54,14 +46,6 @@ export class ProductsController {
     return this.productsService.findOne(+codigo);
   }
 
-  @Put(':codigo')
-  update(
-    @Param('codigo') codigo: string,
-    @Body() updateProductDto: UpdateProductDto,
-  ) {
-    return this.productsService.update(+codigo, updateProductDto);
-  }
-
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productsService.remove(+id);
@@ -74,9 +58,9 @@ export class ProductsController {
   }
 
   @Post('catalog')
-  catalog(@Body() { codProducts, orderBy }) {
+  catalog(@Body() { referencesProduct, orderBy }) {
     return this.generateCatalog.execute({
-      codProducts,
+      referencesProduct,
       orderBy,
     });
   }

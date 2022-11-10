@@ -86,12 +86,12 @@ export class ListProductsFilters {
       },
     });
     const subgroups = await this.prisma.produto.findMany({
-      distinct: 'subgrupoCodigo',
+      distinct: 'subGrupoId',
       where: where,
       select: {
         subGrupo: {
           select: {
-            codigo: true,
+            id: true,
             descricao: true,
           },
         },
@@ -173,12 +173,12 @@ export class ListProductsFilters {
       },
       {
         label: 'Subgrupo',
-        name: 'subgrupoCodigo',
+        name: 'subGrupoId',
         data: subgroups
           .filter((f) => f.subGrupo)
           .map((subgroup) => ({
             name: subgroup.subGrupo.descricao,
-            value: subgroup.subGrupo.codigo,
+            value: subgroup.subGrupo.id,
           })),
       },
       {

@@ -30,7 +30,7 @@ export class SubgroupsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.subgroupsService.findOne(+id);
+    return this.subgroupsService.findOne(id);
   }
 
   @Put(':id')
@@ -38,12 +38,12 @@ export class SubgroupsController {
     @Param('id') id: string,
     @Body() updateSubgroupDto: UpdateSubgroupDto,
   ) {
-    return this.subgroupsService.update(+id, updateSubgroupDto);
+    return this.subgroupsService.update(id, updateSubgroupDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.subgroupsService.remove(+id);
+    return this.subgroupsService.remove(id);
   }
 
   @Post('import')

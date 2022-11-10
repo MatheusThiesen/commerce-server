@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { CollectionsModule } from './modules/collections/collections.module';
 import { ColorsModule } from './modules/colors/colors.module';
+import { GridsModule } from './modules/grids/grids.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { LinesModule } from './modules/lines/lines.module';
 import { ProductsModule } from './modules/products/products.module';
@@ -37,6 +38,7 @@ import { UtilsModule } from './utils/utils.module';
     AuthModule,
     ProductsModule,
     StockLocationsModule,
+    GridsModule,
   ],
   providers: [
     {

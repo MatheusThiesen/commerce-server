@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { OrderBy } from '../../../utils/OrderBy.utils';
+import { ProductsService } from '../products.service';
+import { AgroupGridProduct } from './AgroupGridProduct';
 
 interface ListProductsFiltersProps {
-  codProducts: number[];
+  referencesProduct: string[];
   orderBy: string;
 }
 
@@ -26,6 +28,7 @@ interface PageData {
   group: string;
   subgroup: string;
   line: string;
+  grids: string[];
 }
 
 @Injectable()
@@ -34,12 +37,28 @@ export class GenerateCatalog {
     'https://alpar.sfo3.digitaloceanspaces.com/Alpar/no-image.jpg';
   readonly spaceLink = 'https://alpar.sfo3.digitaloceanspaces.com/';
 
-  constructor(private prisma: PrismaService, private orderByProcess: OrderBy) {}
+  constructor(
+    private prisma: PrismaService,
+    private orderByProcess: OrderBy,
+    private productsService: ProductsService,
+    private agroupGridProduct: AgroupGridProduct,
+  ) {}
+
+  async generateGrid(grids: string[]) {
+    let gridsNormalized = '';
+
+    for (const grid of grids) {
+      gridsNormalized += `<dt>${grid}</dt>`;
+    }
+
+    return gridsNormalized;
+  }
 
   async generatePages({ pages, dateNow }: generatePagesProps): Promise<string> {
     let pagesHtml = '';
 
     for (const page of pages) {
+      const gridsHtml = await this.generateGrid(page.grids);
       const generatePage = `<div class="page">
       <header class="header"></header>
       <div class="content">
@@ -58,20 +77,31 @@ export class GenerateCatalog {
             <p class="color">Cor: ${page.colors}</p>
             <p class="price">PDV: <b>${page.price}</b></p>
 
-            <dl class="listInfo">
-              <dt>Marca</dt>
-              <dd>${page.brand}</dd>
-              <dt>Coleção</dt>
-              <dd>${page.colection}</dd>
-              <dt>Gênero</dt>
-              <dd>${page.genre}</dd>
-              <dt>Grupo</dt>
-              <dd>${page.group}</dd>
-              <dt>Subgrupo</dt>
-              <dd>${page.subgroup}</dd>
-              <dt>Linha</dt>
-              <dd>${page.line}</dd>
-            </dl>
+            <div>
+              <p class="price">GRADES</p>
+              <dl class="listGrids">
+              ${gridsHtml}
+              </dl>
+            </div>
+
+            <div>
+              <p class="price">CARACTERÍSTICAS GERAIS</p>
+              
+              <dl class="listInfo">
+                <dt>Marca</dt>
+                <dd>${page.brand}</dd>
+                <dt>Coleção</dt>
+                <dd>${page.colection}</dd>
+                <dt>Gênero</dt>
+                <dd>${page.genre}</dd>
+                <dt>Grupo</dt>
+                <dd>${page.group}</dd>
+                <dt>Subgrupo</dt>
+                <dd>${page.subgroup}</dd>
+                <dt>Linha</dt>
+                <dd>${page.line}</dd>
+              </dl>
+            </div>
           </div>
         </div>
 
@@ -89,10 +119,11 @@ export class GenerateCatalog {
   }
 
   async execute({
-    codProducts,
+    referencesProduct,
     orderBy,
   }: ListProductsFiltersProps): Promise<string> {
     const products = await this.prisma.produto.findMany({
+      distinct: 'referencia',
       select: {
         referencia: true,
         codigoAlternativo: true,
@@ -148,8 +179,9 @@ export class GenerateCatalog {
         },
       },
       where: {
-        codigo: {
-          in: codProducts,
+        ...this.productsService.listingRule,
+        referencia: {
+          in: referencesProduct,
         },
       },
       orderBy: [
@@ -166,16 +198,26 @@ export class GenerateCatalog {
       month: 'long',
       year: 'numeric',
     });
-    const pages = await this.generatePages({
-      dateNow,
-      pages: products.map((product) => ({
-        imageMain: `${this.spaceLink}Produtos/${product.referencia}_01`,
+
+    const productsNormalized: PageData[] = [];
+    for (const product of products) {
+      const grids = (
+        await this.agroupGridProduct.execute({
+          reference: product.referencia,
+          query: this.productsService.listingRule,
+        })
+      ).map((grid) => grid.descricaoAdicional);
+
+      const newPage: PageData = {
+        imageMain:
+          `${this.spaceLink}Produtos/${product.referencia}_01` as string,
         alternativeCode: product.codigoAlternativo,
         reference: product.referencia,
         description: product.descricao,
         descriptionAdditional: product.descricaoAdicional,
         colors:
-          product.corPrimaria.descricao && product.corSecundaria.cor.descricao
+          product?.corPrimaria?.descricao &&
+          product?.corSecundaria?.cor?.descricao
             ? `${product.corPrimaria.descricao} e ${product.corSecundaria.cor.descricao}`
             : product.corPrimaria.descricao,
         price: product.precoVenda.toLocaleString('pt-br', {
@@ -188,7 +230,15 @@ export class GenerateCatalog {
         group: product?.grupo?.descricao ?? '-',
         subgroup: product?.subGrupo?.descricao ?? '-',
         line: product?.linha?.descricao ?? '-',
-      })),
+        grids: grids,
+      };
+
+      productsNormalized.push(newPage);
+    }
+
+    const pages = await this.generatePages({
+      dateNow,
+      pages: productsNormalized,
     });
 
     const html = `
@@ -415,7 +465,7 @@ export class GenerateCatalog {
         }
 
         .listInfo {
-          margin-top: 2.5rem;
+          margin-top: 0.4rem;
           display: flex;
           width: 100%;
           flex-wrap: wrap;
@@ -427,6 +477,25 @@ export class GenerateCatalog {
           color: #444;
         }
         .listInfo > dd {
+          width: 50%;
+          font-weight: 600;
+          font-size: 0.855rem;
+          line-height: 1.25rem;
+          color: #333;
+        }
+        .listGrids {
+          margin-top: 0.4rem;
+          display: flex;
+          width: 100%;
+          flex-wrap: wrap;
+        }
+        .listGrids > dt {
+          width: 100%;
+          font-size: 0.855rem;
+          line-height: 1.25rem;
+          color: #444;
+        }
+        .listGrids > dd {
           width: 50%;
           font-weight: 600;
           font-size: 0.855rem;

@@ -16,7 +16,10 @@ export class SubgroupsService {
 
     const SubgroupExists = await this.prisma.subGrupo.findUnique({
       where: {
-        codigo: subGrupo.codigo,
+        codigo_codigoGrupo: {
+          codigo: subGrupo.codigo,
+          codigoGrupo: subGrupo.codigoGrupo,
+        },
       },
     });
 
@@ -36,9 +39,9 @@ export class SubgroupsService {
     return subgroups;
   }
 
-  async findOne(codigo: number) {
+  async findOne(id: string) {
     const subgroup = await this.prisma.subGrupo.findUnique({
-      where: { codigo },
+      where: { id },
     });
 
     if (!subgroup) {
@@ -48,23 +51,23 @@ export class SubgroupsService {
     return subgroup;
   }
 
-  async update(codigo: number, updateSubgroupDto: UpdateSubgroupDto) {
+  async update(id: string, updateSubgroupDto: UpdateSubgroupDto) {
     const subGrupo = new Subgroup();
 
     Object.assign(subGrupo, updateSubgroupDto);
 
-    await this.findOne(codigo);
+    await this.findOne(id);
     const updatedSubgroup = await this.prisma.subGrupo.update({
       data: subGrupo,
-      where: { codigo },
+      where: { id },
     });
 
     return updatedSubgroup;
   }
 
-  async remove(codigo: number) {
-    await this.findOne(codigo);
-    await this.prisma.subGrupo.delete({ where: { codigo } });
+  async remove(id: string) {
+    await this.findOne(id);
+    await this.prisma.subGrupo.delete({ where: { id } });
 
     return;
   }
@@ -85,7 +88,10 @@ export class SubgroupsService {
 
       const subGroupExists = await this.prisma.subGrupo.findUnique({
         where: {
-          codigo: subGroup.codigo,
+          codigo_codigoGrupo: {
+            codigo: subGroup.codigo,
+            codigoGrupo: subGroup.codigoGrupo,
+          },
         },
       });
       const groupExists = await this.prisma.grupo.findUnique({
@@ -96,7 +102,7 @@ export class SubgroupsService {
 
       if (groupExists) {
         if (subGroupExists) {
-          await this.update(subGroupExists.codigo, subGroup);
+          await this.update(subGroupExists.id, subGroup);
         } else {
           await this.create(subGroup);
         }

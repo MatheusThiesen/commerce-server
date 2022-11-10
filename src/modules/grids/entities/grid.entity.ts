@@ -1,9 +1,10 @@
-export class Subgroup {
-  id: string;
+export class Grid {
   codigo: number;
   descricao: string;
+  abreviacao: string;
   eAtivo: boolean;
-  codigoGrupo: number;
   createdAt?: Date;
   updatedAt?: Date;
+
+  tamanhos: string[];
 }

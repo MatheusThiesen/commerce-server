@@ -5,6 +5,7 @@ import { TestImageProductConsumer } from '../../jobs/TestImageProduct/testImageP
 import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
+import { AgroupGridProduct } from './useCases/AgroupGridProduct';
 import { GenerateCatalog } from './useCases/GenerateCatalog';
 import { ListProductsFilters } from './useCases/ListProductsFilters';
 import { VariationsProduct } from './useCases/VariationsProduct';
@@ -25,6 +26,7 @@ import { VariationsProduct } from './useCases/VariationsProduct';
     GenerateCatalog,
     TestImageProductProducerService,
     TestImageProductConsumer,
+    AgroupGridProduct,
   ],
 })
 export class ProductsModule {}

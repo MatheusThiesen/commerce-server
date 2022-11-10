@@ -19,4 +19,5 @@ export class Product {
   linhaCodigo?: number;
   grupoCodigo?: number;
   subgrupoCodigo?: number;
+  subGrupoId?: string;
 }

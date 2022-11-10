@@ -84,7 +84,8 @@ model Grupo {
 }
 
 model SubGrupo {
-  codigo    Int      @id @unique
+  id        String   @id @unique @default(uuid())
+  codigo    Int
   descricao String
   eAtivo    Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -94,6 +95,7 @@ model SubGrupo {
   codigoGrupo Int
   produtos    Produto[]
 
+  @@unique([codigo, codigoGrupo])
   @@map("subgrupos")
 }
 
@@ -163,12 +165,39 @@ model Produto {
   linhaCodigo         Int?
   grupo               Grupo?         @relation(fields: [grupoCodigo], references: [codigo])
   grupoCodigo         Int?
-  subGrupo            SubGrupo?      @relation(fields: [subgrupoCodigo], references: [codigo])
-  subgrupoCodigo      Int?
   genero              Genero?        @relation(fields: [generoCodigo], references: [codigo])
   generoCodigo        Int?
+  subGrupo            SubGrupo?      @relation(fields: [subGrupoId], references: [id])
+  subGrupoId          String?
+  Grade               Grade?         @relation(fields: [gradeCodigo], references: [codigo])
+  gradeCodigo         Int?
 
   @@map("produtos")
+}
+
+model Grade {
+  codigo     Int      @id @unique
+  descricao  String
+  abreviacao String?
+  eAtivo     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tamanhos Tamanho[]
+  produtos Produto[]
+
+  @@map("grades")
+}
+
+model Tamanho {
+  descricao String   @id @unique()
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Grade       Grade? @relation(fields: [gradeCodigo], references: [codigo])
+  gradeCodigo Int?
+
+  @@map("Tamanhos")
 }
 
 model LocalEstoque {
