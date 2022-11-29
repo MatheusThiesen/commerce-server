@@ -178,34 +178,6 @@ export class ProductsService {
       });
     }
 
-    // const filterNormalized = [
-    //   {
-    //     AND: filters
-    //       // ?.filter((f) => f.name === 'locaisEstoque')
-    //       ?.map((filter) => {
-    //         if (['locaisEstoque'].includes(filter.name)) {
-    //           return {
-    //             locaisEstoque: {
-    //               some: {
-    //                 periodo: String(filter.value),
-    //               },
-    //             },
-    //           };
-    //         } else {
-    //           return { [filter.name]: filter.value };
-    //         }
-    //       }),
-    //   },
-
-    //   // {
-    //   //   OR: filters
-    //   //     ?.filter((f) => f.name !== 'locaisEstoque')
-    //   //     ?.map((filter) => ({ [filter.name]: filter.value })),
-    //   // },
-    // ];
-
-    console.log(JSON.stringify(filterNormalized, null, 2));
-
     const products = await this.prisma.produto.findMany({
       distinct: 'referencia',
       take: pagesize,
