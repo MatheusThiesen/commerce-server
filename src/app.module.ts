@@ -1,3 +1,4 @@
+import { MailerModule } from '@nestjs-modules/mailer';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -22,10 +23,22 @@ import { UtilsModule } from './utils/utils.module';
     ConfigModule.forRoot({ isGlobal: true }),
     BullModule.forRoot({
       redis: {
-        host: 'redis',
-        port: 6379,
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT,
       },
     }),
+
+    MailerModule.forRoot({
+      transport: {
+        host: process.env.MAILER_HOST,
+        port: +process.env.MAILER_PORT,
+        auth: {
+          user: process.env.MAILER_USER,
+          pass: process.env.MAILER_PASS,
+        },
+      },
+    }),
+
     PrismaModule,
     UtilsModule,
     ColorsModule,

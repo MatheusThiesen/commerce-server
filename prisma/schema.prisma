@@ -13,12 +13,14 @@ datasource db {
 model Usuario {
   id String @id @unique @default(uuid())
 
-  email        String   @unique
-  senha        String
-  tokenRefresh String?
-  eAtivo       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  email            String    @unique
+  senha            String
+  tokenRefresh     String?
+  senhaResetToken  String?
+  senhaResetExpira DateTime?
+  eAtivo           Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   eVendedor      Boolean   @default(false)
   vendedor       Vendedor? @relation(fields: [vendedorCodigo], references: [codigo])
@@ -152,6 +154,7 @@ model Produto {
   updatedAt             DateTime @updatedAt
 
   locaisEstoque LocalEstoque[]
+  itens         ItemPedido[]
 
   corPrimaria         Cor?           @relation(fields: [corPrimariaCodigo], references: [codigo])
   corPrimariaCodigo   Int?
@@ -225,4 +228,43 @@ model Genero {
   produtos Produto[]
 
   @@map("generos")
+}
+
+model OrdemCompra {
+  codigo     Int      @id @unique
+  periodo    String
+  descricao  String
+  quantidade Int
+  eAtivo     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("ordensCompra")
+}
+
+model Pedido {
+  codigo    Int      @id @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  itens ItemPedido[]
+
+  @@map("pedidos")
+}
+
+model ItemPedido {
+  codigo       Int      @id @unique
+  quantidade   Int
+  valorUnitaro Float
+  valorTotal   Float
+  sitiacao     Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  pedido        Pedido?  @relation(fields: [pedidoCodigo], references: [codigo])
+  pedidoCodigo  Int?
+  produto       Produto? @relation(fields: [produtoCodigo], references: [codigo])
+  produtoCodigo Int?
+
+  @@map("itensPedido")
 }

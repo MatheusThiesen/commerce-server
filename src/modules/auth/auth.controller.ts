@@ -7,6 +7,7 @@ import {
 } from '../../common/decorators';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
+import { PasswordDto } from './dto/password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +28,23 @@ export class AuthController {
   @Post('logout')
   logout(@GetCurrentUserId() userId: string) {
     return this.authService.logout(userId);
+  }
+
+  @Post('password')
+  changePassword(@Body() dto: PasswordDto, @GetCurrentUserId() userId: string) {
+    return this.authService.changePassword(userId, dto);
+  }
+
+  @Public()
+  @Post('forgot')
+  forgot(@Body() dto: { email: string }) {
+    return this.authService.forgot(dto.email);
+  }
+
+  @Public()
+  @Post('reset')
+  reset(@Body() dto: { token: string; senha: string }) {
+    return this.authService.reset({ password: dto.senha, token: dto.token });
   }
 
   @Public()
