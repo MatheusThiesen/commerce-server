@@ -70,3 +70,11 @@ Relatório SIGER
 - [ ] Gêneros
 - [ ] Grade
 - [ ] Ean
+
+---
+
+### Missão pré-ferias
+
+- [x] Agrupar por codigo alternativo
+- [x] agrupar no momento de gerar o book
+- [ ] conferir a listagem de produtos ativos

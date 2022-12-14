@@ -25,15 +25,17 @@ export class ProductsController {
   @Get()
   findAll(
     @GetCurrentUserId() userId: string,
-    @Query() { page = '0', pagesize = '10', orderby, filters }: QueryProducts,
+    @Query()
+    { page = '0', pagesize = '10', orderby, filters, distinct }: QueryProducts,
   ) {
-    return this.productsService.findAll(
-      Number(page),
-      Number(pagesize),
-      orderby,
-      filters?.map((f) => JSON.parse(f as string)),
-      userId,
-    );
+    return this.productsService.findAll({
+      page: Number(page),
+      pagesize: Number(pagesize),
+      orderBy: orderby,
+      filters: filters?.map((f) => JSON.parse(f as string)),
+      distinct: distinct,
+      userId: userId,
+    });
   }
 
   @Get('filters')
@@ -58,10 +60,11 @@ export class ProductsController {
   }
 
   @Post('catalog')
-  catalog(@Body() { referencesProduct, orderBy }) {
+  catalog(@Body() { referencesProduct, orderBy, groupProduct }) {
     return this.generateCatalog.execute({
       referencesProduct,
       orderBy,
+      groupProduct,
     });
   }
 }

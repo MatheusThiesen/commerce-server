@@ -16,6 +16,15 @@ import { AgroupGridProduct } from './useCases/AgroupGridProduct';
 import { ListProductsFilters } from './useCases/ListProductsFilters';
 import { VariationsProduct } from './useCases/VariationsProduct';
 
+type listAllProps = {
+  page: number;
+  pagesize: number;
+  orderBy: string;
+  filters: ItemFilter[];
+  userId: string;
+  distinct?: string;
+};
+
 @Injectable()
 export class ProductsService {
   readonly listingRule = {
@@ -122,13 +131,14 @@ export class ProductsService {
     return updatedProduct;
   }
 
-  async findAll(
-    page: number,
-    pagesize: number,
-    orderBy: string,
-    filters: ItemFilter[],
-    userId: string,
-  ) {
+  async findAll({
+    page,
+    pagesize,
+    orderBy,
+    filters,
+    userId,
+    distinct,
+  }: listAllProps) {
     const user = await this.prisma.usuario.findUnique({
       select: {
         eVendedor: true,
@@ -179,7 +189,7 @@ export class ProductsService {
     }
 
     const products = await this.prisma.produto.findMany({
-      distinct: 'referencia',
+      distinct: distinct ? (distinct as any) : undefined,
       take: pagesize,
       skip: page * pagesize,
       orderBy: orderByNormalized ?? { codigo: 'desc' },
@@ -214,7 +224,7 @@ export class ProductsService {
       },
     });
     const productsTotal = await this.prisma.produto.findMany({
-      distinct: 'referencia',
+      distinct: distinct ? (distinct as any) : undefined,
       select: { codigo: true },
       where: {
         marcaCodigo: user.eVendedor

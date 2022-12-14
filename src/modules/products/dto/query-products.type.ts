@@ -2,6 +2,7 @@ export interface QueryProducts {
   page?: string;
   pagesize?: string;
   orderby?: string;
+  distinct?: string;
   filters?: ItemFilter[] | string[];
 }
 

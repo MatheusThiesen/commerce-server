@@ -3,10 +3,12 @@ import { PrismaService } from '../../../database/prisma.service';
 import { OrderBy } from '../../../utils/OrderBy.utils';
 import { ProductsService } from '../products.service';
 import { AgroupGridProduct } from './AgroupGridProduct';
+import { VariationsProduct } from './VariationsProduct';
 
 interface ListProductsFiltersProps {
   referencesProduct: string[];
   orderBy: string;
+  groupProduct?: boolean;
 }
 
 interface generatePagesProps {
@@ -29,7 +31,15 @@ interface PageData {
   subgroup: string;
   line: string;
   grids: string[];
+
+  groupProduct: boolean;
+  variations?: VariationsProps[];
 }
+
+type VariationsProps = {
+  imageMain: string;
+  reference: string;
+};
 
 @Injectable()
 export class GenerateCatalog {
@@ -42,6 +52,7 @@ export class GenerateCatalog {
     private orderByProcess: OrderBy,
     private productsService: ProductsService,
     private agroupGridProduct: AgroupGridProduct,
+    private variationsProduct: VariationsProduct,
   ) {}
 
   async generateGrid(grids: string[]) {
@@ -54,11 +65,32 @@ export class GenerateCatalog {
     return gridsNormalized;
   }
 
+  async generateVariations(variations: VariationsProps[]) {
+    let variationsNormalized = '';
+
+    for (const variation of variations) {
+      variationsNormalized += `    
+      
+        <div>
+          <img
+            class="variation-image"
+            src="https://alpar.sfo3.digitaloceanspaces.com/Produtos/${variation.reference}_01"
+            onerror="this.onerror=null; this.src='https://alpar.sfo3.digitaloceanspaces.com/Alpar/no-image.jpg'"
+          />
+        </div>
+      
+`;
+    }
+
+    return variationsNormalized;
+  }
+
   async generatePages({ pages, dateNow }: generatePagesProps): Promise<string> {
     let pagesHtml = '';
 
     for (const page of pages) {
       const gridsHtml = await this.generateGrid(page.grids);
+      const variations = await this.generateVariations(page.variations);
       const generatePage = `<div class="page">
       <header class="header"></header>
       <div class="content">
@@ -72,10 +104,30 @@ export class GenerateCatalog {
 
         <div class="container-detail">
           <div class="container-info">
-            <span class="reference">Referência: ${page.reference}</span>
+            ${
+              page.groupProduct
+                ? `<span class="reference">Cód. Agrupador: ${page.alternativeCode}</span>`
+                : `<span class="reference">Referência: ${page.reference}</span>`
+            }
+            
             <p class="title">${page.description}</p>
-            <p class="color">Cor: ${page.colors}</p>
+            ${
+              page.groupProduct
+                ? ''
+                : `<p class="color">Cor: ${page.colors}</p>`
+            }
+
             <p class="price">PDV: <b>${page.price}</b></p>
+
+            ${
+              page.groupProduct
+                ? `
+                  <div class="container-variations">
+                    ${variations}
+                  </div>`
+                : ''
+            }
+            
 
             <div>
               <p class="price">GRADES</p>
@@ -121,6 +173,7 @@ export class GenerateCatalog {
   async execute({
     referencesProduct,
     orderBy,
+    groupProduct,
   }: ListProductsFiltersProps): Promise<string> {
     const products = await this.prisma.produto.findMany({
       distinct: 'referencia',
@@ -208,7 +261,27 @@ export class GenerateCatalog {
         })
       ).map((grid) => grid.descricaoAdicional);
 
+      let variations: VariationsProps[] = [];
+
+      if (!!groupProduct) {
+        const getVariationsProduct = await this.variationsProduct.execute({
+          alternativeCode: product.codigoAlternativo,
+          query: this.productsService.listingRule,
+        });
+
+        variations = getVariationsProduct
+          .filter((f) => f.referencia !== product.referencia)
+          .map((v) => ({
+            imageMain:
+              `${this.spaceLink}Produtos/${product.referencia}_01` as string,
+            reference: v.referencia,
+          }));
+      }
+
       const newPage: PageData = {
+        groupProduct: !!groupProduct,
+        variations: variations,
+
         imageMain:
           `${this.spaceLink}Produtos/${product.referencia}_01` as string,
         alternativeCode: product.codigoAlternativo,
@@ -380,8 +453,6 @@ export class GenerateCatalog {
         /* Informações */
         .container-info {
           width: 100%;
-          margin-top: 20%;
-  
           display: flex;
           flex-direction: column;
         }
@@ -501,6 +572,25 @@ export class GenerateCatalog {
           font-size: 0.855rem;
           line-height: 1.25rem;
           color: #333;
+        }
+
+        .container-variations {
+          display: flex;
+          flex-wrap: wrap;
+        }
+        .container-variations > div {
+          border: 1.5px solid #555;
+          border-radius: 8px;
+          padding: 1px;
+          margin-top: 1rem;
+        }
+        .container-variations > div + div {
+          margin-left: 6px;
+        }
+        .variation-image {
+          height: 75px;
+          max-width: 75px;
+          object-fit: contain;
         }
       </style>
     </head>
