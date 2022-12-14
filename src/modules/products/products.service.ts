@@ -28,6 +28,9 @@ type listAllProps = {
 @Injectable()
 export class ProductsService {
   readonly listingRule = {
+    precoVenda: {
+      gt: 0,
+    },
     eAtivo: true,
     possuiFoto: true,
     locaisEstoque: {
