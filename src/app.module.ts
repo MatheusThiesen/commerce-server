@@ -24,7 +24,7 @@ import { UtilsModule } from './utils/utils.module';
     BullModule.forRoot({
       redis: {
         host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT,
+        port: +process.env.REDIS_PORT,
       },
     }),
 
