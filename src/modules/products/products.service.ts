@@ -23,6 +23,7 @@ type listAllProps = {
   filters: ItemFilter[];
   userId: string;
   distinct?: string;
+  isReport?: boolean;
 };
 
 @Injectable()
@@ -144,6 +145,7 @@ export class ProductsService {
     filters,
     userId,
     distinct,
+    isReport,
   }: listAllProps) {
     const user = await this.prisma.usuario.findUnique({
       select: {
@@ -194,6 +196,56 @@ export class ProductsService {
       });
     }
 
+    const reportAddSelect = isReport
+      ? {
+          linha: {
+            select: {
+              codigo: true,
+              descricao: true,
+            },
+          },
+          grupo: {
+            select: {
+              codigo: true,
+              descricao: true,
+            },
+          },
+          subGrupo: {
+            select: {
+              codigo: true,
+              descricao: true,
+            },
+          },
+          genero: {
+            select: {
+              codigo: true,
+              descricao: true,
+            },
+          },
+          colecao: {
+            select: {
+              codigo: true,
+              descricao: true,
+            },
+          },
+          locaisEstoque: {
+            orderBy: {
+              periodo: 'asc',
+            },
+            select: {
+              id: true,
+              descricao: true,
+              quantidade: true,
+            },
+            where: {
+              quantidade: {
+                gt: 0,
+              },
+            },
+          },
+        }
+      : {};
+
     const products = await this.prisma.produto.findMany({
       distinct: distinct ? (distinct as any) : undefined,
       take: pagesize,
@@ -212,12 +264,8 @@ export class ProductsService {
             descricao: true,
           },
         },
-        colecao: {
-          select: {
-            codigo: true,
-            descricao: true,
-          },
-        },
+
+        ...(reportAddSelect as any),
       },
       where: {
         ...this.listingRule,

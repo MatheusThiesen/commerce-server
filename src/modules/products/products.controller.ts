@@ -26,7 +26,14 @@ export class ProductsController {
   findAll(
     @GetCurrentUserId() userId: string,
     @Query()
-    { page = '0', pagesize = '10', orderby, filters, distinct }: QueryProducts,
+    {
+      page = '0',
+      pagesize = '10',
+      orderby,
+      filters,
+      distinct,
+      isReport,
+    }: QueryProducts,
   ) {
     return this.productsService.findAll({
       page: Number(page),
@@ -35,6 +42,7 @@ export class ProductsController {
       filters: filters?.map((f) => JSON.parse(f as string)),
       distinct: distinct,
       userId: userId,
+      isReport,
     });
   }
 
