@@ -90,6 +90,7 @@ model SubGrupo {
   codigo    Int
   descricao String
   eAtivo    Boolean  @default(true)
+  eVenda    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -28,8 +28,11 @@ type listAllProps = {
 @Injectable()
 export class ProductsService {
   readonly listingRule = {
+    subGrupo: {
+      eVenda: true,
+    },
     precoVenda: {
-      gt: 0,
+      gte: 1,
     },
     eAtivo: true,
     possuiFoto: true,
@@ -218,6 +221,7 @@ export class ProductsService {
       },
       where: {
         ...this.listingRule,
+
         marcaCodigo: user.eVendedor
           ? {
               in: user.vendedor.marcas.map((marca) => marca.codigo),
