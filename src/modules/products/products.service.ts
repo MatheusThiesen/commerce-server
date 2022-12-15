@@ -250,7 +250,10 @@ export class ProductsService {
       distinct: distinct ? (distinct as any) : undefined,
       take: pagesize,
       skip: page * pagesize,
-      orderBy: orderByNormalized ?? { codigo: 'desc' },
+      orderBy: [orderByNormalized, { referencia: 'asc' }] ?? [
+        { codigo: 'desc' },
+        { referencia: 'asc' },
+      ],
       select: {
         codigo: true,
         referencia: true,
