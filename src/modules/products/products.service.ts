@@ -463,6 +463,7 @@ export class ProductsService {
         linhaCodigo,
         grupoCodigo,
         subgrupoCodigo,
+        generoCodigo,
       ] = productsArr;
       const product = new Product();
       Object.assign(product, {
@@ -484,6 +485,7 @@ export class ProductsService {
         linhaCodigo: this.stringToNumberOrUndefined.execute(linhaCodigo),
         grupoCodigo: this.stringToNumberOrUndefined.execute(grupoCodigo),
         subgrupoCodigo: this.stringToNumberOrUndefined.execute(subgrupoCodigo),
+        generoCodigo: this.stringToNumberOrUndefined.execute(generoCodigo),
       });
       const productExists = await this.prisma.produto.findUnique({
         where: {
