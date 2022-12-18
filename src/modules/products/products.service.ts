@@ -445,6 +445,7 @@ export class ProductsService {
   async import(file: Express.Multer.File) {
     const products = await this.parseCsv.execute(file);
 
+    let count = 0;
     for (const productsArr of products) {
       const [
         codigo,
@@ -465,6 +466,7 @@ export class ProductsService {
         subgrupoCodigo,
         generoCodigo,
       ] = productsArr;
+
       const product = new Product();
       Object.assign(product, {
         codigo: Number(codigo),
@@ -500,8 +502,12 @@ export class ProductsService {
           await this.create(product);
         }
       } catch (error) {
+        console.log('erro aqui');
         console.log(error);
       }
+
+      count++;
+      console.log(`produto ${count} de ${products.length}`);
     }
 
     await this.testImageProductProducerService.execute({});
