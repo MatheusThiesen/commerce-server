@@ -9,10 +9,10 @@ async function bootstrap() {
       origin: '*',
     },
     httpsOptions: {
-      key: await readFile('./secrets/private-key.pem'),
-      cert: await readFile('./secrets/public-certificate.pem'),
-      rejectUnauthorized: false,
-      requestCert: false,
+      key: await readFile('./secrets/private-key.pem', 'utf8'),
+      cert: await readFile('./secrets/public-certificate.pem', 'utf8'),
+      // rejectUnauthorized: false,
+      // requestCert: false,
     },
   });
 
