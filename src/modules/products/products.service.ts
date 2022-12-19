@@ -465,6 +465,7 @@ export class ProductsService {
         grupoCodigo,
         subgrupoCodigo,
         generoCodigo,
+        precoVendaEmpresa,
       ] = productsArr;
 
       const product = new Product();
@@ -488,6 +489,8 @@ export class ProductsService {
         grupoCodigo: this.stringToNumberOrUndefined.execute(grupoCodigo),
         subgrupoCodigo: this.stringToNumberOrUndefined.execute(subgrupoCodigo),
         generoCodigo: this.stringToNumberOrUndefined.execute(generoCodigo),
+        precoVendaEmpresa:
+          this.stringToNumberOrUndefined.execute(precoVendaEmpresa),
       });
       const productExists = await this.prisma.produto.findUnique({
         where: {

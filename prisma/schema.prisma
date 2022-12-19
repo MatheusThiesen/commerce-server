@@ -148,6 +148,7 @@ model Produto {
   descricaoComplementar String?
   descricaoAdicional    String?
   precoVenda            Float
+  precoVendaEmpresa     Float?
   unidade               String
   eAtivo                Boolean  @default(true)
   possuiFoto            Boolean  @default(true)

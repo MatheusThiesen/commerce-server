@@ -6,6 +6,7 @@ export class Product {
   descricaoComplementar: string;
   descricaoAdicional?: string;
   precoVenda: number;
+  precoVendaEmpresa?: number;
   unidade: string;
   eAtivo?: boolean;
   possuiFoto?: boolean;
