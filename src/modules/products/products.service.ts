@@ -198,6 +198,7 @@ export class ProductsService {
 
     const reportAddSelect = isReport
       ? {
+          precoVendaEmpresa: true,
           linha: {
             select: {
               codigo: true,
@@ -261,6 +262,7 @@ export class ProductsService {
         descricao: true,
         descricaoAdicional: true,
         precoVenda: true,
+
         marca: {
           select: {
             codigo: true,
@@ -344,6 +346,7 @@ export class ProductsService {
         descricaoAdicional: true,
         unidade: true,
         possuiFoto: true,
+        precoVendaEmpresa: true,
         grupo: {
           select: {
             codigo: true,
