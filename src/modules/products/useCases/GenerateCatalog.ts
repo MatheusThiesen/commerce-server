@@ -24,6 +24,7 @@ interface PageData {
   alternativeCode: string;
   colors: string;
   price: string;
+  priceDdl42: string;
   brand: string;
   colection: string;
   genre: string;
@@ -128,6 +129,15 @@ export class GenerateCatalog {
                 : ''
             }
             
+            <div>
+              <p class="price">TABELA PREÇO</p>
+              
+              <dl class="listInfo">
+                <dt>42 DDL</dt>
+                <dd>${page.priceDdl42}</dd>
+                
+              </dl>
+            </div>
 
             <div>
               <p class="price">GRADES</p>
@@ -184,6 +194,7 @@ export class GenerateCatalog {
         descricaoAdicional: true,
         precoVenda: true,
         descricaoComplementar: true,
+        precoVendaEmpresa: true,
         genero: {
           select: {
             codigo: true,
@@ -303,6 +314,15 @@ export class GenerateCatalog {
         group: product?.grupo?.descricao ?? '-',
         subgroup: product?.subGrupo?.descricao ?? '-',
         line: product?.linha?.descricao ?? '-',
+        priceDdl42: product.precoVendaEmpresa
+          ? (
+              product.precoVendaEmpresa +
+              product.precoVendaEmpresa * 0.0191
+            ).toLocaleString('pt-br', {
+              style: 'currency',
+              currency: 'BRL',
+            })
+          : '-',
         grids: grids,
       };
 
