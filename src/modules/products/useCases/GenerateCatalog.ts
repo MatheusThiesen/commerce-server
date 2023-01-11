@@ -24,7 +24,6 @@ interface PageData {
   alternativeCode: string;
   colors: string;
   price: string;
-  priceDdl42: string;
   brand: string;
   colection: string;
   genre: string;
@@ -128,17 +127,6 @@ export class GenerateCatalog {
                   </div>`
                 : ''
             }
-            
-            <div>
-              <p class="price">TABELA PREÇO</p>
-              
-              <dl class="listInfo">
-                <dt>42 DDL</dt>
-                <dd>${page.priceDdl42}</dd>
-                
-              </dl>
-            </div>
-
             <div>
               <p class="price">GRADES</p>
               <dl class="listGrids">
@@ -152,14 +140,8 @@ export class GenerateCatalog {
               <dl class="listInfo">
                 <dt>Marca</dt>
                 <dd>${page.brand}</dd>
-                <dt>Coleção</dt>
-                <dd>${page.colection}</dd>
                 <dt>Gênero</dt>
                 <dd>${page.genre}</dd>
-                <dt>Grupo</dt>
-                <dd>${page.group}</dd>
-                <dt>Subgrupo</dt>
-                <dd>${page.subgroup}</dd>
                 <dt>Linha</dt>
                 <dd>${page.line}</dd>
               </dl>
@@ -188,6 +170,7 @@ export class GenerateCatalog {
     const products = await this.prisma.produto.findMany({
       distinct: 'referencia',
       select: {
+        codigo: true,
         referencia: true,
         codigoAlternativo: true,
         descricao: true,
@@ -270,7 +253,7 @@ export class GenerateCatalog {
           reference: product.referencia,
           query: this.productsService.listingRule,
         })
-      ).map((grid) => grid.descricaoAdicional);
+      ).map((grid) => `${product.codigo} - ${grid.descricaoAdicional}`);
 
       let variations: VariationsProps[] = [];
 
@@ -314,15 +297,6 @@ export class GenerateCatalog {
         group: product?.grupo?.descricao ?? '-',
         subgroup: product?.subGrupo?.descricao ?? '-',
         line: product?.linha?.descricao ?? '-',
-        priceDdl42: product.precoVendaEmpresa
-          ? (
-              product.precoVendaEmpresa +
-              product.precoVendaEmpresa * 0.0191
-            ).toLocaleString('pt-br', {
-              style: 'currency',
-              currency: 'BRL',
-            })
-          : '-',
         grids: grids,
       };
 

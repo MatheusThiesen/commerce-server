@@ -17,6 +17,10 @@ import { SellersModule } from './modules/sellers/sellers.module';
 import { StockLocationsModule } from './modules/stock-locations/stock-locations.module';
 import { SubgroupsModule } from './modules/subgroups/subgroups.module';
 import { UtilsModule } from './utils/utils.module';
+import { ConceptModule } from './modules/concept/concept.module';
+import { ProductConceptRulesModule } from './modules/product-concept-rules/product-concept-rules.module';
+import { PurchasesOrderModule } from './modules/purchases-order/purchases-order.module';
+import { OrderItemsModule } from './modules/order-items/order-items.module';
 
 @Module({
   imports: [
@@ -52,6 +56,10 @@ import { UtilsModule } from './utils/utils.module';
     ProductsModule,
     StockLocationsModule,
     GridsModule,
+    ConceptModule,
+    ProductConceptRulesModule,
+    PurchasesOrderModule,
+    OrderItemsModule,
   ],
   providers: [
     {

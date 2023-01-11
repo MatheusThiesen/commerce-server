@@ -98,6 +98,8 @@ model SubGrupo {
   codigoGrupo Int
   produtos    Produto[]
 
+  regraProdutoConceito RegraProdutoConceito[]
+
   @@unique([codigo, codigoGrupo])
   @@map("subgrupos")
 }
@@ -176,6 +178,7 @@ model Produto {
   subGrupoId          String?
   Grade               Grade?         @relation(fields: [gradeCodigo], references: [codigo])
   gradeCodigo         Int?
+  ordemCompra         OrdemCompra[]
 
   @@map("produtos")
 }
@@ -233,15 +236,45 @@ model Genero {
 }
 
 model OrdemCompra {
-  codigo     Int      @id @unique
+  codigo     String   @id @unique
   periodo    String
-  descricao  String
+  nome       String
   quantidade Int
   eAtivo     Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
+  produtoCodigo Int
+
   @@map("ordensCompra")
+}
+
+model Conceito {
+  codigo     Int      @id @unique
+  descricao  String
+  abreviacao String?
+  eAtivo     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  regraProdutoConceito RegraProdutoConceito[]
+
+  @@map("conceitos")
+}
+
+model RegraProdutoConceito {
+  id        String   @id @unique @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subGrupo       SubGrupo @relation(fields: [subGrupoId], references: [id])
+  subGrupoId     String
+  conceito       Conceito @relation(fields: [conceitoCodigo], references: [codigo])
+  conceitoCodigo Int
+
+  @@unique([subGrupoId, conceitoCodigo])
+  @@map("regrasProdutoConceito")
 }
 
 model Pedido {
@@ -255,11 +288,11 @@ model Pedido {
 }
 
 model ItemPedido {
-  codigo       Int      @id @unique
+  codigo       String   @id @unique
   quantidade   Int
   valorUnitaro Float
   valorTotal   Float
-  sitiacao     Int
+  situacao     Int
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

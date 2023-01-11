@@ -49,10 +49,11 @@ class TestImageProductConsumer {
         }
 
         count++;
-        console.log(
-          `Teste fotos dos produtos ${count} de ${productExists.length}`,
-        );
       }
+
+      console.log(
+        `Teste fotos dos produtos ${count} de ${productExists.length}`,
+      );
     } catch (error) {
       console.log(error);
     }

@@ -128,7 +128,44 @@ export class ListProductsFilters {
       },
     });
 
+    const concepts = await this.prisma.conceito.findMany({
+      select: {
+        codigo: true,
+        descricao: true,
+        regraProdutoConceito: {
+          select: {
+            subGrupo: {
+              select: {
+                codigo: true,
+                descricao: true,
+              },
+            },
+          },
+        },
+      },
+      where: {
+        eAtivo: true,
+        regraProdutoConceito: {
+          some: {
+            subGrupo: {
+              id: {
+                in: subgroups.map((subgroup) => subgroup.subGrupo.id),
+              },
+            },
+          },
+        },
+      },
+    });
+
     filterList.push(
+      {
+        label: 'Conceito',
+        name: 'concept',
+        data: concepts.map((concept) => ({
+          name: concept.descricao,
+          value: concept.codigo,
+        })),
+      },
       {
         label: 'Referência',
         name: 'referencia',
@@ -158,10 +195,12 @@ export class ListProductsFilters {
       {
         label: 'Coleção',
         name: 'colecaoCodigo',
-        data: collections.map((collection) => ({
-          name: collection.colecao.descricao,
-          value: collection.colecao.codigo,
-        })),
+        data: collections
+          .filter((f) => f.colecao)
+          .map((collection) => ({
+            name: collection.colecao.descricao,
+            value: collection.colecao.codigo,
+          })),
       },
       {
         label: 'Grupo',

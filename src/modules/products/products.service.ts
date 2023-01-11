@@ -188,6 +188,20 @@ export class ProductsService {
           };
         }
 
+        if (filterGroup.value === 'concept') {
+          return {
+            subGrupo: {
+              regraProdutoConceito: {
+                some: {
+                  conceitoCodigo: {
+                    in: filterGroup.data.map((item) => item.value),
+                  },
+                },
+              },
+            },
+          };
+        }
+
         return {
           [filterGroup.value as string]: {
             in: filterGroup.data.map((item) => item.value),
@@ -448,7 +462,6 @@ export class ProductsService {
   async import(file: Express.Multer.File) {
     const products = await this.parseCsv.execute(file);
 
-    let count = 0;
     for (const productsArr of products) {
       const [
         codigo,
@@ -511,9 +524,6 @@ export class ProductsService {
         console.log('erro aqui');
         console.log(error);
       }
-
-      count++;
-      console.log(`produto ${count} de ${products.length}`);
     }
 
     await this.testImageProductProducerService.execute({});
