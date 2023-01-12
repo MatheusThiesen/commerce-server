@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+
 import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { CreateStockLocationDto } from './dto/create-stock-location.dto';
 import { UpdateStockLocationDto } from './dto/update-stock-location.dto';
@@ -13,18 +14,32 @@ export class StockLocationsService {
     const stockLocation = new StockLocation();
     Object.assign(stockLocation, createStockLocationDto);
 
-    const stockLocationExists = await this.prisma.localEstoque.findFirst({
+    const stockLocationExists = await this.prisma.localEstoque.findUnique({
       select: {
         id: true,
       },
       where: {
-        produtoCodigo: stockLocation.produtoCodigo,
-        periodo: stockLocation.periodo,
+        periodo_produtoCodigo: {
+          periodo: stockLocation.periodo,
+          produtoCodigo: stockLocation.produtoCodigo,
+        },
       },
     });
 
     if (stockLocationExists) {
-      throw new Error('stockLocation already exists');
+      return await this.update(stockLocationExists.id, stockLocation);
+    }
+
+    const existProduct = await this.prisma.produto.findUnique({
+      where: {
+        codigo: stockLocation.produtoCodigo,
+      },
+    });
+
+    if (!existProduct) {
+      console.log(`Produto nao existe ${stockLocation.produtoCodigo}`);
+      return;
+      // throw new BadRequestException('Product does not exist');
     }
 
     const createdStockLocation = await this.prisma.localEstoque.create({
@@ -39,6 +54,18 @@ export class StockLocationsService {
     Object.assign(stockLocation, updateStockLocationDto);
 
     await this.findOne(id);
+
+    const existProduct = await this.prisma.produto.findUnique({
+      where: {
+        codigo: stockLocation.produtoCodigo,
+      },
+    });
+
+    if (!existProduct) {
+      console.log(`Produto nao existe ${stockLocation.produtoCodigo}`);
+      return;
+      // throw new BadRequestException('Product does not exist');
+    }
 
     const updatedStockLocation = await this.prisma.localEstoque.update({
       data: stockLocation,
@@ -81,13 +108,15 @@ export class StockLocationsService {
       });
 
       try {
-        const stockLocationExists = await this.prisma.localEstoque.findFirst({
+        const stockLocationExists = await this.prisma.localEstoque.findUnique({
           select: {
             id: true,
           },
           where: {
-            produtoCodigo: stockLocation.produtoCodigo,
-            periodo: stockLocation.periodo,
+            periodo_produtoCodigo: {
+              periodo: stockLocation.periodo,
+              produtoCodigo: stockLocation.produtoCodigo,
+            },
           },
         });
 
