@@ -1,13 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { ParseCsv } from 'src/utils/ParseCsv.utils';
+import { UpdateStockFuture } from '../stock/useCases/updateStockFuture';
 import { CreateOrderItemDto } from './dto/create-order-item.dto';
 import { UpdateOrderItemDto } from './dto/update-order-item.dto';
 import { OrderItem } from './entities/order-item.entity';
 
 @Injectable()
 export class OrderItemsService {
-  constructor(private prisma: PrismaService, private parseCsv: ParseCsv) {}
+  constructor(
+    private prisma: PrismaService,
+    private parseCsv: ParseCsv,
+    private updateStockFuture: UpdateStockFuture,
+  ) {}
 
   async create(createOrderItemDto: CreateOrderItemDto) {
     const orderItem = new OrderItem();
@@ -32,13 +37,18 @@ export class OrderItemsService {
       await this.prisma.pedido.create({
         data: {
           codigo: orderItem.pedidoCodigo,
+          dataFaturamento: orderItem.dataFaturmaneto,
         },
       });
     }
 
+    delete orderItem.dataFaturmaneto;
+
     const createdItem = await this.prisma.itemPedido.create({
       data: orderItem,
     });
+
+    await this.updateStockFuture.execute(orderItem.produtoCodigo);
 
     return createdItem;
   }
@@ -72,15 +82,20 @@ export class OrderItemsService {
         await this.prisma.pedido.create({
           data: {
             codigo: item.pedidoCodigo,
+            dataFaturamento: item.dataFaturmaneto,
           },
         });
       }
     }
 
+    delete item.dataFaturmaneto;
+
     const updatedItem = await this.prisma.itemPedido.update({
       data: item,
       where: { codigo },
     });
+
+    await this.updateStockFuture.execute(item.produtoCodigo);
 
     return updatedItem;
   }
@@ -92,6 +107,7 @@ export class OrderItemsService {
       const [
         pedidoCodigo,
         produtoCodigo,
+        dataFaturmaneto,
         codigo,
         situacao,
         quantidade,
@@ -100,6 +116,7 @@ export class OrderItemsService {
       ] = orderItemsArr;
 
       const orderItem = new OrderItem();
+
       Object.assign(orderItem, {
         codigo: codigo,
         quantidade: Number(quantidade),
@@ -108,6 +125,7 @@ export class OrderItemsService {
         situacao: Number(situacao),
         pedidoCodigo: Number(pedidoCodigo),
         produtoCodigo: Number(produtoCodigo),
+        dataFaturmaneto: new Date(dataFaturmaneto),
       });
 
       const itemExists = await this.prisma.itemPedido.findUnique({

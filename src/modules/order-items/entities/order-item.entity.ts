@@ -8,4 +8,6 @@ export class OrderItem {
   produtoCodigo: number;
   createdAt?: Date;
   updatedAt?: Date;
+
+  dataFaturmaneto: Date;
 }

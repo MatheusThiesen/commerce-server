@@ -3,6 +3,7 @@ export class PurchasesOrder {
   periodo: string;
   nome: string;
   quantidade: number;
+  situacao: number;
   produtoCodigo: number;
   eAtivo?: boolean;
   createdAt?: Date;

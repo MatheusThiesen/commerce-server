@@ -26,7 +26,21 @@ class TestImageProductConsumer {
         referencia: true,
       },
       where: {
+        subGrupo: {
+          eVenda: true,
+        },
+        precoVenda: {
+          gte: 1,
+        },
+        eAtivo: true,
         possuiFoto: false,
+        locaisEstoque: {
+          some: {
+            quantidade: {
+              gte: 1,
+            },
+          },
+        },
       },
     });
 

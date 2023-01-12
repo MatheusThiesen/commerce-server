@@ -220,6 +220,7 @@ model LocalEstoque {
   Produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
   produtoCodigo Int
 
+  @@unique([periodo, produtoCodigo])
   @@map("locaisEstoque")
 }
 
@@ -240,6 +241,7 @@ model OrdemCompra {
   periodo    String
   nome       String
   quantidade Int
+  situacao   Int
   eAtivo     Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -278,9 +280,10 @@ model RegraProdutoConceito {
 }
 
 model Pedido {
-  codigo    Int      @id @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  codigo          Int      @id @unique
+  dataFaturamento DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   itens ItemPedido[]
 

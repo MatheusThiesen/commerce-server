@@ -159,14 +159,6 @@ export class ListProductsFilters {
 
     filterList.push(
       {
-        label: 'Conceito',
-        name: 'concept',
-        data: concepts.map((concept) => ({
-          name: concept.descricao,
-          value: concept.codigo,
-        })),
-      },
-      {
         label: 'Referência',
         name: 'referencia',
         data: references.map((reference) => ({
@@ -230,6 +222,7 @@ export class ListProductsFilters {
             value: gender.genero.codigo,
           })),
       },
+
       {
         label: 'Locais Estoque',
         name: 'locaisEstoque',
@@ -239,6 +232,14 @@ export class ListProductsFilters {
             name: stockLocation.descricao,
             value: stockLocation.periodo,
           })),
+      },
+      {
+        label: 'Conceito',
+        name: 'concept',
+        data: concepts.map((concept) => ({
+          name: concept.descricao,
+          value: concept.codigo,
+        })),
       },
     );
 

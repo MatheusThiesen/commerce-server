@@ -74,6 +74,7 @@ export class PurchasesOrderService {
         quantidade: Number(quantidade),
         produtoCodigo: Number(produtoCodigo),
         eAtivo: [2].includes(Number(situacao)),
+        situacao: Number(situacao),
       });
 
       const purchasesOrderExists = await this.prisma.ordemCompra.findUnique({

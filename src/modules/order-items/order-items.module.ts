@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { OrderItemsService } from './order-items.service';
+import { UpdateStockFuture } from '../stock/useCases/updateStockFuture';
 import { OrderItemsController } from './order-items.controller';
+import { OrderItemsService } from './order-items.service';
 
 @Module({
   controllers: [OrderItemsController],
-  providers: [OrderItemsService]
+  providers: [OrderItemsService, UpdateStockFuture],
 })
 export class OrderItemsModule {}
