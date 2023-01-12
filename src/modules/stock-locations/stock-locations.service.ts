@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { sendMailProducerService } from '../../jobs/SendMail/sendMail-producer-service';
 
 import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { CreateStockLocationDto } from './dto/create-stock-location.dto';
@@ -8,7 +9,11 @@ import { StockLocation } from './entities/stock-location.entity';
 
 @Injectable()
 export class StockLocationsService {
-  constructor(private prisma: PrismaService, private parseCsv: ParseCsv) {}
+  constructor(
+    private prisma: PrismaService,
+    private parseCsv: ParseCsv,
+    private readonly sendMail: sendMailProducerService,
+  ) {}
 
   async create(createStockLocationDto: CreateStockLocationDto) {
     const stockLocation = new StockLocation();
@@ -38,6 +43,18 @@ export class StockLocationsService {
 
     if (!existProduct) {
       console.log(`Produto nao existe ${stockLocation.produtoCodigo}`);
+      await this.sendMail.execute({
+        to: [
+          {
+            email: `matheus.reis@alpardobrasil.com.br`,
+            name: `Matheus Thiesen`,
+          },
+        ],
+        message: {
+          subject: `PRODUTO NAO IMPORTADO`,
+          html: `<h1>cod: ${stockLocation.produtoCodigo}</h1>`,
+        },
+      });
       return;
       // throw new BadRequestException('Product does not exist');
     }

@@ -9,18 +9,18 @@ import { AuthModule } from './modules/auth/auth.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { CollectionsModule } from './modules/collections/collections.module';
 import { ColorsModule } from './modules/colors/colors.module';
+import { ConceptModule } from './modules/concept/concept.module';
 import { GridsModule } from './modules/grids/grids.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { LinesModule } from './modules/lines/lines.module';
+import { OrderItemsModule } from './modules/order-items/order-items.module';
+import { ProductConceptRulesModule } from './modules/product-concept-rules/product-concept-rules.module';
 import { ProductsModule } from './modules/products/products.module';
+import { PurchasesOrderModule } from './modules/purchases-order/purchases-order.module';
 import { SellersModule } from './modules/sellers/sellers.module';
 import { StockLocationsModule } from './modules/stock-locations/stock-locations.module';
 import { SubgroupsModule } from './modules/subgroups/subgroups.module';
 import { UtilsModule } from './utils/utils.module';
-import { ConceptModule } from './modules/concept/concept.module';
-import { ProductConceptRulesModule } from './modules/product-concept-rules/product-concept-rules.module';
-import { PurchasesOrderModule } from './modules/purchases-order/purchases-order.module';
-import { OrderItemsModule } from './modules/order-items/order-items.module';
 
 @Module({
   imports: [
