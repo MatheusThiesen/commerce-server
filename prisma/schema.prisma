@@ -279,6 +279,16 @@ model RegraProdutoConceito {
   @@map("regrasProdutoConceito")
 }
 
+model ProdutoNaoImportado {
+  id     String @id @unique @default(uuid())
+  codigo Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("produtosNaoImportado")
+}
+
 model Pedido {
   codigo          Int      @id @unique
   dataFaturamento DateTime
