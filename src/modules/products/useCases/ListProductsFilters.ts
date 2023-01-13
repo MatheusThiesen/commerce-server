@@ -241,6 +241,20 @@ export class ListProductsFilters {
           value: concept.codigo,
         })),
       },
+      {
+        label: 'Possui foto',
+        name: 'possuiFoto',
+        data: [
+          {
+            name: 'SIM',
+            value: 1,
+          },
+          {
+            name: 'NÃO',
+            value: 1,
+          },
+        ],
+      },
     );
 
     return filterList;

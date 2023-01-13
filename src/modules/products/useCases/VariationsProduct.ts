@@ -20,6 +20,9 @@ export class VariationsProduct {
         codigoAlternativo: true,
         descricao: true,
       },
+      orderBy: {
+        referencia: 'desc',
+      },
       where: {
         codigoAlternativo: alternativeCode,
 

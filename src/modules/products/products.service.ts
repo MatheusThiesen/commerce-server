@@ -36,7 +36,7 @@ export class ProductsService {
       gte: 1,
     },
     eAtivo: true,
-    possuiFoto: true,
+    // possuiFoto: true,
     locaisEstoque: {
       some: {
         quantidade: {
@@ -200,6 +200,10 @@ export class ProductsService {
               },
             },
           };
+        }
+
+        if (filterGroup.value === 'possuiFoto') {
+          return { possuiFoto: Boolean(Number(filterGroup.data[0])) };
         }
 
         return {
