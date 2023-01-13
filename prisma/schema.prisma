@@ -109,6 +109,7 @@ model Marca {
   codigo    Int      @id @unique
   descricao String
   eAtivo    Boolean  @default(true)
+  eVenda    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
