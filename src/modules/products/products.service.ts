@@ -32,6 +32,9 @@ export class ProductsService {
     subGrupo: {
       eVenda: true,
     },
+    grupo: {
+      eVenda: true,
+    },
     precoVenda: {
       gte: 1,
     },
