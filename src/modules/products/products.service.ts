@@ -29,6 +29,11 @@ type listAllProps = {
 @Injectable()
 export class ProductsService {
   readonly listingRule = {
+    // subGrupo: {
+    //   eVenda: true,
+    // },
+    // possuiFoto: true,
+
     marca: {
       eVenda: true,
     },
@@ -36,17 +41,13 @@ export class ProductsService {
       eVenda: true,
     },
     precoVenda: {
-      gte: 1,
+      gt: 0,
     },
     eAtivo: true,
-    // subGrupo: {
-    //   eVenda: true,
-    // },
-    // possuiFoto: true,
     locaisEstoque: {
       some: {
         quantidade: {
-          gte: 1,
+          gt: 0,
         },
       },
     },
