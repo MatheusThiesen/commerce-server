@@ -33,15 +33,15 @@ export class ProductsService {
     //   eVenda: true,
     // },
     // possuiFoto: true,
+    // precoVenda: {
+    //   gt: 0,
+    // },
 
     marca: {
       eVenda: true,
     },
     grupo: {
       eVenda: true,
-    },
-    precoVenda: {
-      gt: 0,
     },
     eAtivo: true,
     locaisEstoque: {
