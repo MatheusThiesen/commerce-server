@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { UpdateStockFuture } from '../stock/useCases/updateStockFuture';
@@ -39,13 +39,13 @@ export class OrderItemsService {
     });
 
     if (!existProduct) {
-      this.prisma.produtoNaoImportado.create({
+      await this.prisma.produtoNaoImportado.create({
         data: {
           codigo: orderItem.produtoCodigo,
         },
       });
 
-      throw new BadRequestException('Product does not exist');
+      throw new Error('Product does not exist');
     }
 
     const orderExists = await this.prisma.pedido.findUnique({
@@ -160,10 +160,14 @@ export class OrderItemsService {
         },
       });
 
-      if (itemExists) {
-        await this.update(itemExists.codigo, orderItem);
-      } else {
-        await this.create(orderItem);
+      try {
+        if (itemExists) {
+          await this.update(itemExists.codigo, orderItem);
+        } else {
+          await this.create(orderItem);
+        }
+      } catch (error) {
+        console.log(error);
       }
     }
 

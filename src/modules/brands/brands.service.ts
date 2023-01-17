@@ -75,7 +75,7 @@ export class BrandsService {
       Object.assign(brand, {
         codigo: Number(codigo),
         descricao: descricao,
-        eAtivo: eAtivo?.toLowerCase() === 's',
+        eAtivo: eAtivo === 1,
       });
 
       const brandExists = await this.prisma.marca.findUnique({

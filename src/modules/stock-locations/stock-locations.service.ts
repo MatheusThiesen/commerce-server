@@ -37,15 +37,13 @@ export class StockLocationsService {
     });
 
     if (!existProduct) {
-      this.prisma.produtoNaoImportado.create({
+      await this.prisma.produtoNaoImportado.create({
         data: {
           codigo: stockLocation.produtoCodigo,
         },
       });
-      console.log(`Produto nao existe ${stockLocation.produtoCodigo}`);
 
-      return;
-      // throw new BadRequestException('Product does not exist');
+      throw new Error('Product does not exist');
     }
 
     const createdStockLocation = await this.prisma.localEstoque.create({

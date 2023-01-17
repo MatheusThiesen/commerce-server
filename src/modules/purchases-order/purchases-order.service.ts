@@ -50,6 +50,22 @@ export class PurchasesOrderService {
 
     Object.assign(purchasesOrder, updatePurchasesOrderDto);
 
+    const existProduct = await this.prisma.produto.findUnique({
+      where: {
+        codigo: purchasesOrder.produtoCodigo,
+      },
+    });
+
+    if (!existProduct) {
+      await this.prisma.produtoNaoImportado.create({
+        data: {
+          codigo: purchasesOrder.produtoCodigo,
+        },
+      });
+
+      throw new Error('Product does not exist');
+    }
+
     await this.findOne(codigo);
     const updatedPurchasesOrder = await this.prisma.ordemCompra.update({
       data: purchasesOrder,
@@ -83,10 +99,14 @@ export class PurchasesOrderService {
         },
       });
 
-      if (purchasesOrderExists) {
-        await this.update(purchasesOrderExists.codigo, purchasesOrder);
-      } else {
-        await this.create(purchasesOrder);
+      try {
+        if (purchasesOrderExists) {
+          await this.update(purchasesOrderExists.codigo, purchasesOrder);
+        } else {
+          await this.create(purchasesOrder);
+        }
+      } catch (error) {
+        console.log(error);
       }
     }
 
