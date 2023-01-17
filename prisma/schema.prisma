@@ -303,18 +303,20 @@ model Pedido {
 }
 
 model ItemPedido {
-  codigo       String   @id @unique
+  codigo       String   @id @unique @default(uuid())
   quantidade   Int
   valorUnitaro Float
   valorTotal   Float
   situacao     Int
+  sequencia    Int
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  pedido        Pedido?  @relation(fields: [pedidoCodigo], references: [codigo])
-  pedidoCodigo  Int?
-  produto       Produto? @relation(fields: [produtoCodigo], references: [codigo])
-  produtoCodigo Int?
+  pedido        Pedido  @relation(fields: [pedidoCodigo], references: [codigo])
+  pedidoCodigo  Int
+  produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
+  produtoCodigo Int
 
+  @@unique([pedidoCodigo, produtoCodigo, sequencia])
   @@map("itensPedido")
 }

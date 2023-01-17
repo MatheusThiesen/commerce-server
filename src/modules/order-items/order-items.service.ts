@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
-import { ParseCsv } from 'src/utils/ParseCsv.utils';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { UpdateStockFuture } from '../stock/useCases/updateStockFuture';
 import { CreateOrderItemDto } from './dto/create-order-item.dto';
 import { UpdateOrderItemDto } from './dto/update-order-item.dto';
@@ -20,12 +20,32 @@ export class OrderItemsService {
 
     const itemExists = await this.prisma.itemPedido.findUnique({
       where: {
-        codigo: orderItem.codigo,
+        pedidoCodigo_produtoCodigo_sequencia: {
+          pedidoCodigo: orderItem.pedidoCodigo,
+          produtoCodigo: orderItem.produtoCodigo,
+          sequencia: orderItem.sequencia,
+        },
       },
     });
 
     if (itemExists) {
       throw new Error('item already exists');
+    }
+
+    const existProduct = await this.prisma.produto.findUnique({
+      where: {
+        codigo: orderItem.produtoCodigo,
+      },
+    });
+
+    if (!existProduct) {
+      this.prisma.produtoNaoImportado.create({
+        data: {
+          codigo: orderItem.produtoCodigo,
+        },
+      });
+
+      throw new BadRequestException('Product does not exist');
     }
 
     const orderExists = await this.prisma.pedido.findUnique({
@@ -108,17 +128,18 @@ export class OrderItemsService {
         pedidoCodigo,
         produtoCodigo,
         dataFaturmaneto,
-        codigo,
+        _codigo,
         situacao,
         quantidade,
         valorUnitaro,
         valorTotal,
+        sequencia,
       ] = orderItemsArr;
 
       const orderItem = new OrderItem();
 
       Object.assign(orderItem, {
-        codigo: codigo,
+        // codigo: codigo,
         quantidade: Number(quantidade),
         valorUnitaro: Number(valorUnitaro),
         valorTotal: Number(valorTotal),
@@ -126,11 +147,16 @@ export class OrderItemsService {
         pedidoCodigo: Number(pedidoCodigo),
         produtoCodigo: Number(produtoCodigo),
         dataFaturmaneto: new Date(dataFaturmaneto),
+        sequencia: Number(sequencia),
       });
 
       const itemExists = await this.prisma.itemPedido.findUnique({
         where: {
-          codigo: orderItem.codigo,
+          pedidoCodigo_produtoCodigo_sequencia: {
+            pedidoCodigo: orderItem.pedidoCodigo,
+            produtoCodigo: orderItem.produtoCodigo,
+            sequencia: orderItem.sequencia,
+          },
         },
       });
 

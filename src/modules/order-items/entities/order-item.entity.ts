@@ -4,6 +4,7 @@ export class OrderItem {
   valorUnitaro: number;
   valorTotal: number;
   situacao: number;
+  sequencia: number;
   pedidoCodigo: number;
   produtoCodigo: number;
   createdAt?: Date;
