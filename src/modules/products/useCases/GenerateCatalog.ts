@@ -226,7 +226,7 @@ export class GenerateCatalog {
         },
       },
       where: {
-        ...this.productsService.listingRule,
+        ...this.productsService.listingRule(),
         referencia: {
           in: referencesProduct,
         },
@@ -251,7 +251,7 @@ export class GenerateCatalog {
       const grids = (
         await this.agroupGridProduct.execute({
           reference: product.referencia,
-          query: this.productsService.listingRule,
+          query: this.productsService.listingRule(),
         })
       ).map((grid) => `${product.codigo} - ${grid.descricaoAdicional}`);
 
@@ -260,7 +260,7 @@ export class GenerateCatalog {
       if (!!groupProduct) {
         const getVariationsProduct = await this.variationsProduct.execute({
           alternativeCode: product.codigoAlternativo,
-          query: this.productsService.listingRule,
+          query: this.productsService.listingRule(),
         });
 
         variations = getVariationsProduct

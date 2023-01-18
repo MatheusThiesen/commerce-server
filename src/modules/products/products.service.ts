@@ -28,29 +28,35 @@ type listAllProps = {
 
 @Injectable()
 export class ProductsService {
-  readonly listingRule = {
-    // subGrupo: {
-    //   eVenda: true,
-    // },
-    // possuiFoto: true,
-    // precoVenda: {
-    //   gt: 0,
-    // },
+  readonly listingRule = () => {
+    const now = new Date();
+    const period = this.normalizedMonth(now, `period`);
 
-    marca: {
-      eVenda: true,
-    },
-    grupo: {
-      eVenda: true,
-    },
-    eAtivo: true,
-    locaisEstoque: {
-      some: {
-        quantidade: {
-          gt: 0,
+    return {
+      // subGrupo: {
+      //   eVenda: true,
+      // },
+      // possuiFoto: true,
+      // precoVenda: {
+      //   gt: 0,
+      // },
+
+      marca: {
+        eVenda: true,
+      },
+      grupo: {
+        eVenda: true,
+      },
+      eAtivo: true,
+      locaisEstoque: {
+        some: {
+          quantidade: {
+            gt: 0,
+          },
+          OR: [{ periodo: 'pronta-entrega' }, { periodo: { gt: period } }],
         },
       },
-    },
+    };
   };
 
   constructor(
@@ -298,7 +304,7 @@ export class ProductsService {
         ...(reportAddSelect as any),
       },
       where: {
-        ...this.listingRule,
+        ...this.listingRule(),
 
         marcaCodigo: user.eVendedor
           ? {
@@ -317,7 +323,7 @@ export class ProductsService {
               in: user.vendedor.marcas.map((marca) => marca.codigo),
             }
           : undefined,
-        ...this.listingRule,
+        ...this.listingRule(),
         AND: filterNormalized,
       },
     });
@@ -350,7 +356,7 @@ export class ProductsService {
     });
     return await this.listProductsFilters.execute({
       where: {
-        ...this.listingRule,
+        ...this.listingRule(),
         marcaCodigo: user.eVendedor
           ? {
               in: user.vendedor.marcas.map((marca) => marca.codigo),
@@ -454,11 +460,11 @@ export class ProductsService {
 
     const variacoes = await this.variationsProduct.execute({
       alternativeCode: product.codigoAlternativo,
-      query: this.listingRule,
+      query: this.listingRule(),
     });
     const grades = await this.agroupGridProduct.execute({
       reference: product.referencia,
-      query: this.listingRule,
+      query: this.listingRule(),
     });
 
     return { ...product, variacoes, grades };
@@ -618,6 +624,34 @@ export class ProductsService {
       return findImage === -1 ? false : true;
     } catch (error) {
       return false;
+    }
+  }
+
+  normalizedMonth(datePeriod: Date, type: 'period' | 'name') {
+    const normalizedDate = datePeriod;
+    const day = normalizedDate.toLocaleString('pt-br', {
+      day: '2-digit',
+    });
+    const month = normalizedDate.toLocaleString('pt-br', {
+      month: '2-digit',
+    });
+    const year = normalizedDate.toLocaleString('pt-br', {
+      year: 'numeric',
+    });
+
+    const dateMonthLong = new Date(`${month}/${day}/${year}`).toLocaleString(
+      'pt-br',
+      {
+        month: 'long',
+      },
+    );
+
+    if (type === 'period') {
+      return `${month}-${year}`;
+    } else {
+      return `${
+        dateMonthLong[0].toUpperCase() + dateMonthLong.substring(1)
+      } ${year}`;
     }
   }
 }
