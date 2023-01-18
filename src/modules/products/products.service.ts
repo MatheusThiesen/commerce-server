@@ -58,7 +58,7 @@ export class ProductsService {
       },
     };
 
-    return rule;
+    return rule as any;
   };
 
   constructor(
@@ -273,9 +273,6 @@ export class ProductsService {
             },
             where: {
               ...this.listingRule().locaisEstoque,
-              quantidade: {
-                gt: 0,
-              },
             },
           },
         }
@@ -465,9 +462,6 @@ export class ProductsService {
           },
           where: {
             ...this.listingRule().locaisEstoque,
-            quantidade: {
-              gt: 0,
-            },
           },
         },
       },
