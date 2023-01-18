@@ -28,11 +28,11 @@ type listAllProps = {
 
 @Injectable()
 export class ProductsService {
-  readonly listingRule = () => {
+  listingRule = () => {
     const now = new Date();
     const period = this.normalizedMonth(now, `period`);
 
-    return {
+    const rule = {
       // subGrupo: {
       //   eVenda: true,
       // },
@@ -57,6 +57,8 @@ export class ProductsService {
         },
       },
     };
+
+    return rule;
   };
 
   constructor(
@@ -270,6 +272,7 @@ export class ProductsService {
               quantidade: true,
             },
             where: {
+              ...this.listingRule().locaisEstoque,
               quantidade: {
                 gt: 0,
               },
@@ -314,6 +317,24 @@ export class ProductsService {
         AND: filterNormalized,
       },
     });
+
+    console.log(
+      JSON.stringify(
+        {
+          ...this.listingRule(),
+
+          marcaCodigo: user.eVendedor
+            ? {
+                in: user.vendedor.marcas.map((marca) => marca.codigo),
+              }
+            : undefined,
+          AND: filterNormalized,
+        },
+        null,
+        2,
+      ),
+    );
+
     const productsTotal = await this.prisma.produto.findMany({
       distinct: distinct ? (distinct as any) : undefined,
       select: { codigo: true },
@@ -443,6 +464,7 @@ export class ProductsService {
             quantidade: true,
           },
           where: {
+            ...this.listingRule().locaisEstoque,
             quantidade: {
               gt: 0,
             },
