@@ -55,12 +55,15 @@ export class UpdateStockFuture {
                 },
               });
             } else {
+              const [month, year] = item?.periodo.split('-');
+
               await this.prisma.localEstoque.create({
                 data: {
                   produtoCodigo: cod,
                   quantidade: qtd,
                   descricao: item.nome,
                   periodo: item?.periodo,
+                  data: new Date(`${year}-${month}-01T23:59`),
                 },
               });
             }

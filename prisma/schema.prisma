@@ -211,13 +211,14 @@ model Tamanho {
 }
 
 model LocalEstoque {
-  id         String   @id @unique @default(uuid())
+  id         String    @id @unique @default(uuid())
   periodo    String
   descricao  String
   quantidade Int
-  eAtivo     Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  eAtivo     Boolean   @default(true)
+  data       DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   Produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
   produtoCodigo Int

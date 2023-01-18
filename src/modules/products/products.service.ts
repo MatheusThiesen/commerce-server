@@ -30,7 +30,12 @@ type listAllProps = {
 export class ProductsService {
   listingRule = () => {
     const now = new Date();
-    const period = this.normalizedMonth(now, `period`);
+    const month = now.toLocaleString('pt-br', {
+      month: '2-digit',
+    });
+    const year = now.toLocaleString('pt-br', {
+      year: 'numeric',
+    });
 
     const rule = {
       // subGrupo: {
@@ -53,12 +58,21 @@ export class ProductsService {
           quantidade: {
             gt: 0,
           },
-          OR: [{ periodo: 'pronta-entrega' }, { periodo: { gt: period } }],
+          OR: [
+            {
+              periodo: 'pronta-entrega',
+            },
+            {
+              data: {
+                gt: new Date(`${year}-${month}-01T23:59`),
+              },
+            },
+          ],
         },
       },
     };
 
-    return rule as any;
+    return rule;
   };
 
   constructor(
@@ -315,23 +329,6 @@ export class ProductsService {
       },
     });
 
-    console.log(
-      JSON.stringify(
-        {
-          ...this.listingRule(),
-
-          marcaCodigo: user.eVendedor
-            ? {
-                in: user.vendedor.marcas.map((marca) => marca.codigo),
-              }
-            : undefined,
-          AND: filterNormalized,
-        },
-        null,
-        2,
-      ),
-    );
-
     const productsTotal = await this.prisma.produto.findMany({
       distinct: distinct ? (distinct as any) : undefined,
       select: { codigo: true },
@@ -461,7 +458,7 @@ export class ProductsService {
             quantidade: true,
           },
           where: {
-            ...this.listingRule().locaisEstoque,
+            ...this.listingRule().locaisEstoque.some,
           },
         },
       },
