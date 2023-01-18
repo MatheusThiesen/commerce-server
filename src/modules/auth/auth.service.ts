@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon from 'argon2';
 import { hash } from 'argon2';
+import * as crypto from 'crypto';
 import { sendMailProducerService } from 'src/jobs/SendMail/sendMail-producer-service';
 import { LayoutMail } from 'src/utils/LayoutMail.utils';
 import { PrismaService } from '../../database/prisma.service';
@@ -90,13 +91,13 @@ export class AuthService {
   }
   async signin(dto: AuthDto) {
     const user = await this.prisma.usuario.findUnique({
-      select: { senha: true, id: true, email: true },
+      select: { senha: true, id: true, email: true, eAtivo: true },
       where: {
         email: dto.email,
       },
     });
 
-    if (!user) throw new UnauthorizedException('Access Denied');
+    if (!user || !user.eAtivo) throw new UnauthorizedException('Access Denied');
 
     const passwordMatches = await argon.verify(user.senha, dto.senha);
     if (!passwordMatches) throw new UnauthorizedException('Access Denied');

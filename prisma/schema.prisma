@@ -33,7 +33,7 @@ model Vendedor {
   codigo        Int      @id @unique
   nome          String
   nomeGuerra    String
-  email         String
+  email         String?
   codGerente    Int?
   codSupervisor Int?
   eAtivo        Boolean  @default(true)

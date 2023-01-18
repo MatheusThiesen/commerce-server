@@ -62,11 +62,11 @@ export class ProductsService {
             {
               periodo: 'pronta-entrega',
             },
-            {
-              data: {
-                gt: new Date(`${year}-${month}-01T23:59`),
-              },
-            },
+            // {
+            //   data: {
+            //     gt: new Date(`${year}-${month}-01T23:59`),
+            //   },
+            // },
           ],
         },
       },
@@ -232,7 +232,7 @@ export class ProductsService {
         }
 
         if (filterGroup.value === 'possuiFoto') {
-          return { possuiFoto: Boolean(Number(filterGroup.data[0])) };
+          return { possuiFoto: Boolean(Number(filterGroup.data[0].value)) };
         }
 
         return {

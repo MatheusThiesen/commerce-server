@@ -37,10 +37,38 @@ export class SellersService {
       throw new Error('Seller already exists');
     }
 
+    let conectBrands: undefined | object = undefined;
+
+    if (seller.marcasCod) {
+      conectBrands = {
+        connect: seller.marcasCod.map((cod) => ({
+          codigo: cod,
+        })),
+      };
+    }
+
+    delete seller.marcasCod;
     const createdSeller = await this.prisma.vendedor.create({
       select: this.selectSeller,
-      data: { ...seller },
+      data: { ...seller, marcas: conectBrands },
     });
+
+    const findUser = await this.prisma.usuario.findUnique({
+      where: {
+        email: seller.email,
+      },
+    });
+
+    if (!findUser && seller.email) {
+      await this.prisma.usuario.create({
+        data: {
+          email: seller.email,
+          senha: `-`,
+          vendedorCodigo: seller.codigo,
+          eVendedor: true,
+        },
+      });
+    }
 
     return createdSeller;
   }
@@ -71,9 +99,21 @@ export class SellersService {
 
     await this.findOne(codigo);
 
+    let conectBrands: undefined | object = undefined;
+
+    if (seller.marcasCod) {
+      conectBrands = {
+        set: seller.marcasCod.map((cod) => ({
+          codigo: cod,
+        })),
+      };
+    }
+
+    delete seller.marcasCod;
+
     const updatedSeller = await this.prisma.vendedor.update({
       select: this.selectSeller,
-      data: seller,
+      data: { ...seller, marcas: conectBrands },
       where: { codigo },
     });
 
@@ -83,6 +123,59 @@ export class SellersService {
   async remove(codigo: number) {
     await this.findOne(codigo);
     await this.prisma.vendedor.delete({ where: { codigo } });
+
+    return;
+  }
+
+  async import(file: Express.Multer.File) {
+    const sellers = await this.parseCsv.execute(file);
+
+    for (const sellerArr of sellers) {
+      const [
+        codigo,
+        marcasCod,
+        codGerente,
+        codSupervisor,
+        nome,
+        nomeGuerra,
+        email,
+        situation,
+        eGerente,
+        eSupervisor,
+      ] = sellerArr;
+
+      const seller = new Seller();
+      Object.assign(seller, {
+        codigo: Number(codigo),
+        marcasCod: marcasCod
+          ? marcasCod.split(',').map((a) => Number(a))
+          : undefined,
+        codGerente: codGerente ? Number(codGerente) : undefined,
+        codSupervisor: codSupervisor ? Number(codSupervisor) : undefined,
+        nome: nome,
+        nomeGuerra: nomeGuerra,
+        email: email,
+        eAtivo: situation ? Number(situation) === 1 : undefined,
+        eGerente: eGerente ? eGerente === 's' : undefined,
+        eSupervisor: eSupervisor ? eSupervisor === 's' : undefined,
+      });
+
+      const sellerExists = await this.prisma.vendedor.findUnique({
+        where: {
+          codigo: seller.codigo,
+        },
+      });
+
+      try {
+        if (sellerExists) {
+          await this.update(sellerExists.codigo, seller);
+        } else {
+          await this.create(seller);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
 
     return;
   }

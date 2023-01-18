@@ -11,4 +11,6 @@ export class Seller {
   eSupervisor: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+
+  marcasCod?: number[];
 }

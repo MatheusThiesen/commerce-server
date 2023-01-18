@@ -6,7 +6,10 @@ import {
   Param,
   Post,
   Put,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateSellerDto } from './dto/create-seller.dto';
 import { UpdateSellerDto } from './dto/update-seller.dto';
 import { SellersService } from './sellers.service';
@@ -38,5 +41,11 @@ export class SellersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.sellersService.remove(+id);
+  }
+
+  @Post('import')
+  @UseInterceptors(FileInterceptor('file'))
+  import(@UploadedFile() file: Express.Multer.File) {
+    return this.sellersService.import(file);
   }
 }
