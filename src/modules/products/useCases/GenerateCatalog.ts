@@ -253,7 +253,7 @@ export class GenerateCatalog {
           reference: product.referencia,
           query: this.productsService.listingRule(),
         })
-      ).map((grid) => `${product.codigo} - ${grid.descricaoAdicional}`);
+      ).map((grid) => `${grid.codigo} - ${grid.descricaoAdicional}`);
 
       let variations: VariationsProps[] = [];
 
@@ -590,12 +590,6 @@ export class GenerateCatalog {
     </head>
       <body>
         ${pages}
-
-        <script>
-          document.addEventListener("DOMContentLoaded", function(){
-            alert('carregou');
-          })
-        </script>
       </body>
     </html>
     `;

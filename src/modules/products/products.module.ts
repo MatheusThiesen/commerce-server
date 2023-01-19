@@ -1,6 +1,7 @@
 import { HttpModule } from '@nestjs/axios';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
+// import { PuppeteerModule } from 'nest-puppeteer';
 import { TestImageProductConsumer } from '../../jobs/TestImageProduct/testImageProduct-consumer';
 import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
 import { ProductsController } from './products.controller';
@@ -16,6 +17,13 @@ import { VariationsProduct } from './useCases/VariationsProduct';
     BullModule.registerQueue({
       name: 'testImageProduct-queue',
     }),
+
+    // PuppeteerModule.forRoot(
+    //   { pipe: true, isGlobal: true }, // optional, any Puppeteer launch options here or leave empty for good defaults */,
+    //   'BrowserInstanceName', // optional, can be useful for using Chrome and Firefox in the same project
+    // ),
+
+    // PuppeteerModule.forFeature(),
   ],
   controllers: [ProductsController],
   providers: [
