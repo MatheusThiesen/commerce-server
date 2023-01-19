@@ -286,7 +286,7 @@ export class ProductsService {
               quantidade: true,
             },
             where: {
-              ...this.listingRule().locaisEstoque,
+              ...this.listingRule().locaisEstoque.some,
             },
           },
         }
