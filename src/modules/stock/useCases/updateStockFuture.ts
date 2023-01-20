@@ -22,7 +22,8 @@ export class UpdateStockFuture {
             where
             i."produtoCodigo" in (${cod})
             and p."dataFaturamento" >= '${year}-${month}-01'
-            and p."dataFaturamento" <= '${year}-${month}-31'
+            and p."dataFaturamento" < 
+            '${year}-${String(Number(month) + 1).padStart(2, '0')}-01'
             and i.situacao in (1,2,3)
             group by i."produtoCodigo";`);
 
