@@ -68,7 +68,7 @@ export class OrderItemsService {
       data: orderItem,
     });
 
-    await this.updateStockFuture.execute(orderItem.produtoCodigo);
+    // await this.updateStockFuture.execute(orderItem.produtoCodigo);
 
     return createdItem;
   }
@@ -115,7 +115,7 @@ export class OrderItemsService {
       where: { codigo },
     });
 
-    await this.updateStockFuture.execute(item.produtoCodigo);
+    // await this.updateStockFuture.execute(item.produtoCodigo);
 
     return updatedItem;
   }

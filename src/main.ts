@@ -1,5 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import * as express from 'express';
+import * as path from 'path';
 // import { readFile } from 'fs/promises';
 import { AppModule } from './app.module';
 
@@ -17,6 +19,7 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe());
+  app.use('/files', express.static(path.resolve(__dirname, '..', 'temp')));
   await app.listen(4444);
 }
 bootstrap();
