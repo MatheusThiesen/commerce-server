@@ -289,7 +289,7 @@ export class GenerateCatalog {
           product?.corPrimaria?.descricao &&
           product?.corSecundaria?.cor?.descricao
             ? `${product.corPrimaria.descricao} e ${product.corSecundaria.cor.descricao}`
-            : product.corPrimaria.descricao,
+            : product?.corPrimaria?.descricao ?? '-',
         price: product?.precoVenda?.toLocaleString('pt-br', {
           style: 'currency',
           currency: 'BRL',
@@ -597,6 +597,8 @@ export class GenerateCatalog {
     </html>
     `;
 
+    return html;
+
     let filepath: string;
 
     try {
@@ -630,6 +632,5 @@ export class GenerateCatalog {
     }
 
     return filepath;
-    // return html;
   }
 }
