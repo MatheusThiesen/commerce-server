@@ -1,4 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import * as crypto from 'crypto';
+import * as path from 'path';
+import puppeteer from 'puppeteer';
 import { PrismaService } from '../../../database/prisma.service';
 import { OrderBy } from '../../../utils/OrderBy.utils';
 import { ProductsService } from '../products.service';
@@ -166,7 +169,7 @@ export class GenerateCatalog {
     referencesProduct,
     orderBy,
     groupProduct,
-  }: ListProductsFiltersProps): Promise<string> {
+  }: ListProductsFiltersProps) {
     const products = await this.prisma.produto.findMany({
       distinct: 'referencia',
       select: {
@@ -278,16 +281,16 @@ export class GenerateCatalog {
 
         imageMain:
           `${this.spaceLink}Produtos/${product.referencia}_01` as string,
-        alternativeCode: product.codigoAlternativo,
-        reference: product.referencia,
-        description: product.descricao,
-        descriptionAdditional: product.descricaoAdicional,
+        alternativeCode: product?.codigoAlternativo ?? '-',
+        reference: product?.referencia ?? '-',
+        description: product?.descricao ?? '-',
+        descriptionAdditional: product?.descricaoAdicional ?? '-',
         colors:
           product?.corPrimaria?.descricao &&
           product?.corSecundaria?.cor?.descricao
             ? `${product.corPrimaria.descricao} e ${product.corSecundaria.cor.descricao}`
             : product.corPrimaria.descricao,
-        price: product.precoVenda.toLocaleString('pt-br', {
+        price: product?.precoVenda?.toLocaleString('pt-br', {
           style: 'currency',
           currency: 'BRL',
         }),
@@ -594,6 +597,39 @@ export class GenerateCatalog {
     </html>
     `;
 
-    return html;
+    let filepath: string;
+
+    try {
+      const pathTemp = path.resolve(__dirname, '..', '..', '..', '..', 'temp');
+      const filename = crypto.randomUUID() + '.pdf';
+
+      const browser = await puppeteer.launch({
+        headless: true,
+        // waitForInitialPage: true,
+      });
+      const page = await browser.newPage();
+
+      // Configure the navigation timeout
+      await page.setDefaultNavigationTimeout(0);
+
+      await page.setContent(html, {
+        waitUntil: 'load',
+        // waitUntil: 'domcontentloaded',
+      });
+      await page.pdf({
+        format: 'A4',
+        path: path.resolve(pathTemp, filename),
+      });
+
+      filepath = `${process.env.BACKEND_URL}/files/${filename}`;
+
+      // close the browser
+      await browser.close();
+    } catch (error) {
+      console.log(error);
+    }
+
+    return filepath;
+    // return html;
   }
 }
