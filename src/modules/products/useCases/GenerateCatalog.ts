@@ -603,7 +603,7 @@ export class GenerateCatalog {
     </html>
     `;
 
-    // return html;
+    return html;
 
     let filepath: string;
 
