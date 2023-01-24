@@ -318,14 +318,17 @@ export class ProductsService {
         ...(reportAddSelect as any),
       },
       where: {
-        ...this.listingRule(),
-
-        marcaCodigo: user.eVendedor
-          ? {
-              in: user.vendedor.marcas.map((marca) => marca.codigo),
-            }
-          : undefined,
-        AND: filterNormalized,
+        AND: [
+          ...filterNormalized,
+          this.listingRule(),
+          {
+            marcaCodigo: user.eVendedor
+              ? {
+                  in: user.vendedor.marcas.map((marca) => marca.codigo),
+                }
+              : undefined,
+          },
+        ],
       },
     });
 
@@ -333,13 +336,17 @@ export class ProductsService {
       distinct: distinct ? (distinct as any) : undefined,
       select: { codigo: true },
       where: {
-        marcaCodigo: user.eVendedor
-          ? {
-              in: user.vendedor.marcas.map((marca) => marca.codigo),
-            }
-          : undefined,
-        ...this.listingRule(),
-        AND: filterNormalized,
+        AND: [
+          ...filterNormalized,
+          this.listingRule(),
+          {
+            marcaCodigo: user.eVendedor
+              ? {
+                  in: user.vendedor.marcas.map((marca) => marca.codigo),
+                }
+              : undefined,
+          },
+        ],
       },
     });
 
