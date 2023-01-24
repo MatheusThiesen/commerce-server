@@ -130,12 +130,18 @@ export class GenerateCatalog {
                   </div>`
                 : ''
             }
-            <div>
-              <p class="price">GRADES</p>
-              <dl class="listGrids">
-              ${gridsHtml}
-              </dl>
-            </div>
+            ${
+              !page.groupProduct
+                ? `
+                <div>
+                  <p class="price">GRADES</p>
+                  <dl class="listGrids">
+                  ${gridsHtml}
+                  </dl>
+                </div>`
+                : ''
+            }
+            
 
             <div>
               <p class="price">CARACTERÍSTICAS GERAIS</p>
