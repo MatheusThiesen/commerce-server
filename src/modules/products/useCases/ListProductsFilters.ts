@@ -124,7 +124,7 @@ export class ListProductsFilters {
         descricao: true,
       },
       orderBy: {
-        periodo: 'asc',
+        data: 'desc',
       },
     });
 

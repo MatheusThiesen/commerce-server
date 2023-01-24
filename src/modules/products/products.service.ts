@@ -450,7 +450,7 @@ export class ProductsService {
 
         locaisEstoque: {
           orderBy: {
-            periodo: 'asc',
+            data: 'desc',
           },
           select: {
             id: true,
