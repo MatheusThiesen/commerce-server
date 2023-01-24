@@ -64,7 +64,7 @@ export class ProductsService {
             },
             {
               data: {
-                gte: new Date(`${year}-${month}-01T00:00`),
+                gt: new Date(`${year}-${month}-01T23:59`),
               },
             },
           ],
