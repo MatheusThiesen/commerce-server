@@ -1,13 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
+import { UpdateStockFuture } from '../stock/useCases/updateStockFuture';
 import { CreatePurchasesOrderDto } from './dto/create-purchases-order.dto';
 import { UpdatePurchasesOrderDto } from './dto/update-purchases-order.dto';
 import { PurchasesOrder } from './entities/purchases-order.entity';
 
 @Injectable()
 export class PurchasesOrderService {
-  constructor(private prisma: PrismaService, private parseCsv: ParseCsv) {}
+  constructor(
+    private prisma: PrismaService,
+    private parseCsv: ParseCsv,
+    private updateStockFuture: UpdateStockFuture,
+  ) {}
 
   async create(createPurchasesOrderDto: CreatePurchasesOrderDto) {
     const purchasesOrder = new PurchasesOrder();
@@ -26,6 +31,8 @@ export class PurchasesOrderService {
     const createdPurchasesOrder = await this.prisma.ordemCompra.create({
       data: purchasesOrder,
     });
+
+    await this.updateStockFuture.execute(purchasesOrder.produtoCodigo);
 
     return createdPurchasesOrder;
   }
@@ -71,6 +78,8 @@ export class PurchasesOrderService {
       data: purchasesOrder,
       where: { codigo },
     });
+
+    await this.updateStockFuture.execute(purchasesOrder.produtoCodigo);
 
     return updatedPurchasesOrder;
   }
