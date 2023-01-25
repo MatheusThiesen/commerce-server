@@ -92,7 +92,8 @@ export class ProductsService {
     const product = new Product();
     Object.assign(product, { ...createProductDto, possuiFoto: false });
 
-    const productVerifyRelation = await this.verifyRelation(product);
+    // const productVerifyRelation = await this.verifyRelation(product);
+    const productVerifyRelation = product;
 
     const productExists = await this.prisma.produto.findUnique({
       where: {
@@ -123,7 +124,8 @@ export class ProductsService {
   async update(codigo: number, updateProductDto: UpdateProductDto) {
     const product = new Product();
     Object.assign(product, updateProductDto);
-    const productVerifyRelation = await this.verifyRelation(product);
+    // const productVerifyRelation = await this.verifyRelation(product);
+    const productVerifyRelation = product;
 
     const productExist = await this.findOne(codigo);
 
