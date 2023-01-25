@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetCurrentUserId } from '../../common/decorators';
+import { TimeoutInterceptor } from '../../interceptors/timeout.interceptors';
 import { QueryProducts } from './dto/query-products.type';
 import { ProductsService } from './products.service';
 import { GenerateCatalog } from './useCases/GenerateCatalog';
@@ -62,6 +63,7 @@ export class ProductsController {
   }
 
   @Post('import')
+  @UseInterceptors(TimeoutInterceptor)
   @UseInterceptors(FileInterceptor('file'))
   import(@UploadedFile() file: Express.Multer.File) {
     return this.productsService.import(file);
