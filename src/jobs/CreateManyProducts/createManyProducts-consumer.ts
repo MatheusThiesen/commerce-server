@@ -45,8 +45,6 @@ class CreateManyProductsConsumer {
         precoVendaEmpresa,
       ] = productsArr;
 
-      console.log(productsArr);
-
       const product = new Product();
       Object.assign(product, {
         codigo: Number(codigo),
@@ -85,6 +83,7 @@ class CreateManyProductsConsumer {
           await this.productService.create(product);
         }
       } catch (error) {
+        console.log(productsArr);
         console.log('erro aqui');
         console.log(error);
       }
