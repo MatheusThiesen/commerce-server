@@ -472,6 +472,7 @@ export class ProductsService {
       },
       where: {
         codigo,
+        ...this.listingRule(),
       },
     });
 
