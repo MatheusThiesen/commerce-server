@@ -471,9 +471,7 @@ export class ProductsService {
         },
       },
       where: {
-        codigo,
-
-        ...this.listingRule(),
+        AND: [{ codigo }, { ...this.listingRule() }],
       },
     });
 
