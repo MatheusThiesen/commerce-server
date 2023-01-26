@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
+import { CreateManyProductsProducerService } from 'src/jobs/CreateManyProducts/createManyProducts-producer-service';
 import { PrismaService } from '../../database/prisma.service';
 import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
 import { GroupByObj } from '../../utils/GroupByObj.utils';
@@ -85,6 +86,7 @@ export class ProductsService {
     private variationsProduct: VariationsProduct,
     private agroupGridProduct: AgroupGridProduct,
     private readonly testImageProductProducerService: TestImageProductProducerService,
+    private readonly createManyProductsProducerService: CreateManyProductsProducerService,
     private readonly groupByObj: GroupByObj,
   ) {}
 
@@ -92,8 +94,7 @@ export class ProductsService {
     const product = new Product();
     Object.assign(product, { ...createProductDto, possuiFoto: false });
 
-    // const productVerifyRelation = await this.verifyRelation(product);
-    const productVerifyRelation = product;
+    const productVerifyRelation = await this.verifyRelation(product);
 
     const productExists = await this.prisma.produto.findUnique({
       where: {
@@ -124,8 +125,7 @@ export class ProductsService {
   async update(codigo: number, updateProductDto: UpdateProductDto) {
     const product = new Product();
     Object.assign(product, updateProductDto);
-    // const productVerifyRelation = await this.verifyRelation(product);
-    const productVerifyRelation = product;
+    const productVerifyRelation = await this.verifyRelation(product);
 
     const productExist = await this.findOne(codigo);
 
@@ -499,71 +499,9 @@ export class ProductsService {
 
   async import(file: Express.Multer.File) {
     const products = await this.parseCsv.execute(file);
-
-    for (const productsArr of products) {
-      const [
-        codigo,
-        eAtivo,
-        codigoAlternativo,
-        referencia,
-        descricao,
-        descricaoComplementar,
-        descricaoAdicional,
-        precoVenda,
-        unidade,
-        marcaCodigo,
-        corPrimariaCodigo,
-        corSecundariaCodigo,
-        colecaoCodigo,
-        linhaCodigo,
-        grupoCodigo,
-        subgrupoCodigo,
-        generoCodigo,
-        precoVendaEmpresa,
-      ] = productsArr;
-
-      const product = new Product();
-      Object.assign(product, {
-        codigo: Number(codigo),
-        eAtivo: Number(eAtivo) === 2,
-        codigoAlternativo,
-        referencia,
-        descricao,
-        descricaoComplementar,
-        descricaoAdicional,
-        precoVenda: Number(precoVenda),
-        unidade,
-        marcaCodigo: this.stringToNumberOrUndefined.execute(marcaCodigo),
-        corPrimariaCodigo:
-          this.stringToNumberOrUndefined.execute(corPrimariaCodigo),
-        corSecundariaCodigo:
-          this.stringToNumberOrUndefined.execute(corSecundariaCodigo),
-        colecaoCodigo: this.stringToNumberOrUndefined.execute(colecaoCodigo),
-        linhaCodigo: this.stringToNumberOrUndefined.execute(linhaCodigo),
-        grupoCodigo: this.stringToNumberOrUndefined.execute(grupoCodigo),
-        subgrupoCodigo: this.stringToNumberOrUndefined.execute(subgrupoCodigo),
-        generoCodigo: this.stringToNumberOrUndefined.execute(generoCodigo),
-        precoVendaEmpresa:
-          this.stringToNumberOrUndefined.execute(precoVendaEmpresa),
-      });
-      const productExists = await this.prisma.produto.findUnique({
-        where: {
-          codigo: Number(codigo),
-        },
-      });
-
-      try {
-        if (productExists) {
-          await this.update(product.codigo, product);
-        } else {
-          await this.create(product);
-        }
-      } catch (error) {
-        console.log('erro aqui');
-        console.log(error);
-      }
-    }
-
+    await this.createManyProductsProducerService.execute({
+      products,
+    });
     await this.testImageProductProducerService.execute({});
 
     return;

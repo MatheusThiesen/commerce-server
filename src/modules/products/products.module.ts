@@ -1,6 +1,8 @@
 import { HttpModule } from '@nestjs/axios';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
+import { CreateManyProductsConsumer } from '../../jobs/CreateManyProducts/createManyProducts-consumer';
+import { CreateManyProductsProducerService } from '../../jobs/CreateManyProducts/createManyProducts-producer-service';
 import { TestImageProductConsumer } from '../../jobs/TestImageProduct/testImageProduct-consumer';
 import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
 import { ProductsController } from './products.controller';
@@ -16,6 +18,9 @@ import { VariationsProduct } from './useCases/VariationsProduct';
     BullModule.registerQueue({
       name: 'testImageProduct-queue',
     }),
+    BullModule.registerQueue({
+      name: 'createManyProducts-queue',
+    }),
   ],
   controllers: [ProductsController],
   providers: [
@@ -26,6 +31,8 @@ import { VariationsProduct } from './useCases/VariationsProduct';
     GenerateCatalog,
     TestImageProductProducerService,
     TestImageProductConsumer,
+    CreateManyProductsConsumer,
+    CreateManyProductsProducerService,
     AgroupGridProduct,
   ],
 })

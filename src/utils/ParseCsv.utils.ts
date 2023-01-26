@@ -1,5 +1,7 @@
+import { Injectable } from '@nestjs/common';
 import { parse } from 'csv-parse';
 
+@Injectable()
 export class ParseCsv {
   execute(file: Express.Multer.File): Promise<any> {
     return new Promise((resolve, reject) => {
