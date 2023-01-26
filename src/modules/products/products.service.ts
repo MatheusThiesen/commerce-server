@@ -127,7 +127,14 @@ export class ProductsService {
     Object.assign(product, updateProductDto);
     const productVerifyRelation = await this.verifyRelation(product);
 
-    const productExist = await this.findOne(codigo);
+    const productExist = await this.prisma.produto.findUnique({
+      where: { codigo },
+      select: { codigo: true, corSecundariaCodigo: true, corSecundaria: true },
+    });
+
+    if (!product) {
+      throw new BadRequestException('Product does not exist');
+    }
 
     if (
       productVerifyRelation.corSecundariaCodigo >= 1 &&
@@ -493,7 +500,15 @@ export class ProductsService {
   }
 
   async remove(codigo: number) {
-    await this.findOne(codigo);
+    const product = await this.prisma.produto.findUnique({
+      where: { codigo },
+      select: { codigo: true },
+    });
+
+    if (!product) {
+      throw new BadRequestException('Product does not exist');
+    }
+
     await this.prisma.produto.delete({ where: { codigo } });
     return;
   }
