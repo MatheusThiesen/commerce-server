@@ -390,7 +390,7 @@ export class ProductsService {
   }
 
   async findOne(codigo: number) {
-    const product = await this.prisma.produto.findUnique({
+    const product = await this.prisma.produto.findFirst({
       select: {
         codigo: true,
         referencia: true,
@@ -472,6 +472,7 @@ export class ProductsService {
       },
       where: {
         codigo,
+
         ...this.listingRule(),
       },
     });
