@@ -600,8 +600,8 @@ export class ProductsService {
       return false;
     }
   }
-  async testImageJob() {
-    await this.testImageProductProducerService.execute({});
+  async testImageJob(reference?: string) {
+    await this.testImageProductProducerService.execute({ reference });
     return;
   }
 

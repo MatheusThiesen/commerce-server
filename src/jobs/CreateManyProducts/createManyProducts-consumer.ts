@@ -82,6 +82,8 @@ class CreateManyProductsConsumer {
         } else {
           await this.productService.create(product);
         }
+
+        await this.productService.testImageJob(product.referencia);
       } catch (error) {
         console.log(productsArr);
         console.log('erro aqui');
