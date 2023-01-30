@@ -77,4 +77,9 @@ export class ProductsController {
       groupProduct,
     });
   }
+
+  @Post('testAllImages')
+  testAllImages() {
+    return this.productsService.testImageJob();
+  }
 }

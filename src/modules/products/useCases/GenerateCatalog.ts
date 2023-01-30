@@ -161,6 +161,9 @@ export class GenerateCatalog {
         
       </div>
       <footer class="footer">
+        <span>
+          * Produtos estão sujeitos a alterações conforme disponibilidade *
+        </span>
       <date>Data de criação ${dateNow}</date>
       </footer>
     </div>`;
@@ -417,7 +420,18 @@ export class GenerateCatalog {
           bottom: 30px;
           font-size: 14px;
         }
+
+        .footer > span {
+          color: var(--cor-principal);
   
+          position: absolute;
+          left: 5mm;
+          bottom: 30px;
+          font-size: 14px;
+          font-weight: bold;
+          text-transform: uppercase;
+        }
+          
         .content {
           width: 100%;
           height: 85%;
