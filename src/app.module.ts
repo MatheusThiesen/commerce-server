@@ -21,6 +21,7 @@ import { SellersModule } from './modules/sellers/sellers.module';
 import { StockLocationsModule } from './modules/stock-locations/stock-locations.module';
 import { SubgroupsModule } from './modules/subgroups/subgroups.module';
 import { UtilsModule } from './utils/utils.module';
+import { PriceListsModule } from './modules/price-lists/price-lists.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { UtilsModule } from './utils/utils.module';
     ProductConceptRulesModule,
     PurchasesOrderModule,
     OrderItemsModule,
+    PriceListsModule,
   ],
   providers: [
     {

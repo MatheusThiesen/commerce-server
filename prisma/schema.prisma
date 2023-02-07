@@ -161,6 +161,8 @@ model Produto {
 
   locaisEstoque LocalEstoque[]
   itens         ItemPedido[]
+  listaPreco    ListaPreco[]
+  ordemCompra   OrdemCompra[]
 
   corPrimaria         Cor?           @relation(fields: [corPrimariaCodigo], references: [codigo])
   corPrimariaCodigo   Int?
@@ -180,7 +182,6 @@ model Produto {
   subGrupoId          String?
   Grade               Grade?         @relation(fields: [gradeCodigo], references: [codigo])
   gradeCodigo         Int?
-  ordemCompra         OrdemCompra[]
 
   @@map("produtos")
 }
@@ -199,6 +200,21 @@ model Grade {
   @@map("grades")
 }
 
+model ListaPreco {
+  id        String   @id @unique
+  codigo    Int
+  descricao String
+  valor     Float
+  eAtivo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
+  produtoCodigo Int
+
+  @@map("listasPreco")
+}
+
 model Tamanho {
   descricao String   @id @unique()
   createdAt DateTime @default(now())
@@ -207,7 +223,7 @@ model Tamanho {
   Grade       Grade? @relation(fields: [gradeCodigo], references: [codigo])
   gradeCodigo Int?
 
-  @@map("Tamanhos")
+  @@map("tamanhos")
 }
 
 model LocalEstoque {

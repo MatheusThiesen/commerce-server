@@ -464,6 +464,21 @@ export class ProductsService {
           },
         },
 
+        listaPreco: {
+          select: {
+            id: true,
+            descricao: true,
+            valor: true,
+          },
+          where: {
+            codigo: {
+              in: [28, 42, 56, 300],
+            },
+          },
+          orderBy: {
+            codigo: 'asc',
+          },
+        },
         locaisEstoque: {
           orderBy: {
             data: 'desc',
