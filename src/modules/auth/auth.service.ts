@@ -15,6 +15,7 @@ import { AuthDto } from './dto/auth.dto';
 import { PasswordDto } from './dto/password.dto';
 import { User } from './entities/user.entity';
 import { JwtPayload } from './types/jwtPayload.type';
+import { JwtSsoPayload } from './types/jwtPayloadSso.type';
 import { Tokens } from './types/tokens.type';
 
 @Injectable()
@@ -120,6 +121,80 @@ export class AuthService {
       },
     });
     return true;
+  }
+  async sso({ entity, sellerCod, email, timestamp, token }: JwtSsoPayload) {
+    if (!timestamp) {
+      throw new UnauthorizedException('Token malformed');
+    }
+
+    const now = Date.now();
+    const normalizedTimestamp =
+      String(timestamp).length === 10
+        ? new Date(Number(timestamp) * 1000).getTime()
+        : new Date(Number(timestamp)).getTime();
+
+    if (now > normalizedTimestamp) {
+      throw new UnauthorizedException('expired token');
+    }
+
+    const existToken = await this.prisma.tokenSso.findUnique({
+      where: {
+        token: token,
+      },
+    });
+
+    if (existToken) throw new UnauthorizedException('expired token');
+
+    if (entity !== 'seller' && entity !== 'user') {
+      throw new BadRequestException('User malformed exists');
+    }
+
+    let userId: string | undefined;
+
+    if (entity === 'seller') {
+      if (!sellerCod || isNaN(Number(sellerCod))) {
+        throw new BadRequestException('User malformed exists');
+      }
+
+      const user = await this.prisma.usuario.findFirst({
+        where: { vendedorCodigo: Number(sellerCod) },
+        select: { id: true },
+      });
+
+      if (user) userId = user.id;
+    } else {
+      if (!email) {
+        throw new BadRequestException('User malformed exists');
+      }
+
+      const user = await this.prisma.usuario.findUnique({
+        where: { email },
+        select: { id: true },
+      });
+
+      if (user) userId = user.id;
+    }
+
+    if (!userId) {
+      throw new BadRequestException('User not already exists');
+    }
+
+    const user = await this.prisma.usuario.findUnique({
+      select: { id: true, email: true, eAtivo: true },
+      where: {
+        id: userId,
+      },
+    });
+
+    const tokens = await this.getTokens(user.id, user.email);
+    await this.prisma.tokenSso.create({
+      data: {
+        token: token,
+      },
+    });
+    await this.updateRtPassword(user.id, tokens.refresh_token);
+
+    return tokens;
   }
 
   async changePassword(userId: string, dto: PasswordDto) {

@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { RtGuard } from 'src/common/guards';
+import { GetCurrentUserSso } from 'src/common/decorators/get-current-user-id-sso.decorator';
+import { RtGuard, SsoGuard } from 'src/common/guards';
 import {
   GetCurrentUser,
   GetCurrentUserId,
@@ -60,5 +61,12 @@ export class AuthController {
   @Get('me')
   me(@GetCurrentUserId() userId: string) {
     return this.authService.me(userId);
+  }
+
+  @Public()
+  @UseGuards(SsoGuard)
+  @Post('sso')
+  sso(@GetCurrentUserSso() user) {
+    return this.authService.sso(user);
   }
 }

@@ -337,3 +337,10 @@ model ItemPedido {
   @@unique([pedidoCodigo, produtoCodigo, sequencia])
   @@map("itensPedido")
 }
+
+model TokenSso {
+  token     String   @id @unique
+  createdAt DateTime @default(now())
+
+  @@map("tokensSso")
+}

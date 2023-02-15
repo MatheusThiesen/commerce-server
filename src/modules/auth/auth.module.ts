@@ -6,7 +6,7 @@ import { sendMailProducerService } from '../../jobs/SendMail/sendMail-producer-s
 import { SellersModule } from '../sellers/sellers.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { AtStrategy, RtStrategy } from './strategies';
+import { AtStrategy, RtStrategy, SsoStrategy } from './strategies';
 
 @Module({
   imports: [
@@ -21,6 +21,7 @@ import { AtStrategy, RtStrategy } from './strategies';
     AuthService,
     AtStrategy,
     RtStrategy,
+    SsoStrategy,
     sendMailProducerService,
     sendMailConsumer,
   ],
