@@ -63,11 +63,11 @@ export class ProductsService {
             {
               periodo: 'pronta-entrega',
             },
-            {
-              data: {
-                gte: new Date(`${year}-${month}-01T00:00`),
-              },
-            },
+            // {
+            //   data: {
+            //     gte: new Date(`${year}-${month}-01T00:00`),
+            //   },
+            // },
           ],
         },
       },
