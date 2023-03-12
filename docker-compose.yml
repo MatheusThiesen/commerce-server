@@ -29,5 +29,5 @@ services:
     restart: always
     # command: redis-server
     ports:
-      - 6379:6828
+      - 6828:6379
     container_name: commerce-server-redis
