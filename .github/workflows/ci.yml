@@ -22,4 +22,5 @@ jobs:
           REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
           SCRIPT_AFTER: |
+            cd ${{ secrets.REMOTE_TARGET }}
             docker-compose up --build -d
