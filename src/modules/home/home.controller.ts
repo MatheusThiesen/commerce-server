@@ -1,7 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
+import { Public } from 'src/common/decorators';
 
 @Controller('/')
 export class HomeController {
+  @Public()
   @Get()
   home() {
     const date = new Date().toLocaleString('pt-br', {
