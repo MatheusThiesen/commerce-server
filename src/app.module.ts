@@ -22,6 +22,7 @@ import { StockLocationsModule } from './modules/stock-locations/stock-locations.
 import { SubgroupsModule } from './modules/subgroups/subgroups.module';
 import { UtilsModule } from './utils/utils.module';
 import { PriceListsModule } from './modules/price-lists/price-lists.module';
+import { HomeModule } from './modules/home/home.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { PriceListsModule } from './modules/price-lists/price-lists.module';
     PurchasesOrderModule,
     OrderItemsModule,
     PriceListsModule,
+    HomeModule,
   ],
   providers: [
     {

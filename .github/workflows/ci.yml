@@ -23,5 +23,4 @@ jobs:
           TARGET: ${{ secrets.REMOTE_TARGET }}
           SCRIPT_AFTER: |
             cd ${{ secrets.REMOTE_TARGET }}
-            docker-compose stop
             docker-compose up --build -d
