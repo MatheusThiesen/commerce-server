@@ -1,7 +1,8 @@
 FROM node:latest
 WORKDIR /usr/src/commerce-server
 COPY package*.json ./
-RUN npm install --only=prod --omit=dev
+RUN npm install 
+# --only=prod --omit=dev
 
 # Bundle app source
 COPY . .
