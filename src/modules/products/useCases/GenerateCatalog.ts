@@ -12,6 +12,7 @@ interface ListProductsFiltersProps {
   referencesProduct: string[];
   orderBy: string;
   groupProduct?: boolean;
+  stockLocation?: boolean;
 }
 
 interface generatePagesProps {
@@ -37,11 +38,19 @@ interface PageData {
 
   groupProduct: boolean;
   variations?: VariationsProps[];
+
+  stockLocation: boolean;
+  stocks?: StockLocationProps[];
 }
 
 type VariationsProps = {
   imageMain: string;
   reference: string;
+};
+
+type StockLocationProps = {
+  description: string;
+  qtd: number;
 };
 
 @Injectable()
@@ -93,6 +102,9 @@ export class GenerateCatalog {
 
     for (const page of pages) {
       const gridsHtml = await this.generateGrid(page.grids);
+      const stocksHtml = await this.generateGrid(
+        page.stocks.map((stock) => `${stock.description} : ${stock.qtd} `),
+      );
       const variations = await this.generateVariations(page.variations);
       const generatePage = `<div class="page">
       <header class="header"></header>
@@ -130,6 +142,7 @@ export class GenerateCatalog {
                   </div>`
                 : ''
             }
+            
             ${
               !page.groupProduct
                 ? `
@@ -137,6 +150,18 @@ export class GenerateCatalog {
                   <p class="price">GRADES</p>
                   <dl class="listGrids">
                   ${gridsHtml}
+                  </dl>
+                </div>`
+                : ''
+            }
+            
+            ${
+              !page.groupProduct && page.stockLocation
+                ? `
+                <div>
+                  <p class="price">LOCAIS ESTOQUE</p>
+                  <dl class="listGrids">
+                  ${stocksHtml}
                   </dl>
                 </div>`
                 : ''
@@ -178,6 +203,7 @@ export class GenerateCatalog {
     referencesProduct,
     orderBy,
     groupProduct,
+    stockLocation,
   }: ListProductsFiltersProps) {
     const products = await this.prisma.produto.findMany({
       distinct: 'referencia',
@@ -236,6 +262,12 @@ export class GenerateCatalog {
             },
           },
         },
+        locaisEstoque: {
+          select: {
+            descricao: true,
+            quantidade: true,
+          },
+        },
       },
       where: {
         ...this.productsService.listingRule(),
@@ -284,9 +316,20 @@ export class GenerateCatalog {
           }));
       }
 
+      let stocks: StockLocationProps[] = [];
+
+      if (!!stockLocation) {
+        stocks = product.locaisEstoque.map((stock) => ({
+          description: stock.descricao,
+          qtd: stock.quantidade,
+        }));
+      }
+
       const newPage: PageData = {
         groupProduct: !!groupProduct,
+        stockLocation: !!stockLocation,
         variations: variations,
+        stocks: stocks,
 
         imageMain:
           `${this.spaceLink}Produtos/${product.referencia}_01` as string,

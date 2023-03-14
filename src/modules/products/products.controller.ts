@@ -70,11 +70,12 @@ export class ProductsController {
   }
 
   @Post('catalog')
-  catalog(@Body() { referencesProduct, orderBy, groupProduct }) {
+  catalog(@Body() { referencesProduct, orderBy, groupProduct, stockLocation }) {
     return this.generateCatalog.execute({
       referencesProduct,
       orderBy,
       groupProduct,
+      stockLocation,
     });
   }
 
