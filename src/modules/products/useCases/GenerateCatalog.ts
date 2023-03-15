@@ -103,7 +103,7 @@ export class GenerateCatalog {
     for (const page of pages) {
       const gridsHtml = await this.generateGrid(page.grids);
       const stocksHtml = await this.generateGrid(
-        page.stocks.map((stock) => `${stock.description} : ${stock.qtd} `),
+        page.stocks.map((stock) => `${stock.description} : ${stock.qtd} und `),
       );
       const variations = await this.generateVariations(page.variations);
       const generatePage = `<div class="page">
