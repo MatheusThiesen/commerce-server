@@ -24,3 +24,4 @@ jobs:
           SCRIPT_AFTER: |
             cd ${{ secrets.REMOTE_TARGET }}
             docker-compose up --build -d
+            docker exec -i -t commerce-server-api npx prisma migrate deploy
