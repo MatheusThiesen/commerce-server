@@ -300,7 +300,7 @@ export class GenerateCatalog {
       ).map((grid) => `${grid.codigo} - ${grid.descricaoAdicional}`);
 
       let variations: VariationsProps[] = [];
-      let stocks: StockLocationProps[] = [];
+      const stocks: StockLocationProps[] = [];
 
       if (!!groupProduct) {
         const getVariationsProduct = await this.variationsProduct.execute({
@@ -317,13 +317,12 @@ export class GenerateCatalog {
           }));
 
         for (const productVariation of getVariationsProduct) {
-          stocks = [
-            ...stocks,
+          stocks.push(
             ...productVariation.locaisEstoque.map((stock) => ({
               description: stock.descricao,
               qtd: stock.quantidade,
             })),
-          ];
+          );
         }
       }
 

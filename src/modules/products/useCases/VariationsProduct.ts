@@ -10,7 +10,7 @@ export class VariationsProduct {
     query,
   }: {
     alternativeCode: string;
-    query: object;
+    query: any;
   }) {
     const products = await this.prisma.produto.findMany({
       distinct: 'referencia',
@@ -29,19 +29,7 @@ export class VariationsProduct {
             quantidade: true,
           },
           where: {
-            quantidade: {
-              gt: 0,
-            },
-            OR: [
-              {
-                periodo: 'pronta-entrega',
-              },
-              {
-                data: {
-                  gte: new Date(`2023-03-01T00:00`),
-                },
-              },
-            ],
+            ...query?.locaisEstoque?.some,
           },
         },
       },
