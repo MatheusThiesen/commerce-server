@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
+import { ProductsService } from '../products.service';
 
 @Injectable()
 export class VariationsProduct {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private productsService: ProductsService,
+  ) {}
 
   async execute({
     alternativeCode,
@@ -19,6 +23,19 @@ export class VariationsProduct {
         referencia: true,
         codigoAlternativo: true,
         descricao: true,
+        locaisEstoque: {
+          orderBy: {
+            data: 'asc',
+          },
+          select: {
+            id: true,
+            descricao: true,
+            quantidade: true,
+          },
+          where: {
+            ...this.productsService.listingRule().locaisEstoque.some,
+          },
+        },
       },
       orderBy: {
         referencia: 'desc',

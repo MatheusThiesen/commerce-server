@@ -300,6 +300,7 @@ export class GenerateCatalog {
       ).map((grid) => `${grid.codigo} - ${grid.descricaoAdicional}`);
 
       let variations: VariationsProps[] = [];
+      let stocks: StockLocationProps[] = [];
 
       if (!!groupProduct) {
         const getVariationsProduct = await this.variationsProduct.execute({
@@ -314,15 +315,16 @@ export class GenerateCatalog {
               `${this.spaceLink}Produtos/${product.referencia}_01` as string,
             reference: v.referencia,
           }));
-      }
 
-      let stocks: StockLocationProps[] = [];
-
-      if (!!stockLocation) {
-        stocks = product.locaisEstoque.map((stock) => ({
-          description: stock.descricao,
-          qtd: stock.quantidade,
-        }));
+        for (const productVariation of getVariationsProduct) {
+          stocks = [
+            ...stocks,
+            ...productVariation.locaisEstoque.map((stock) => ({
+              description: stock.descricao,
+              qtd: stock.quantidade,
+            })),
+          ];
+        }
       }
 
       const newPage: PageData = {
