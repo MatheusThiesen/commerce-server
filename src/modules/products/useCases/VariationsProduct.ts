@@ -1,13 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
-import { ProductsService } from '../products.service';
 
 @Injectable()
 export class VariationsProduct {
-  constructor(
-    private prisma: PrismaService,
-    private productsService: ProductsService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async execute({
     alternativeCode,
@@ -33,7 +29,19 @@ export class VariationsProduct {
             quantidade: true,
           },
           where: {
-            ...this.productsService.listingRule().locaisEstoque.some,
+            quantidade: {
+              gt: 0,
+            },
+            OR: [
+              {
+                periodo: 'pronta-entrega',
+              },
+              {
+                data: {
+                  gte: new Date(`2023-03-01T00:00`),
+                },
+              },
+            ],
           },
         },
       },
