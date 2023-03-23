@@ -100,7 +100,8 @@ export class StockLocationsService {
     const stockLocations = await this.parseCsv.execute(file);
 
     for (const stockLocationArr of stockLocations) {
-      const [periodo, descricao, produtoCodigo, quantidade] = stockLocationArr;
+      const [periodo, descricao, produtoCodigo, quantidade, data] =
+        stockLocationArr;
 
       const stockLocation = new StockLocation();
 
@@ -109,6 +110,7 @@ export class StockLocationsService {
         descricao: descricao,
         produtoCodigo: Number(produtoCodigo),
         quantidade: Number(quantidade),
+        data: data,
       });
 
       try {

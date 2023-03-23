@@ -63,11 +63,11 @@ export class ProductsService {
             {
               periodo: 'pronta-entrega',
             },
-            // {
-            //   data: {
-            //     gte: new Date(`${year}-${month}-01T00:00`),
-            //   },
-            // },
+            {
+              data: {
+                gte: new Date(`${year}-${month}-01T00:00`),
+              },
+            },
           ],
         },
       },
@@ -251,6 +251,8 @@ export class ProductsService {
         };
       });
     }
+
+    // console.log(JSON.stringify(filterNormalized, null, 2));
 
     const reportAddSelect = isReport
       ? {
@@ -481,7 +483,7 @@ export class ProductsService {
         },
         locaisEstoque: {
           orderBy: {
-            data: 'desc',
+            data: 'asc',
           },
           select: {
             id: true,
