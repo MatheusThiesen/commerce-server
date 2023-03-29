@@ -19,19 +19,6 @@ export class VariationsProduct {
         referencia: true,
         codigoAlternativo: true,
         descricao: true,
-        locaisEstoque: {
-          orderBy: {
-            data: 'asc',
-          },
-          select: {
-            id: true,
-            descricao: true,
-            quantidade: true,
-          },
-          where: {
-            ...query?.locaisEstoque?.some,
-          },
-        },
       },
       orderBy: {
         referencia: 'desc',

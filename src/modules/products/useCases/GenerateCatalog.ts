@@ -34,13 +34,12 @@ interface PageData {
   group: string;
   subgroup: string;
   line: string;
-  grids: string[];
+  grids: GridProps[];
 
   groupProduct: boolean;
   variations?: VariationsProps[];
 
   stockLocation: boolean;
-  stocks?: StockLocationProps[];
 }
 
 type VariationsProps = {
@@ -48,6 +47,10 @@ type VariationsProps = {
   reference: string;
 };
 
+type GridProps = {
+  name: string;
+  stocks?: StockLocationProps[];
+};
 type StockLocationProps = {
   description: string;
   qtd: number;
@@ -67,11 +70,21 @@ export class GenerateCatalog {
     private variationsProduct: VariationsProduct,
   ) {}
 
-  async generateGrid(grids: string[]) {
+  async generateGrid(grids: GridProps[], onStockLocation: boolean) {
     let gridsNormalized = '';
 
     for (const grid of grids) {
-      gridsNormalized += `<dt>${grid}</dt>`;
+      gridsNormalized += `<dd>${grid.name}</dd>`;
+
+      if (onStockLocation) {
+        gridsNormalized += `<dt></dt> <ul class="listStock">`;
+
+        for (const stock of grid.stocks) {
+          gridsNormalized += `<li>${stock.description} : ${stock.qtd}</li>`;
+        }
+
+        gridsNormalized += '</ul>';
+      }
     }
 
     return gridsNormalized;
@@ -101,10 +114,7 @@ export class GenerateCatalog {
     let pagesHtml = '';
 
     for (const page of pages) {
-      const gridsHtml = await this.generateGrid(page.grids);
-      const stocksHtml = await this.generateGrid(
-        page.stocks.map((stock) => `${stock.description} : ${stock.qtd} und `),
-      );
+      const gridsHtml = await this.generateGrid(page.grids, page.stockLocation);
       const variations = await this.generateVariations(page.variations);
       const generatePage = `<div class="page">
       <header class="header"></header>
@@ -155,19 +165,6 @@ export class GenerateCatalog {
                 : ''
             }
             
-            ${
-              !page.groupProduct && page.stockLocation
-                ? `
-                <div>
-                  <p class="price">LOCAIS ESTOQUE</p>
-                  <dl class="listGrids">
-                  ${stocksHtml}
-                  </dl>
-                </div>`
-                : ''
-            }
-            
-
             <div>
               <p class="price">CARACTERÍSTICAS GERAIS</p>
               
@@ -292,12 +289,18 @@ export class GenerateCatalog {
 
     const productsNormalized: PageData[] = [];
     for (const product of products) {
-      const grids = (
+      const grids: GridProps[] = (
         await this.agroupGridProduct.execute({
           reference: product.referencia,
           query: this.productsService.listingRule(),
         })
-      ).map((grid) => `${grid.codigo} - ${grid.descricaoAdicional}`);
+      ).map((grid) => ({
+        name: `${grid.codigo} - ${grid.descricaoAdicional}`,
+        stocks: grid.locaisEstoque.map((stock) => ({
+          description: stock.descricao,
+          qtd: stock.quantidade,
+        })),
+      }));
 
       let variations: VariationsProps[] = [];
 
@@ -315,27 +318,11 @@ export class GenerateCatalog {
             reference: v.referencia,
           }));
       }
-      const stocks: StockLocationProps[] = [];
-      if (!!stockLocation) {
-        const getVariationsProduct = await this.variationsProduct.execute({
-          alternativeCode: product.codigoAlternativo,
-          query: this.productsService.listingRule(),
-        });
-        for (const productVariation of getVariationsProduct) {
-          stocks.push(
-            ...productVariation.locaisEstoque.map((stock) => ({
-              description: stock.descricao,
-              qtd: stock.quantidade,
-            })),
-          );
-        }
-      }
 
       const newPage: PageData = {
         groupProduct: !!groupProduct,
         stockLocation: !!stockLocation,
         variations: variations,
-        stocks: stocks,
 
         imageMain:
           `${this.spaceLink}Produtos/${product.referencia}_01` as string,
@@ -657,6 +644,11 @@ export class GenerateCatalog {
           height: 75px;
           max-width: 75px;
           object-fit: contain;
+        }
+        .listStock {
+          margin-left: 2rem;
+          font-weight: 400;
+          font-size: 0.755rem;
         }
       </style>
     </head>

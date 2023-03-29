@@ -5,11 +5,24 @@ import { PrismaService } from '../../../database/prisma.service';
 export class AgroupGridProduct {
   constructor(private prisma: PrismaService) {}
 
-  async execute({ reference, query }: { reference: string; query: object }) {
+  async execute({ reference, query }: { reference: string; query: any }) {
     const products = await this.prisma.produto.findMany({
       select: {
         codigo: true,
         descricaoAdicional: true,
+        locaisEstoque: {
+          orderBy: {
+            data: 'asc',
+          },
+          select: {
+            id: true,
+            descricao: true,
+            quantidade: true,
+          },
+          where: {
+            ...query?.locaisEstoque?.some,
+          },
+        },
       },
       where: {
         referencia: reference,
