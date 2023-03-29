@@ -74,16 +74,14 @@ export class GenerateCatalog {
     let gridsNormalized = '';
 
     for (const grid of grids) {
-      gridsNormalized += `<dd>${grid.name}</dd>`;
-
       if (onStockLocation) {
-        gridsNormalized += `<dt></dt> <ul class="listStock">`;
-
+        gridsNormalized += `<dt>${grid.name}<ul>`;
         for (const stock of grid.stocks) {
           gridsNormalized += `<li>${stock.description} : ${stock.qtd}</li>`;
         }
-
-        gridsNormalized += '</ul>';
+        gridsNormalized += '</ul></dt>';
+      } else {
+        gridsNormalized += `<dt>${grid.name}</dt>`;
       }
     }
 
