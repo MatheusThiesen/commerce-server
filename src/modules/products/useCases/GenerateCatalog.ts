@@ -75,7 +75,7 @@ export class GenerateCatalog {
 
     for (const grid of grids) {
       if (onStockLocation) {
-        gridsNormalized += `<dt>${grid.name}<ul>`;
+        gridsNormalized += `<dt>${grid.name}<ul class="listStock">`;
         for (const stock of grid.stocks) {
           gridsNormalized += `<li>${stock.description} : ${stock.qtd}</li>`;
         }
