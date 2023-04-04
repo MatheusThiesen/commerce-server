@@ -172,7 +172,21 @@ export class AuthService {
         select: { id: true },
       });
 
-      if (user) userId = user.id;
+      if (user) {
+        userId = user.id;
+      } else {
+        const user = new User();
+        Object.assign(user, {
+          email: email,
+          senha: '-',
+        });
+
+        const createdUser = await this.prisma.usuario.create({
+          data: user,
+        });
+
+        userId = createdUser.id;
+      }
     }
 
     if (!userId) {
