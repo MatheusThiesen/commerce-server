@@ -230,7 +230,7 @@ export class ProductsService {
           return {
             subGrupo: {
               regraProdutoConceito: {
-                every: {
+                some: {
                   conceitoCodigo: {
                     in: filterGroup.data.map((item) => item.value),
                   },
