@@ -217,7 +217,7 @@ export class ProductsService {
         if (filterGroup.value === 'locaisEstoque') {
           return {
             locaisEstoque: {
-              every: {
+              some: {
                 periodo: {
                   in: filterGroup.data.map((item) => item.value),
                 },
