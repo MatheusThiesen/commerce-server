@@ -10,6 +10,7 @@ export class AgroupGridProduct {
       select: {
         codigo: true,
         descricaoAdicional: true,
+        precoVenda: true,
         locaisEstoque: {
           orderBy: {
             data: 'asc',

@@ -140,7 +140,6 @@ export class GenerateCatalog {
                 : `<p class="color">Cor: ${page.colors}</p>`
             }
 
-            <p class="price">PDV: <b>${page.price}</b></p>
 
             ${
               page.groupProduct
@@ -293,7 +292,7 @@ export class GenerateCatalog {
           query: this.productsService.listingRule(),
         })
       ).map((grid) => ({
-        name: `${grid.codigo} - ${grid.descricaoAdicional}`,
+        name: `${grid.codigo} - ${grid.descricaoAdicional} - PDV: <b>${grid.precoVenda}</b>`,
         stocks: grid.locaisEstoque.map((stock) => ({
           description: stock.descricao,
           qtd: stock.quantidade,
