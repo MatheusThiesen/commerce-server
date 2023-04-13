@@ -122,7 +122,9 @@ export class AuthService {
     });
     return true;
   }
-  async sso({ entity, sellerCod, email, timestamp, token }: JwtSsoPayload) {
+  async sso({ entity, sellerCod, email, timestamp }: JwtSsoPayload) {
+    // console.log({ entity, sellerCod, email, timestamp, token });
+
     if (!timestamp) {
       throw new UnauthorizedException('Token malformed');
     }
@@ -137,13 +139,13 @@ export class AuthService {
       throw new UnauthorizedException('expired token');
     }
 
-    const existToken = await this.prisma.tokenSso.findUnique({
-      where: {
-        token: token,
-      },
-    });
+    // const existToken = await this.prisma.tokenSso.findUnique({
+    //   where: {
+    //     token: token,
+    //   },
+    // });
 
-    if (existToken) throw new UnauthorizedException('expired token');
+    // if (existToken) throw new UnauthorizedException('expired token');
 
     if (entity !== 'seller' && entity !== 'user') {
       throw new BadRequestException('User malformed exists');
@@ -201,11 +203,11 @@ export class AuthService {
     });
 
     const tokens = await this.getTokens(user.id, user.email);
-    await this.prisma.tokenSso.create({
-      data: {
-        token: token,
-      },
-    });
+    // await this.prisma.tokenSso.create({
+    //   data: {
+    //     token: token,
+    //   },
+    // });
     await this.updateRtPassword(user.id, tokens.refresh_token);
 
     return tokens;
