@@ -13,6 +13,7 @@ interface ListProductsFiltersProps {
   orderBy: string;
   groupProduct?: boolean;
   stockLocation?: boolean;
+  userId: string;
 }
 
 interface generatePagesProps {
@@ -20,7 +21,7 @@ interface generatePagesProps {
   dateNow: string;
 }
 
-interface PageData {
+export interface PageData {
   imageMain: string;
   reference: string;
   description: string;
@@ -36,18 +37,17 @@ interface PageData {
   line: string;
   grids: GridProps[];
 
-  groupProduct: boolean;
+  isGroupProduct: boolean;
+  isStockLocation: boolean;
   variations?: VariationsProps[];
-
-  stockLocation: boolean;
 }
 
-type VariationsProps = {
+export type VariationsProps = {
   imageMain: string;
   reference: string;
 };
 
-type GridProps = {
+export type GridProps = {
   name: string;
   stocks?: StockLocationProps[];
 };
@@ -112,7 +112,10 @@ export class GenerateCatalog {
     let pagesHtml = '';
 
     for (const page of pages) {
-      const gridsHtml = await this.generateGrid(page.grids, page.stockLocation);
+      const gridsHtml = await this.generateGrid(
+        page.grids,
+        page.isStockLocation,
+      );
       const variations = await this.generateVariations(page.variations);
       const generatePage = `<div class="page">
       <header class="header"></header>
@@ -128,21 +131,21 @@ export class GenerateCatalog {
         <div class="container-detail">
           <div class="container-info">
             ${
-              page.groupProduct
+              page.isGroupProduct
                 ? `<span class="reference">Cód. Agrupador: ${page.alternativeCode}</span>`
                 : `<span class="reference">Referência: ${page.reference}</span>`
             }
             
             <p class="title">${page.description}</p>
             ${
-              page.groupProduct
+              page.isGroupProduct
                 ? ''
                 : `<p class="color">Cor: ${page.colors}</p>`
             }
 
 
             ${
-              page.groupProduct
+              page.isGroupProduct
                 ? `
                   <div class="container-variations">
                     ${variations}
@@ -151,7 +154,7 @@ export class GenerateCatalog {
             }
             
             ${
-              !page.groupProduct
+              !page.isGroupProduct
                 ? `
                 <div>
                   <p class="price">GRADES</p>
@@ -198,6 +201,7 @@ export class GenerateCatalog {
     orderBy,
     groupProduct,
     stockLocation,
+    userId,
   }: ListProductsFiltersProps) {
     const products = await this.prisma.produto.findMany({
       distinct: 'referencia',
@@ -277,6 +281,29 @@ export class GenerateCatalog {
       ],
     });
 
+    const createdCatalog = await this.prisma.catalogoProduto.create({
+      select: {
+        id: true,
+      },
+      data: {
+        isGroupProduct: !!groupProduct,
+        isStockLocation: !!stockLocation,
+        orderBy: orderBy,
+        usuario: {
+          connect: {
+            id: userId,
+          },
+        },
+        produto: {
+          connect: products.map((product) => ({
+            codigo: product.codigo,
+          })),
+        },
+      },
+    });
+
+    return createdCatalog.id;
+
     const background = ``;
     const dateNow = new Date().toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -317,8 +344,8 @@ export class GenerateCatalog {
       }
 
       const newPage: PageData = {
-        groupProduct: !!groupProduct,
-        stockLocation: !!stockLocation,
+        isGroupProduct: !!groupProduct,
+        isStockLocation: !!stockLocation,
         variations: variations,
 
         imageMain:

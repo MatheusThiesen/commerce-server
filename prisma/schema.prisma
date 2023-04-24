@@ -22,9 +22,10 @@ model Usuario {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  eVendedor      Boolean   @default(false)
-  vendedor       Vendedor? @relation(fields: [vendedorCodigo], references: [codigo])
-  vendedorCodigo Int?
+  eVendedor        Boolean           @default(false)
+  vendedor         Vendedor?         @relation(fields: [vendedorCodigo], references: [codigo])
+  vendedorCodigo   Int?
+  catalogosProduto CatalogoProduto[]
 
   @@map("usuarios")
 }
@@ -164,24 +165,25 @@ model Produto {
   listaPreco    ListaPreco[]
   ordemCompra   OrdemCompra[]
 
-  corPrimaria         Cor?           @relation(fields: [corPrimariaCodigo], references: [codigo])
+  corPrimaria         Cor?              @relation(fields: [corPrimariaCodigo], references: [codigo])
   corPrimariaCodigo   Int?
   corSecundaria       RelCorProduto?
   corSecundariaCodigo Int?
-  marca               Marca          @relation(fields: [marcaCodigo], references: [codigo])
+  marca               Marca             @relation(fields: [marcaCodigo], references: [codigo])
   marcaCodigo         Int
-  colecao             Colecao?       @relation(fields: [colecaoCodigo], references: [codigo])
+  colecao             Colecao?          @relation(fields: [colecaoCodigo], references: [codigo])
   colecaoCodigo       Int?
-  linha               Linha?         @relation(fields: [linhaCodigo], references: [codigo])
+  linha               Linha?            @relation(fields: [linhaCodigo], references: [codigo])
   linhaCodigo         Int?
-  grupo               Grupo?         @relation(fields: [grupoCodigo], references: [codigo])
+  grupo               Grupo?            @relation(fields: [grupoCodigo], references: [codigo])
   grupoCodigo         Int?
-  genero              Genero?        @relation(fields: [generoCodigo], references: [codigo])
+  genero              Genero?           @relation(fields: [generoCodigo], references: [codigo])
   generoCodigo        Int?
-  subGrupo            SubGrupo?      @relation(fields: [subGrupoId], references: [id])
+  subGrupo            SubGrupo?         @relation(fields: [subGrupoId], references: [id])
   subGrupoId          String?
-  Grade               Grade?         @relation(fields: [gradeCodigo], references: [codigo])
+  Grade               Grade?            @relation(fields: [gradeCodigo], references: [codigo])
   gradeCodigo         Int?
+  CatalogoProduto     CatalogoProduto[]
 
   @@map("produtos")
 }
@@ -336,6 +338,22 @@ model ItemPedido {
 
   @@unique([pedidoCodigo, produtoCodigo, sequencia])
   @@map("itensPedido")
+}
+
+model CatalogoProduto {
+  id              String   @id @unique @default(uuid())
+  qtdAcessos      Int      @default(0)
+  orderBy         String?
+  isGroupProduct  Boolean  @default(false)
+  isStockLocation Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  produto   Produto[]
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id])
+  usuarioId String
+
+  @@map("catalogosProduto")
 }
 
 model TokenSso {

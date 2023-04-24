@@ -10,7 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { GetCurrentUserId } from '../../common/decorators';
+import { GetCurrentUserId, Public } from '../../common/decorators';
 import { TimeoutInterceptor } from '../../interceptors/timeout.interceptors';
 import { QueryProducts } from './dto/query-products.type';
 import { ProductsService } from './products.service';
@@ -70,13 +70,23 @@ export class ProductsController {
   }
 
   @Post('catalog')
-  catalog(@Body() { referencesProduct, orderBy, groupProduct, stockLocation }) {
+  catalog(
+    @Body() { referencesProduct, orderBy, groupProduct, stockLocation },
+    @GetCurrentUserId() userId: string,
+  ) {
     return this.generateCatalog.execute({
       referencesProduct,
       orderBy,
       groupProduct,
       stockLocation,
+      userId,
     });
+  }
+
+  @Public()
+  @Get('catalog/:id')
+  listcatalog(@Param('id') id: string) {
+    return this.productsService.listCatalog(id);
   }
 
   @Post('testAllImages')

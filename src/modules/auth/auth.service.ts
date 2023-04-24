@@ -41,7 +41,7 @@ export class AuthService {
       },
     });
 
-    if (!user || !user.tokenRefresh) {
+    if (!user || !user?.tokenRefresh) {
       throw new UnauthorizedException('Access Denied');
     }
 
@@ -122,9 +122,7 @@ export class AuthService {
     });
     return true;
   }
-  async sso({ entity, sellerCod, email, timestamp }: JwtSsoPayload) {
-    // console.log({ entity, sellerCod, email, timestamp, token });
-
+  async sso({ entity, sellerCod, email, timestamp, token }: JwtSsoPayload) {
     if (!timestamp) {
       throw new UnauthorizedException('Token malformed');
     }
@@ -203,11 +201,11 @@ export class AuthService {
     });
 
     const tokens = await this.getTokens(user.id, user.email);
-    // await this.prisma.tokenSso.create({
-    //   data: {
-    //     token: token,
-    //   },
-    // });
+    await this.prisma.tokenSso.create({
+      data: {
+        token: token,
+      },
+    });
     await this.updateRtPassword(user.id, tokens.refresh_token);
 
     return tokens;

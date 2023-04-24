@@ -14,6 +14,11 @@ import { ItemFilter } from './dto/query-products.type';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { AgroupGridProduct } from './useCases/AgroupGridProduct';
+import {
+  GridProps,
+  PageData,
+  VariationsProps,
+} from './useCases/GenerateCatalog';
 import { ListProductsFilters } from './useCases/ListProductsFilters';
 import { VariationsProduct } from './useCases/VariationsProduct';
 
@@ -29,6 +34,8 @@ type listAllProps = {
 
 @Injectable()
 export class ProductsService {
+  readonly spaceLink = 'https://alpar.sfo3.digitaloceanspaces.com/';
+
   listingRule = () => {
     const now = new Date();
     const month = now.toLocaleString('pt-br', {
@@ -538,6 +545,179 @@ export class ProductsService {
     });
 
     return;
+  }
+
+  async listCatalog(id: string) {
+    const catalogo = await this.prisma.catalogoProduto.findUnique({
+      select: {
+        id: true,
+        orderBy: true,
+        isGroupProduct: true,
+        isStockLocation: true,
+        qtdAcessos: true,
+      },
+      where: {
+        id,
+      },
+    });
+
+    await this.prisma.catalogoProduto.update({
+      data: {
+        qtdAcessos: ++catalogo.qtdAcessos,
+      },
+      where: {
+        id,
+      },
+    });
+
+    const products = await this.prisma.produto.findMany({
+      distinct: 'referencia',
+      select: {
+        codigo: true,
+        referencia: true,
+        codigoAlternativo: true,
+        descricao: true,
+        descricaoAdicional: true,
+        precoVenda: true,
+        descricaoComplementar: true,
+        precoVendaEmpresa: true,
+        genero: {
+          select: {
+            codigo: true,
+            descricao: true,
+          },
+        },
+        marca: {
+          select: {
+            descricao: true,
+          },
+        },
+        grupo: {
+          select: {
+            descricao: true,
+          },
+        },
+        subGrupo: {
+          select: {
+            descricao: true,
+          },
+        },
+        linha: {
+          select: {
+            descricao: true,
+          },
+        },
+        colecao: {
+          select: {
+            descricao: true,
+          },
+        },
+        corPrimaria: {
+          select: {
+            codigo: true,
+            descricao: true,
+          },
+        },
+        corSecundaria: {
+          select: {
+            cor: {
+              select: {
+                descricao: true,
+              },
+            },
+          },
+        },
+        locaisEstoque: {
+          select: {
+            descricao: true,
+            quantidade: true,
+          },
+        },
+      },
+      where: {
+        CatalogoProduto: {
+          some: {
+            id: catalogo.id,
+          },
+        },
+        ...this.listingRule(),
+      },
+      orderBy: [
+        {
+          generoCodigo: 'asc',
+        },
+        this.orderBy.execute(catalogo.orderBy),
+      ],
+    });
+
+    const productsNormalized: PageData[] = [];
+    for (const product of products) {
+      const grids: GridProps[] = (
+        await this.agroupGridProduct.execute({
+          reference: product.referencia,
+          query: this.listingRule(),
+        })
+      ).map((grid) => ({
+        name: `${grid.codigo} - ${grid.descricaoAdicional} - PDV: ${grid.precoVenda}`,
+        stocks: grid.locaisEstoque.map((stock) => ({
+          description: stock.descricao,
+          qtd: stock.quantidade,
+        })),
+      }));
+
+      let variations: VariationsProps[] = [];
+
+      if (!!catalogo.isGroupProduct) {
+        const getVariationsProduct = await this.variationsProduct.execute({
+          alternativeCode: product.codigoAlternativo,
+          query: this.listingRule(),
+        });
+
+        variations = getVariationsProduct
+          .filter((f) => f.referencia !== product.referencia)
+          .map((v) => ({
+            imageMain:
+              `${this.spaceLink}Produtos/${product.referencia}_01` as string,
+            reference: v.referencia,
+          }));
+      }
+
+      const newPage: PageData = {
+        isGroupProduct: !!catalogo.isGroupProduct,
+        isStockLocation: !!catalogo.isStockLocation,
+        variations: variations,
+
+        imageMain:
+          `${this.spaceLink}Produtos/${product.referencia}_01` as string,
+        alternativeCode: product?.codigoAlternativo ?? '-',
+        reference: product?.referencia ?? '-',
+        description: product?.descricao ?? '-',
+        descriptionAdditional: product?.descricaoAdicional ?? '-',
+        colors:
+          product?.corPrimaria?.descricao &&
+          product?.corSecundaria?.cor?.descricao
+            ? `${product.corPrimaria.descricao} e ${product.corSecundaria.cor.descricao}`
+            : product?.corPrimaria?.descricao ?? '-',
+        price: product?.precoVenda?.toLocaleString('pt-br', {
+          style: 'currency',
+          currency: 'BRL',
+        }),
+        brand: product?.marca?.descricao ?? '-',
+        colection: product?.colecao?.descricao ?? '-',
+        genre: product?.genero?.descricao ?? '-',
+        group: product?.grupo?.descricao ?? '-',
+        subgroup: product?.subGrupo?.descricao ?? '-',
+        line: product?.linha?.descricao ?? '-',
+        grids: grids,
+      };
+
+      productsNormalized.push(newPage);
+    }
+
+    return {
+      products: productsNormalized,
+      date: new Date(),
+    };
   }
 
   async verifyRelation(product: Product): Promise<Product> {
