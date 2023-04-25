@@ -658,11 +658,18 @@ export class ProductsService {
           query: this.listingRule(),
         })
       ).map((grid) => ({
-        name: `${grid.codigo} - ${grid.descricaoAdicional} - PDV: ${grid.precoVenda}`,
-        stocks: grid.locaisEstoque.map((stock) => ({
-          description: stock.descricao,
-          qtd: stock.quantidade,
-        })),
+        name: `${grid.codigo} - ${
+          grid.descricaoAdicional
+        } - PDV: ${grid.precoVenda.toLocaleString('pt-br', {
+          style: 'currency',
+          currency: 'BRL',
+        })}`,
+        stocks: catalogo.isStockLocation
+          ? grid.locaisEstoque.map((stock) => ({
+              description: stock.descricao,
+              qtd: stock.quantidade,
+            }))
+          : [],
       }));
 
       let variations: VariationsProps[] = [];
@@ -676,8 +683,7 @@ export class ProductsService {
         variations = getVariationsProduct
           .filter((f) => f.referencia !== product.referencia)
           .map((v) => ({
-            imageMain:
-              `${this.spaceLink}Produtos/${product.referencia}_01` as string,
+            imageMain: `${this.spaceLink}Produtos/${v.referencia}_01` as string,
             reference: v.referencia,
           }));
       }
