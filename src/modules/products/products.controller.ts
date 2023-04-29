@@ -85,8 +85,15 @@ export class ProductsController {
 
   @Public()
   @Get('catalog/:id')
-  listcatalog(@Param('id') id: string) {
-    return this.productsService.listCatalog(id);
+  listcatalog(
+    @Param('id') id: string,
+    @Query() { page = '0', pagesize = '10' },
+  ) {
+    return this.productsService.listCatalog({
+      id,
+      page: +page,
+      pagesize: +pagesize,
+    });
   }
 
   @Post('testAllImages')

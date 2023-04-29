@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -43,8 +44,9 @@ model Vendedor {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  marcas  Marca[]
-  Usuario Usuario[]
+  marcas                       Marca[]
+  Usuario                      Usuario[]
+  carteiraClienteRepresentante CarteiraClienteRepresentante[]
 
   @@map("vendedores")
 }
@@ -134,15 +136,36 @@ model Cor {
 }
 
 model RelCorProduto {
-  id String @id() @default(uuid())
-
-  cor       Cor @relation(fields: [corCodigo], references: [codigo])
+  id        String @id() @default(uuid())
+  cor       Cor    @relation(fields: [corCodigo], references: [codigo])
   corCodigo Int
 
   produto       Produto? @relation(fields: [codigoProduto], references: [codigo])
   codigoProduto Int?     @unique
 
   @@map("relCorProdutos")
+}
+
+model OrigemProduto {
+  codigo    Int      @id @unique
+  descricao String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  produto Produto[]
+
+  @@map("origensProduto")
+}
+
+model UnidadeMedida {
+  unidade   String   @id @unique
+  descricao String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  produto Produto[]
+
+  @@map("unidadesMedida")
 }
 
 model Produto {
@@ -154,6 +177,9 @@ model Produto {
   descricaoAdicional    String?
   precoVenda            Float
   precoVendaEmpresa     Float?
+  qtdEmbalagem          Int      @default(0)
+  obs                   String?
+  ncm                   String?
   unidade               String
   eAtivo                Boolean  @default(true)
   possuiFoto            Boolean  @default(true)
@@ -183,6 +209,10 @@ model Produto {
   subGrupoId          String?
   Grade               Grade?            @relation(fields: [gradeCodigo], references: [codigo])
   gradeCodigo         Int?
+  origemProduto       OrigemProduto?    @relation(fields: [origemProdutoCodigo], references: [codigo])
+  origemProdutoCodigo Int?
+  unidadeMedidaRel    UnidadeMedida?    @relation(fields: [unidadeMedida], references: [unidade])
+  unidadeMedida       String?
   CatalogoProduto     CatalogoProduto[]
 
   @@map("produtos")
@@ -282,8 +312,22 @@ model Conceito {
   updatedAt  DateTime @updatedAt
 
   regraProdutoConceito RegraProdutoConceito[]
+  Cliente              Cliente[]
 
   @@map("conceitos")
+}
+
+model RamoAtividade {
+  codigo     Int      @id @unique
+  descricao  String
+  abreviacao String?
+  eAtivo     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  Cliente Cliente[]
+
+  @@map("ramosAtividade")
 }
 
 model RegraProdutoConceito {
@@ -361,4 +405,56 @@ model TokenSso {
   createdAt DateTime @default(now())
 
   @@map("tokensSso")
+}
+
+model Cliente {
+  codigo           Int     @id @unique
+  cnpj             String
+  credito          Float   @default(0)
+  razaoSocial      String
+  nomeFantasia     String
+  incricaoEstadual String?
+  celular          String?
+  email            String?
+  email2           String?
+  telefone         String?
+  telefone2        String?
+  eAtivo           Boolean @default(false)
+
+  uf            String
+  cidadeIbgeCod Int?
+  cidade        String
+  bairro        String
+  logradouro    String
+  numero        String
+  complemento   String?
+  cep           String
+
+  obs         String?
+  obsRestrita String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  conceito                     Conceito?                      @relation(fields: [conceitoCodigo], references: [codigo])
+  conceitoCodigo               Int?
+  ramoAtividade                RamoAtividade?                 @relation(fields: [ramoAtividadeCodigo], references: [codigo])
+  ramoAtividadeCodigo          Int?
+  carteiraClienteRepresentante CarteiraClienteRepresentante[]
+
+  @@map("clientes")
+}
+
+model CarteiraClienteRepresentante {
+  id        String   @id @unique @default(uuid())
+  tipo      Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vendedor       Vendedor @relation(fields: [vendedorCodigo], references: [codigo])
+  vendedorCodigo Int
+  cliente        Cliente  @relation(fields: [clienteCodigo], references: [codigo])
+  clienteCodigo  Int
+
+  @@unique([vendedorCodigo, clienteCodigo])
 }

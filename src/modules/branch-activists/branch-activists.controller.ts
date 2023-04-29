@@ -5,15 +5,15 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { SellersService } from './sellers.service';
+import { BranchActivityService } from './branch-activists.service';
 
-@Controller('sellers')
-export class SellersController {
-  constructor(private readonly sellersService: SellersService) {}
+@Controller('branch-activists')
+export class BranchActivityController {
+  constructor(private readonly branchActivityService: BranchActivityService) {}
 
   @Post('import')
   @UseInterceptors(FileInterceptor('file'))
   import(@UploadedFile() file: Express.Multer.File) {
-    return this.sellersService.import(file);
+    return this.branchActivityService.import(file);
   }
 }

@@ -8,7 +8,6 @@ import { TestImageProductProducerService } from '../../jobs/TestImageProduct/tes
 import { GroupByObj } from '../../utils/GroupByObj.utils';
 import { OrderBy } from '../../utils/OrderBy.utils';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
-import { StringToNumberOrUndefined } from '../../utils/StringToNumberOrUndefined.utils';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ItemFilter } from './dto/query-products.type';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -88,7 +87,6 @@ export class ProductsService {
     private prisma: PrismaService,
     private parseCsv: ParseCsv,
     private orderBy: OrderBy,
-    private stringToNumberOrUndefined: StringToNumberOrUndefined,
     private listProductsFilters: ListProductsFilters,
     private variationsProduct: VariationsProduct,
     private agroupGridProduct: AgroupGridProduct,
@@ -116,6 +114,7 @@ export class ProductsService {
     const createdProduct = await this.prisma.produto.create({
       data: {
         ...productVerifyRelation,
+
         corSecundaria: !!productVerifyRelation.corSecundariaCodigo
           ? {
               create: {
@@ -259,8 +258,6 @@ export class ProductsService {
         };
       });
     }
-
-    // console.log(JSON.stringify(filterNormalized, null, 2));
 
     const reportAddSelect = isReport
       ? {
@@ -547,7 +544,15 @@ export class ProductsService {
     return;
   }
 
-  async listCatalog(id: string) {
+  async listCatalog({
+    id,
+    page,
+    pagesize,
+  }: {
+    id: string;
+    page: number;
+    pagesize: number;
+  }) {
     const catalogo = await this.prisma.catalogoProduto.findUnique({
       select: {
         id: true,
@@ -555,11 +560,22 @@ export class ProductsService {
         isGroupProduct: true,
         isStockLocation: true,
         qtdAcessos: true,
+        createdAt: true,
       },
       where: {
         id,
       },
     });
+
+    const now = new Date();
+    now.setDate(now.getDate() - 3);
+
+    if (!catalogo) {
+      throw new BadRequestException('Id de catálogo inválido ou inexistente');
+    }
+    if (now > catalogo.createdAt) {
+      throw new BadRequestException('Catálogo expirado');
+    }
 
     await this.prisma.catalogoProduto.update({
       data: {
@@ -571,6 +587,8 @@ export class ProductsService {
     });
 
     const products = await this.prisma.produto.findMany({
+      take: pagesize,
+      skip: page * pagesize,
       distinct: 'referencia',
       select: {
         codigo: true,
@@ -650,6 +668,19 @@ export class ProductsService {
       ],
     });
 
+    const productsTotal = await this.prisma.produto.findMany({
+      select: { codigo: true },
+      distinct: 'referencia',
+      where: {
+        CatalogoProduto: {
+          some: {
+            id: catalogo.id,
+          },
+        },
+        ...this.listingRule(),
+      },
+    });
+
     const productsNormalized: PageData[] = [];
     for (const product of products) {
       const grids: GridProps[] = (
@@ -723,10 +754,27 @@ export class ProductsService {
     return {
       products: productsNormalized,
       date: new Date(),
+      page,
+      pagesize,
+      total: productsTotal.length,
     };
   }
 
   async verifyRelation(product: Product): Promise<Product> {
+    const alreadyExistUnitMensure = await this.prisma.unidadeMedida.findUnique({
+      where: {
+        unidade: product?.unidadeMedida ?? '0',
+      },
+    });
+    if (!alreadyExistUnitMensure && product?.unidadeMedida) {
+      await this.prisma.unidadeMedida.create({
+        data: {
+          descricao: product?.unidadeMedidaDescricao ?? product?.unidadeMedida,
+          unidade: product?.unidadeMedida,
+        },
+      });
+    }
+
     const alreadyExistBrand = await this.prisma.marca.findUnique({
       where: {
         codigo: product.marcaCodigo,
@@ -804,6 +852,7 @@ export class ProductsService {
       return false;
     }
   }
+
   async testImageJob(reference?: string) {
     await this.testImageProductProducerService.execute({ reference });
     return;

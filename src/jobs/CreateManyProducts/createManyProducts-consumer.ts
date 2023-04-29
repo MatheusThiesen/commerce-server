@@ -43,6 +43,11 @@ class CreateManyProductsConsumer {
         subgrupoCodigo,
         generoCodigo,
         precoVendaEmpresa,
+        qtdEmbalagem,
+        obs,
+        ncm,
+        unidadeMedida,
+        unidadeMedidaDescricao,
       ] = productsArr;
 
       const product = new Product();
@@ -68,6 +73,11 @@ class CreateManyProductsConsumer {
         generoCodigo: this.stringToNumberOrUndefined.execute(generoCodigo),
         precoVendaEmpresa:
           this.stringToNumberOrUndefined.execute(precoVendaEmpresa),
+        qtdEmbalagem: this.stringToNumberOrUndefined.execute(qtdEmbalagem),
+        obs: obs,
+        ncm: ncm,
+        unidadeMedida: unidadeMedida,
+        unidadeMedidaDescricao: unidadeMedidaDescricao,
       });
 
       const productExists = await this.prisma.produto.findUnique({

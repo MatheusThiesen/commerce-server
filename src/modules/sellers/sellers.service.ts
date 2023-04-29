@@ -73,13 +73,6 @@ export class SellersService {
     return createdSeller;
   }
 
-  async findAll() {
-    const sellers = await this.prisma.vendedor.findMany({
-      select: this.selectSeller,
-    });
-    return sellers;
-  }
-
   async findOne(codigo: number) {
     const seller = await this.prisma.vendedor.findUnique({
       select: this.selectSeller,

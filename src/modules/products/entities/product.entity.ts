@@ -21,4 +21,9 @@ export class Product {
   grupoCodigo?: number;
   subgrupoCodigo?: number;
   subGrupoId?: string;
+  qtdEmbalagem?: number;
+  obs?: string;
+  ncm?: string;
+  unidadeMedida?: string;
+  unidadeMedidaDescricao?: string;
 }

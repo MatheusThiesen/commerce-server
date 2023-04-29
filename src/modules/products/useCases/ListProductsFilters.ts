@@ -1,20 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ProdutoWhereInput } from 'prisma';
+import { FilterListProps } from 'src/@types/FilterList';
 import { PrismaService } from '../../../database/prisma.service';
 
 interface ListProductsFiltersProps {
   where?: ProdutoWhereInput;
 }
-
-type FilterListProps = {
-  label: string;
-  name: string;
-  data: ItemFilter[];
-};
-type ItemFilter = {
-  name: string;
-  value: number | string;
-};
 
 /*
 Filtros
