@@ -568,7 +568,7 @@ export class ProductsService {
     });
 
     const now = new Date();
-    now.setDate(now.getDate() - 3);
+    now.setDate(now.getDate() - 7);
 
     if (!catalogo) {
       throw new BadRequestException('Id de catálogo inválido ou inexistente');
