@@ -2,8 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -180,7 +179,6 @@ model Produto {
   qtdEmbalagem          Int      @default(0)
   obs                   String?
   ncm                   String?
-  unidade               String
   eAtivo                Boolean  @default(true)
   possuiFoto            Boolean  @default(true)
   createdAt             DateTime @default(now())
@@ -211,7 +209,7 @@ model Produto {
   gradeCodigo         Int?
   origemProduto       OrigemProduto?    @relation(fields: [origemProdutoCodigo], references: [codigo])
   origemProdutoCodigo Int?
-  unidadeMedidaRel    UnidadeMedida?    @relation(fields: [unidadeMedida], references: [unidade])
+  unidade             UnidadeMedida?    @relation(fields: [unidadeMedida], references: [unidade])
   unidadeMedida       String?
   CatalogoProduto     CatalogoProduto[]
 
@@ -388,6 +386,7 @@ model CatalogoProduto {
   id              String   @id @unique @default(uuid())
   qtdAcessos      Int      @default(0)
   orderBy         String?
+  filtro          String?
   isGroupProduct  Boolean  @default(false)
   isStockLocation Boolean  @default(false)
   createdAt       DateTime @default(now())

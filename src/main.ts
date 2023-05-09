@@ -1,8 +1,8 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as express from 'express';
+// import * as morgan from 'morgan';
 import * as path from 'path';
-// import { readFile } from 'fs/promises';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -10,16 +10,11 @@ async function bootstrap() {
     cors: {
       origin: '*',
     },
-    // httpsOptions: {
-    //   key: await readFile('./secrets/private-key.pem', 'utf8'),
-    //   cert: await readFile('./secrets/public-certificate.pem', 'utf8'),
-    //   // rejectUnauthorized: false,
-    //   // requestCert: false,
-    // },
   });
 
   app.useGlobalPipes(new ValidationPipe());
   app.use('/files', express.static(path.resolve(__dirname, '..', 'temp')));
+  // app.use(morgan('dev'));
   await app.listen(4444);
 }
 bootstrap();

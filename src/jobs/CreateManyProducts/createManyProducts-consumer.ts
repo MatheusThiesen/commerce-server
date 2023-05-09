@@ -33,7 +33,6 @@ class CreateManyProductsConsumer {
         descricaoComplementar,
         descricaoAdicional,
         precoVenda,
-        unidade,
         marcaCodigo,
         corPrimariaCodigo,
         corSecundariaCodigo,
@@ -60,7 +59,6 @@ class CreateManyProductsConsumer {
         descricaoComplementar,
         descricaoAdicional,
         precoVenda: Number(precoVenda),
-        unidade,
         marcaCodigo: this.stringToNumberOrUndefined.execute(marcaCodigo),
         corPrimariaCodigo:
           this.stringToNumberOrUndefined.execute(corPrimariaCodigo),

@@ -14,8 +14,6 @@ export class CreateProductDto extends Product {
   descricaoComplementar: string;
   @IsNumber()
   precoVenda: number;
-  @IsString()
-  unidade: string;
   @IsNumber()
   marcaCodigo: number;
 }

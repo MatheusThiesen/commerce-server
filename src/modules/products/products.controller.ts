@@ -1,5 +1,4 @@
 import {
-  Body,
   Controller,
   Delete,
   Get,
@@ -10,18 +9,14 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { GetCurrentUserId, Public } from '../../common/decorators';
+import { GetCurrentUserId } from '../../common/decorators';
 import { TimeoutInterceptor } from '../../interceptors/timeout.interceptors';
 import { QueryProducts } from './dto/query-products.type';
 import { ProductsService } from './products.service';
-import { GenerateCatalog } from './useCases/GenerateCatalog';
 
 @Controller('products')
 export class ProductsController {
-  constructor(
-    private readonly productsService: ProductsService,
-    private readonly generateCatalog: GenerateCatalog,
-  ) {}
+  constructor(private readonly productsService: ProductsService) {}
 
   @Get()
   findAll(
@@ -48,8 +43,11 @@ export class ProductsController {
   }
 
   @Get('filters')
-  getFilters(@GetCurrentUserId() userId: string) {
-    return this.productsService.getFiltersForFindAll(userId);
+  getFilters(@GetCurrentUserId() userId: string, @Query() { filters }) {
+    return this.productsService.getFiltersForFindAll(
+      userId,
+      filters?.map((f) => JSON.parse(f as string)),
+    );
   }
 
   @Get(':codigo')
@@ -67,33 +65,6 @@ export class ProductsController {
   @UseInterceptors(FileInterceptor('file'))
   import(@UploadedFile() file: Express.Multer.File) {
     return this.productsService.import(file);
-  }
-
-  @Post('catalog')
-  catalog(
-    @Body() { referencesProduct, orderBy, groupProduct, stockLocation },
-    @GetCurrentUserId() userId: string,
-  ) {
-    return this.generateCatalog.execute({
-      referencesProduct,
-      orderBy,
-      groupProduct,
-      stockLocation,
-      userId,
-    });
-  }
-
-  @Public()
-  @Get('catalog/:id')
-  listcatalog(
-    @Param('id') id: string,
-    @Query() { page = '0', pagesize = '10' },
-  ) {
-    return this.productsService.listCatalog({
-      id,
-      page: +page,
-      pagesize: +pagesize,
-    });
   }
 
   @Post('testAllImages')

@@ -1,11 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
+import { ListingRule } from './ListingRule';
 
 @Injectable()
 export class AgroupGridProduct {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly listingRule: ListingRule,
+  ) {}
 
-  async execute({ reference, query }: { reference: string; query: any }) {
+  async execute({ reference, query }: { reference: string; query?: any }) {
+    const normalizedQuery = query ? query : undefined;
+
+    const normalizedQueryStock =
+      query && query?.AND
+        ? query?.AND.find((f) => {
+            const [key] = Object.keys(f);
+
+            return key === `locaisEstoque`;
+          })
+        : undefined;
+
     const products = await this.prisma.produto.findMany({
       select: {
         codigo: true,
@@ -20,14 +35,23 @@ export class AgroupGridProduct {
             descricao: true,
             quantidade: true,
           },
+
           where: {
-            ...query?.locaisEstoque?.some,
+            AND: [
+              this.listingRule.execute()?.locaisEstoque?.some,
+              normalizedQueryStock?.locaisEstoque?.some,
+            ],
           },
         },
       },
       where: {
-        referencia: reference,
-        ...query,
+        AND: [
+          this.listingRule.execute(),
+          {
+            referencia: reference,
+          },
+          normalizedQuery,
+        ],
       },
     });
     return products;

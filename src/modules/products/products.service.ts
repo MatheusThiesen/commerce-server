@@ -5,7 +5,6 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { CreateManyProductsProducerService } from 'src/jobs/CreateManyProducts/createManyProducts-producer-service';
 import { PrismaService } from '../../database/prisma.service';
 import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
-import { GroupByObj } from '../../utils/GroupByObj.utils';
 import { OrderBy } from '../../utils/OrderBy.utils';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -13,13 +12,10 @@ import { ItemFilter } from './dto/query-products.type';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { AgroupGridProduct } from './useCases/AgroupGridProduct';
-import {
-  GridProps,
-  PageData,
-  VariationsProps,
-} from './useCases/GenerateCatalog';
 import { ListProductsFilters } from './useCases/ListProductsFilters';
+import { ListingRule } from './useCases/ListingRule';
 import { VariationsProduct } from './useCases/VariationsProduct';
+import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
 
 type listAllProps = {
   page: number;
@@ -35,53 +31,6 @@ type listAllProps = {
 export class ProductsService {
   readonly spaceLink = 'https://alpar.sfo3.digitaloceanspaces.com/';
 
-  listingRule = () => {
-    const now = new Date();
-    const month = now.toLocaleString('pt-br', {
-      month: '2-digit',
-    });
-    const year = now.toLocaleString('pt-br', {
-      year: 'numeric',
-    });
-
-    const rule = {
-      // subGrupo: {
-      //   eVenda: true,
-      // },
-      // possuiFoto: true,
-      // precoVenda: {
-      //   gt: 0,
-      // },
-
-      marca: {
-        eVenda: true,
-      },
-      grupo: {
-        eVenda: true,
-      },
-      eAtivo: true,
-      locaisEstoque: {
-        some: {
-          quantidade: {
-            gt: 0,
-          },
-          OR: [
-            {
-              periodo: 'pronta-entrega',
-            },
-            {
-              data: {
-                gte: new Date(`${year}-${month}-01T00:00`),
-              },
-            },
-          ],
-        },
-      },
-    };
-
-    return rule;
-  };
-
   constructor(
     private readonly httpService: HttpService,
     private prisma: PrismaService,
@@ -92,7 +41,8 @@ export class ProductsService {
     private agroupGridProduct: AgroupGridProduct,
     private readonly testImageProductProducerService: TestImageProductProducerService,
     private readonly createManyProductsProducerService: CreateManyProductsProducerService,
-    private readonly groupByObj: GroupByObj,
+    private readonly listingRule: ListingRule,
+    private readonly filterOrderNormalized: FilterOrderNormalized,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
@@ -211,53 +161,7 @@ export class ProductsService {
 
     const orderByNormalized = this.orderBy.execute(orderBy);
 
-    let filterNormalized = [];
-
-    if (filters) {
-      const groupFilters = this.groupByObj.execute(
-        filters,
-        (item) => item.name,
-      );
-
-      filterNormalized = groupFilters.map((filterGroup) => {
-        if (filterGroup.value === 'locaisEstoque') {
-          return {
-            locaisEstoque: {
-              some: {
-                ...this.listingRule().locaisEstoque.some,
-                periodo: {
-                  in: filterGroup.data.map((item) => item.value),
-                },
-              },
-            },
-          };
-        }
-
-        if (filterGroup.value === 'concept') {
-          return {
-            subGrupo: {
-              regraProdutoConceito: {
-                some: {
-                  conceitoCodigo: {
-                    in: filterGroup.data.map((item) => item.value),
-                  },
-                },
-              },
-            },
-          };
-        }
-
-        if (filterGroup.value === 'possuiFoto') {
-          return { possuiFoto: Boolean(Number(filterGroup.data[0].value)) };
-        }
-
-        return {
-          [filterGroup.value as string]: {
-            in: filterGroup.data.map((item) => item.value),
-          },
-        };
-      });
-    }
+    const filterNormalized = await this.filterOrderNormalized.execute(filters);
 
     const reportAddSelect = isReport
       ? {
@@ -302,7 +206,7 @@ export class ProductsService {
               quantidade: true,
             },
             where: {
-              ...this.listingRule().locaisEstoque.some,
+              ...this.listingRule.execute().locaisEstoque.some,
             },
           },
         }
@@ -324,6 +228,23 @@ export class ProductsService {
         descricaoAdicional: true,
         precoVenda: true,
 
+        listaPreco: {
+          select: {
+            id: true,
+            descricao: true,
+            valor: true,
+            codigo: true,
+          },
+          where: {
+            codigo: {
+              in: [28, 42, 56, 300],
+            },
+          },
+          orderBy: {
+            codigo: 'asc',
+          },
+        },
+
         marca: {
           select: {
             codigo: true,
@@ -336,7 +257,7 @@ export class ProductsService {
       where: {
         AND: [
           ...filterNormalized,
-          this.listingRule(),
+          this.listingRule.execute(),
           {
             marcaCodigo: user.eVendedor
               ? {
@@ -354,7 +275,7 @@ export class ProductsService {
       where: {
         AND: [
           ...filterNormalized,
-          this.listingRule(),
+          this.listingRule.execute(),
           {
             marcaCodigo: user.eVendedor
               ? {
@@ -374,7 +295,7 @@ export class ProductsService {
     };
   }
 
-  async getFiltersForFindAll(userId: string) {
+  async getFiltersForFindAll(userId: string, filters?: ItemFilter[]) {
     const user = await this.prisma.usuario.findUnique({
       select: {
         eVendedor: true,
@@ -392,16 +313,26 @@ export class ProductsService {
         id: userId,
       },
     });
-    return await this.listProductsFilters.execute({
+
+    const filterNormalized = await this.filterOrderNormalized.execute(filters);
+
+    const normalized = await this.listProductsFilters.execute({
       where: {
-        ...this.listingRule(),
-        marcaCodigo: user.eVendedor
-          ? {
-              in: user.vendedor.marcas.map((marca) => marca.codigo),
-            }
-          : undefined,
+        AND: [
+          this.listingRule.execute(),
+          ...filterNormalized,
+          {
+            marcaCodigo: user.eVendedor
+              ? {
+                  in: user.vendedor.marcas.map((marca) => marca.codigo),
+                }
+              : undefined,
+          },
+        ],
       },
     });
+
+    return normalized;
   }
 
   async findOne(codigo: number) {
@@ -413,9 +344,17 @@ export class ProductsService {
         descricao: true,
         descricaoComplementar: true,
         descricaoAdicional: true,
-        unidade: true,
         possuiFoto: true,
         precoVendaEmpresa: true,
+        ncm: true,
+        obs: true,
+        qtdEmbalagem: true,
+        unidade: {
+          select: {
+            unidade: true,
+            descricao: true,
+          },
+        },
         grupo: {
           select: {
             codigo: true,
@@ -476,6 +415,7 @@ export class ProductsService {
             id: true,
             descricao: true,
             valor: true,
+            codigo: true,
           },
           where: {
             codigo: {
@@ -496,12 +436,12 @@ export class ProductsService {
             quantidade: true,
           },
           where: {
-            ...this.listingRule().locaisEstoque.some,
+            ...this.listingRule.execute().locaisEstoque.some,
           },
         },
       },
       where: {
-        AND: [{ codigo }, { ...this.listingRule() }],
+        AND: [{ codigo }, { ...this.listingRule.execute() }],
       },
     });
 
@@ -511,11 +451,10 @@ export class ProductsService {
 
     const variacoes = await this.variationsProduct.execute({
       alternativeCode: product.codigoAlternativo,
-      query: this.listingRule(),
+      query: this.listingRule.execute(),
     });
     const grades = await this.agroupGridProduct.execute({
       reference: product.referencia,
-      query: this.listingRule(),
     });
 
     return { ...product, variacoes, grades };
@@ -544,222 +483,6 @@ export class ProductsService {
     return;
   }
 
-  async listCatalog({
-    id,
-    page,
-    pagesize,
-  }: {
-    id: string;
-    page: number;
-    pagesize: number;
-  }) {
-    const catalogo = await this.prisma.catalogoProduto.findUnique({
-      select: {
-        id: true,
-        orderBy: true,
-        isGroupProduct: true,
-        isStockLocation: true,
-        qtdAcessos: true,
-        createdAt: true,
-      },
-      where: {
-        id,
-      },
-    });
-
-    const now = new Date();
-    now.setDate(now.getDate() - 7);
-
-    if (!catalogo) {
-      throw new BadRequestException('Id de catálogo inválido ou inexistente');
-    }
-    if (now > catalogo.createdAt) {
-      throw new BadRequestException('Catálogo expirado');
-    }
-
-    await this.prisma.catalogoProduto.update({
-      data: {
-        qtdAcessos: ++catalogo.qtdAcessos,
-      },
-      where: {
-        id,
-      },
-    });
-
-    const products = await this.prisma.produto.findMany({
-      take: pagesize,
-      skip: page * pagesize,
-      distinct: 'referencia',
-      select: {
-        codigo: true,
-        referencia: true,
-        codigoAlternativo: true,
-        descricao: true,
-        descricaoAdicional: true,
-        precoVenda: true,
-        descricaoComplementar: true,
-        precoVendaEmpresa: true,
-        genero: {
-          select: {
-            codigo: true,
-            descricao: true,
-          },
-        },
-        marca: {
-          select: {
-            descricao: true,
-          },
-        },
-        grupo: {
-          select: {
-            descricao: true,
-          },
-        },
-        subGrupo: {
-          select: {
-            descricao: true,
-          },
-        },
-        linha: {
-          select: {
-            descricao: true,
-          },
-        },
-        colecao: {
-          select: {
-            descricao: true,
-          },
-        },
-        corPrimaria: {
-          select: {
-            codigo: true,
-            descricao: true,
-          },
-        },
-        corSecundaria: {
-          select: {
-            cor: {
-              select: {
-                descricao: true,
-              },
-            },
-          },
-        },
-        locaisEstoque: {
-          select: {
-            descricao: true,
-            quantidade: true,
-          },
-        },
-      },
-      where: {
-        CatalogoProduto: {
-          some: {
-            id: catalogo.id,
-          },
-        },
-        ...this.listingRule(),
-      },
-      orderBy: [
-        {
-          generoCodigo: 'asc',
-        },
-        this.orderBy.execute(catalogo.orderBy),
-      ],
-    });
-
-    const productsTotal = await this.prisma.produto.findMany({
-      select: { codigo: true },
-      distinct: 'referencia',
-      where: {
-        CatalogoProduto: {
-          some: {
-            id: catalogo.id,
-          },
-        },
-        ...this.listingRule(),
-      },
-    });
-
-    const productsNormalized: PageData[] = [];
-    for (const product of products) {
-      const grids: GridProps[] = (
-        await this.agroupGridProduct.execute({
-          reference: product.referencia,
-          query: this.listingRule(),
-        })
-      ).map((grid) => ({
-        name: `${grid.codigo} - ${
-          grid.descricaoAdicional
-        } - PDV: ${grid.precoVenda.toLocaleString('pt-br', {
-          style: 'currency',
-          currency: 'BRL',
-        })}`,
-        stocks: catalogo.isStockLocation
-          ? grid.locaisEstoque.map((stock) => ({
-              description: stock.descricao,
-              qtd: stock.quantidade,
-            }))
-          : [],
-      }));
-
-      let variations: VariationsProps[] = [];
-
-      if (!!catalogo.isGroupProduct) {
-        const getVariationsProduct = await this.variationsProduct.execute({
-          alternativeCode: product.codigoAlternativo,
-          query: this.listingRule(),
-        });
-
-        variations = getVariationsProduct
-          .filter((f) => f.referencia !== product.referencia)
-          .map((v) => ({
-            imageMain: `${this.spaceLink}Produtos/${v.referencia}_01` as string,
-            reference: v.referencia,
-          }));
-      }
-
-      const newPage: PageData = {
-        isGroupProduct: !!catalogo.isGroupProduct,
-        isStockLocation: !!catalogo.isStockLocation,
-        variations: variations,
-
-        imageMain:
-          `${this.spaceLink}Produtos/${product.referencia}_01` as string,
-        alternativeCode: product?.codigoAlternativo ?? '-',
-        reference: product?.referencia ?? '-',
-        description: product?.descricao ?? '-',
-        descriptionAdditional: product?.descricaoAdicional ?? '-',
-        colors:
-          product?.corPrimaria?.descricao &&
-          product?.corSecundaria?.cor?.descricao
-            ? `${product.corPrimaria.descricao} e ${product.corSecundaria.cor.descricao}`
-            : product?.corPrimaria?.descricao ?? '-',
-        price: product?.precoVenda?.toLocaleString('pt-br', {
-          style: 'currency',
-          currency: 'BRL',
-        }),
-        brand: product?.marca?.descricao ?? '-',
-        colection: product?.colecao?.descricao ?? '-',
-        genre: product?.genero?.descricao ?? '-',
-        group: product?.grupo?.descricao ?? '-',
-        subgroup: product?.subGrupo?.descricao ?? '-',
-        line: product?.linha?.descricao ?? '-',
-        grids: grids,
-      };
-
-      productsNormalized.push(newPage);
-    }
-
-    return {
-      products: productsNormalized,
-      date: new Date(),
-      page,
-      pagesize,
-      total: productsTotal.length,
-    };
-  }
-
   async verifyRelation(product: Product): Promise<Product> {
     const alreadyExistUnitMensure = await this.prisma.unidadeMedida.findUnique({
       where: {
@@ -774,6 +497,8 @@ export class ProductsService {
         },
       });
     }
+
+    delete product?.unidadeMedidaDescricao;
 
     const alreadyExistBrand = await this.prisma.marca.findUnique({
       where: {

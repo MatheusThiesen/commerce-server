@@ -7,7 +7,6 @@ export class Product {
   descricaoAdicional?: string;
   precoVenda: number;
   precoVendaEmpresa?: number;
-  unidade: string;
   eAtivo?: boolean;
   possuiFoto?: boolean;
   createdAt?: Date;

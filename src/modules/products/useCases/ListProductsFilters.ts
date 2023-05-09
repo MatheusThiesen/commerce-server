@@ -28,6 +28,7 @@ export class ListProductsFilters {
 
   async execute({ where }: ListProductsFiltersProps) {
     const filterList: FilterListProps[] = [];
+
     const brands = await this.prisma.produto.findMany({
       distinct: 'marcaCodigo',
       where: where,
@@ -40,6 +41,7 @@ export class ListProductsFilters {
         },
       },
     });
+
     const lines = await this.prisma.produto.findMany({
       distinct: 'linhaCodigo',
       where: where,
@@ -52,6 +54,7 @@ export class ListProductsFilters {
         },
       },
     });
+
     const collections = await this.prisma.produto.findMany({
       distinct: 'colecaoCodigo',
       where: where,
@@ -64,6 +67,7 @@ export class ListProductsFilters {
         },
       },
     });
+
     const groups = await this.prisma.produto.findMany({
       distinct: 'grupoCodigo',
       where: where,
@@ -76,6 +80,7 @@ export class ListProductsFilters {
         },
       },
     });
+
     const subgroups = await this.prisma.produto.findMany({
       distinct: 'subGrupoId',
       where: where,
@@ -88,6 +93,7 @@ export class ListProductsFilters {
         },
       },
     });
+
     const genders = await this.prisma.produto.findMany({
       distinct: 'generoCodigo',
       where: where,
@@ -100,6 +106,7 @@ export class ListProductsFilters {
         },
       },
     });
+
     const references = await this.prisma.produto.findMany({
       distinct: 'referencia',
       where: where,
@@ -107,9 +114,10 @@ export class ListProductsFilters {
         referencia: true,
       },
     });
+
     const stockLocations = await this.prisma.localEstoque.findMany({
       distinct: 'periodo',
-      where: { Produto: where, ...where.locaisEstoque.some },
+      where: { Produto: where, ...where.AND[0].locaisEstoque.some },
       select: {
         periodo: true,
         descricao: true,

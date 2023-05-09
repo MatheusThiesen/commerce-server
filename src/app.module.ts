@@ -8,6 +8,8 @@ import { PrismaModule } from './database/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BranchActivityModule } from './modules/branch-activists/branch-activists.module';
 import { BrandsModule } from './modules/brands/brands.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
+import { ClientsToSellersModule } from './modules/clients-to-sellers/clients-to-sellers.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { CollectionsModule } from './modules/collections/collections.module';
 import { ColorsModule } from './modules/colors/colors.module';
@@ -16,16 +18,14 @@ import { GridsModule } from './modules/grids/grids.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { HomeModule } from './modules/home/home.module';
 import { LinesModule } from './modules/lines/lines.module';
-import { OrderItemsModule } from './modules/order-items/order-items.module';
+import { OrderModule } from './modules/order/order.module';
 import { PriceListsModule } from './modules/price-lists/price-lists.module';
 import { ProductConceptRulesModule } from './modules/product-concept-rules/product-concept-rules.module';
 import { ProductsModule } from './modules/products/products.module';
-import { PurchasesOrderModule } from './modules/purchases-order/purchases-order.module';
 import { SellersModule } from './modules/sellers/sellers.module';
 import { StockLocationsModule } from './modules/stock-locations/stock-locations.module';
 import { SubgroupsModule } from './modules/subgroups/subgroups.module';
 import { UtilsModule } from './utils/utils.module';
-import { ClientsToSellersModule } from './modules/clients-to-sellers/clients-to-sellers.module';
 
 @Module({
   imports: [
@@ -63,13 +63,13 @@ import { ClientsToSellersModule } from './modules/clients-to-sellers/clients-to-
     GridsModule,
     ConceptModule,
     ProductConceptRulesModule,
-    PurchasesOrderModule,
-    OrderItemsModule,
     PriceListsModule,
     HomeModule,
     BranchActivityModule,
     ClientsModule,
     ClientsToSellersModule,
+    CatalogModule,
+    OrderModule,
   ],
   providers: [
     {

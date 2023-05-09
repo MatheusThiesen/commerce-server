@@ -8,9 +8,10 @@ import { TestImageProductProducerService } from '../../jobs/TestImageProduct/tes
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { AgroupGridProduct } from './useCases/AgroupGridProduct';
-import { GenerateCatalog } from './useCases/GenerateCatalog';
 import { ListProductsFilters } from './useCases/ListProductsFilters';
+import { ListingRule } from './useCases/ListingRule';
 import { VariationsProduct } from './useCases/VariationsProduct';
+import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
 
 @Module({
   imports: [
@@ -26,14 +27,14 @@ import { VariationsProduct } from './useCases/VariationsProduct';
   providers: [
     ProductsService,
     ListProductsFilters,
-    ListProductsFilters,
     VariationsProduct,
-    GenerateCatalog,
     TestImageProductProducerService,
     TestImageProductConsumer,
     CreateManyProductsConsumer,
     CreateManyProductsProducerService,
     AgroupGridProduct,
+    ListingRule,
+    FilterOrderNormalized,
   ],
 })
 export class ProductsModule {}
