@@ -7,6 +7,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { Public } from 'src/common/decorators';
 import { GetCurrentUserId } from 'src/common/decorators/get-current-user-id.decorator';
 import { CatalogService } from './catalog.service';
 import { GenerateCatalog } from './useCases/GenerateCatalog';
@@ -34,6 +35,7 @@ export class CatalogController {
     });
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string, @Query() { page = '0', pagesize = '10' }) {
     return this.catalogService.findOne({
