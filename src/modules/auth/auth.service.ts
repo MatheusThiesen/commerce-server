@@ -137,11 +137,11 @@ export class AuthService {
       throw new UnauthorizedException('expired token');
     }
 
-    // const existToken = await this.prisma.tokenSso.findUnique({
-    //   where: {
-    //     token: token,
-    //   },
-    // });
+    const existToken = await this.prisma.tokenSso.findUnique({
+      where: {
+        token: token,
+      },
+    });
 
     // if (existToken) throw new UnauthorizedException('expired token');
 
@@ -201,11 +201,13 @@ export class AuthService {
     });
 
     const tokens = await this.getTokens(user.id, user.email);
-    await this.prisma.tokenSso.create({
-      data: {
-        token: token,
-      },
-    });
+
+    if (!existToken)
+      await this.prisma.tokenSso.create({
+        data: {
+          token: token,
+        },
+      });
     await this.updateRtPassword(user.id, tokens.refresh_token);
 
     return tokens;
