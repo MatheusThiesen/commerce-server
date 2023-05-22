@@ -293,7 +293,11 @@ export class ProductsService {
       },
     });
 
-    const productsTotal = await this.prisma.produto.count({
+    const productsTotal = await this.prisma.produto.findMany({
+      distinct: distinct ? (distinct as any) : undefined,
+      select: {
+        codigo: true,
+      },
       where: {
         AND: [
           ...filterNormalized,
@@ -314,7 +318,7 @@ export class ProductsService {
       data: products,
       page,
       pagesize,
-      total: productsTotal,
+      total: productsTotal.length,
     };
   }
 
