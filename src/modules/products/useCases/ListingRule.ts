@@ -12,14 +12,6 @@ export class ListingRule {
     });
 
     const rule = {
-      // subGrupo: {
-      //   eVenda: true,
-      // },
-      // possuiFoto: true,
-      // precoVenda: {
-      //   gt: 0,
-      // },
-
       marca: {
         eVenda: true,
       },

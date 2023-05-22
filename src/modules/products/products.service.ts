@@ -278,18 +278,14 @@ export class ProductsService {
         ...(reportAddSelect as any),
       },
       where: {
-        AND: [
-          ...filterNormalized,
-          this.listingRule.execute(),
-          {
-            marcaCodigo: user.eVendedor
-              ? {
-                  in: user.vendedor.marcas.map((marca) => marca.codigo),
-                }
-              : undefined,
-          },
-          this.searchFilter.execute(search, this.fieldsSearch),
-        ],
+        marcaCodigo: user.eVendedor
+          ? {
+              in: user.vendedor.marcas.map((marca) => marca.codigo),
+            }
+          : undefined,
+        ...this.listingRule.execute(),
+        ...this.searchFilter.execute(search, this.fieldsSearch),
+        AND: filterNormalized,
       },
     });
 
@@ -299,18 +295,14 @@ export class ProductsService {
         codigo: true,
       },
       where: {
-        AND: [
-          ...filterNormalized,
-          this.listingRule.execute(),
-          {
-            marcaCodigo: user.eVendedor
-              ? {
-                  in: user.vendedor.marcas.map((marca) => marca.codigo),
-                }
-              : undefined,
-          },
-          this.searchFilter.execute(search, this.fieldsSearch),
-        ],
+        marcaCodigo: user.eVendedor
+          ? {
+              in: user.vendedor.marcas.map((marca) => marca.codigo),
+            }
+          : undefined,
+        ...this.listingRule.execute(),
+        ...this.searchFilter.execute(search, this.fieldsSearch),
+        AND: filterNormalized,
       },
     });
 
