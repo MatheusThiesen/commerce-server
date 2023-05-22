@@ -5,6 +5,7 @@ export interface QueryProducts {
   distinct?: string;
   filters?: ItemFilter[] | string[];
   isReport?: boolean;
+  search?: string;
 }
 
 export interface ItemFilter {

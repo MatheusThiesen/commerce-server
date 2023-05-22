@@ -21,7 +21,7 @@ export class ClientsController {
   findAll(
     @GetCurrentUserId() userId: string,
     @Query()
-    { page = '0', pagesize = '10', orderby, filters }: QueryClients,
+    { page = '0', pagesize = '10', orderby, filters, search }: QueryClients,
   ) {
     return this.clientsService.findAll({
       page: Number(page),
@@ -29,6 +29,7 @@ export class ClientsController {
       orderBy: orderby,
       filters: filters?.map((f) => JSON.parse(f as string)),
       userId: userId,
+      search: search,
     });
   }
 

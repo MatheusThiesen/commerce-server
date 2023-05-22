@@ -3,6 +3,7 @@ export interface QueryClients {
   pagesize?: string;
   orderby?: string;
   filters?: ItemFilter[] | string[];
+  search?: string;
 }
 
 export interface ItemFilter {

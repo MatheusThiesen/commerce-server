@@ -4,6 +4,7 @@ import { PrismaService } from 'src/database/prisma.service';
 import { GroupByObj } from 'src/utils/GroupByObj.utils';
 import { OrderBy } from 'src/utils/OrderBy.utils';
 import { ParseCsv } from 'src/utils/ParseCsv.utils';
+import { FieldsProps, SearchFilter } from 'src/utils/SearchFilter.utils';
 import { StringToNumberOrUndefined } from 'src/utils/StringToNumberOrUndefined.utils';
 import { ItemFilter } from '../products/dto/query-products.type';
 import { CreateClientDto } from './dto/create-client.dto';
@@ -16,16 +17,38 @@ type listAllProps = {
   orderBy: string;
   filters: ItemFilter[];
   userId: string;
+  search?: string;
 };
 
 @Injectable()
 export class ClientsService {
+  readonly fieldsSearch: FieldsProps[] = [
+    {
+      name: 'codigo',
+      type: 'number',
+    },
+    {
+      name: 'cnpj',
+      type: 'string',
+      exact: true,
+    },
+    {
+      name: 'razaoSocial',
+      type: 'string',
+    },
+    {
+      name: 'nomeFantasia',
+      type: 'string',
+    },
+  ];
+
   constructor(
     private prisma: PrismaService,
     private parseCsv: ParseCsv,
     private orderBy: OrderBy,
     private readonly groupByObj: GroupByObj,
     private readonly stringToNumberOrUndefined: StringToNumberOrUndefined,
+    private readonly searchFilter: SearchFilter,
   ) {}
 
   async create(createClientDto: CreateClientDto) {
@@ -173,7 +196,14 @@ export class ClientsService {
     return client;
   }
 
-  async findAll({ page, pagesize, orderBy, filters, userId }: listAllProps) {
+  async findAll({
+    page,
+    pagesize,
+    orderBy,
+    filters,
+    userId,
+    search,
+  }: listAllProps) {
     const user = await this.prisma.usuario.findUnique({
       select: {
         eVendedor: true,
@@ -231,17 +261,19 @@ export class ClientsService {
       },
       orderBy: [orderByNormalized] ?? [{ codigo: 'desc' }],
       where: {
-        AND: filterNormalized,
-        // razaoSocial: {
-        //   contains: 'teste',
-        //   mode: 'insensitive',
-        // },
+        AND: [
+          ...filterNormalized,
+          this.searchFilter.execute(search, this.fieldsSearch),
+        ],
       },
     });
 
     const clientsTotal = await this.prisma.cliente.count({
       where: {
-        AND: filterNormalized,
+        AND: [
+          ...filterNormalized,
+          this.searchFilter.execute(search, this.fieldsSearch),
+        ],
       },
     });
 

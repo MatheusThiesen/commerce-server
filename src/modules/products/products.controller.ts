@@ -29,6 +29,7 @@ export class ProductsController {
       filters,
       distinct,
       isReport,
+      search,
     }: QueryProducts,
   ) {
     return this.productsService.findAll({
@@ -39,6 +40,7 @@ export class ProductsController {
       distinct: distinct,
       userId: userId,
       isReport,
+      search,
     });
   }
 

@@ -5,6 +5,7 @@ import { CreateManyProductsConsumer } from '../../jobs/CreateManyProducts/create
 import { CreateManyProductsProducerService } from '../../jobs/CreateManyProducts/createManyProducts-producer-service';
 import { TestImageProductConsumer } from '../../jobs/TestImageProduct/testImageProduct-consumer';
 import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
+import { SearchFilter } from '../../utils/SearchFilter.utils';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { AgroupGridProduct } from './useCases/AgroupGridProduct';
@@ -27,6 +28,7 @@ import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
   providers: [
     ProductsService,
     ListProductsFilters,
+    SearchFilter,
     VariationsProduct,
     TestImageProductProducerService,
     TestImageProductConsumer,

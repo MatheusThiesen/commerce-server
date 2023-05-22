@@ -7,6 +7,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
 import { OrderBy } from '../../utils/OrderBy.utils';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
+import { FieldsProps, SearchFilter } from '../../utils/SearchFilter.utils';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ItemFilter } from './dto/query-products.type';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -25,11 +26,31 @@ type listAllProps = {
   userId: string;
   distinct?: string;
   isReport?: boolean;
+  search?: string;
 };
 
 @Injectable()
 export class ProductsService {
   readonly spaceLink = 'https://alpar.sfo3.digitaloceanspaces.com/';
+
+  readonly fieldsSearch: FieldsProps[] = [
+    {
+      name: 'descricao',
+      type: 'string',
+    },
+    {
+      name: 'codigo',
+      type: 'number',
+    },
+    {
+      name: 'codigoAlternativo',
+      type: 'string',
+    },
+    {
+      name: 'referencia',
+      type: 'string',
+    },
+  ];
 
   constructor(
     private readonly httpService: HttpService,
@@ -43,6 +64,7 @@ export class ProductsService {
     private readonly createManyProductsProducerService: CreateManyProductsProducerService,
     private readonly listingRule: ListingRule,
     private readonly filterOrderNormalized: FilterOrderNormalized,
+    private readonly searchFilter: SearchFilter,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
@@ -140,6 +162,7 @@ export class ProductsService {
     userId,
     distinct,
     isReport,
+    search,
   }: listAllProps) {
     const user = await this.prisma.usuario.findUnique({
       select: {
@@ -265,13 +288,12 @@ export class ProductsService {
                 }
               : undefined,
           },
+          this.searchFilter.execute(search, this.fieldsSearch),
         ],
       },
     });
 
-    const productsTotal = await this.prisma.produto.findMany({
-      distinct: distinct ? (distinct as any) : undefined,
-      select: { codigo: true },
+    const productsTotal = await this.prisma.produto.count({
       where: {
         AND: [
           ...filterNormalized,
@@ -283,6 +305,7 @@ export class ProductsService {
                 }
               : undefined,
           },
+          this.searchFilter.execute(search, this.fieldsSearch),
         ],
       },
     });
@@ -291,7 +314,7 @@ export class ProductsService {
       data: products,
       page,
       pagesize,
-      total: productsTotal.length,
+      total: productsTotal,
     };
   }
 
@@ -432,6 +455,7 @@ export class ProductsService {
           },
           select: {
             id: true,
+            periodo: true,
             descricao: true,
             quantidade: true,
           },

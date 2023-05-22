@@ -27,7 +27,7 @@ export class ClientsToSellersService {
         if (walletExist) {
           await this.prisma.carteiraClienteRepresentante.update({
             data: {
-              tipo: tipo,
+              tipo: Number(tipo),
             },
             where: {
               id: walletExist.id,
