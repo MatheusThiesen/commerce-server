@@ -25,7 +25,7 @@ type listAllProps = {
   filters: ItemFilter[];
   userId: string;
   distinct?: string;
-  isReport?: boolean;
+  isReport?: number;
   search?: string;
 };
 
@@ -158,7 +158,7 @@ export class ProductsService {
     page,
     pagesize,
     orderBy,
-    filters,
+    filters = [],
     userId,
     distinct,
     isReport,
@@ -184,56 +184,66 @@ export class ProductsService {
 
     const orderByNormalized = this.orderBy.execute(orderBy);
 
+    if (user.eVendedor) {
+      user.vendedor.marcas.forEach((brand) => {
+        filters.push({
+          value: brand.codigo,
+          name: 'marcaCodigo',
+        });
+      });
+    }
+
     const filterNormalized = await this.filterOrderNormalized.execute(filters);
 
-    const reportAddSelect = isReport
-      ? {
-          precoVendaEmpresa: true,
-          linha: {
-            select: {
-              codigo: true,
-              descricao: true,
+    const reportAddSelect =
+      Number(isReport) > 0
+        ? {
+            precoVendaEmpresa: true,
+            linha: {
+              select: {
+                codigo: true,
+                descricao: true,
+              },
             },
-          },
-          grupo: {
-            select: {
-              codigo: true,
-              descricao: true,
+            grupo: {
+              select: {
+                codigo: true,
+                descricao: true,
+              },
             },
-          },
-          subGrupo: {
-            select: {
-              codigo: true,
-              descricao: true,
+            subGrupo: {
+              select: {
+                codigo: true,
+                descricao: true,
+              },
             },
-          },
-          genero: {
-            select: {
-              codigo: true,
-              descricao: true,
+            genero: {
+              select: {
+                codigo: true,
+                descricao: true,
+              },
             },
-          },
-          colecao: {
-            select: {
-              codigo: true,
-              descricao: true,
+            colecao: {
+              select: {
+                codigo: true,
+                descricao: true,
+              },
             },
-          },
-          locaisEstoque: {
-            orderBy: {
-              periodo: 'asc',
+            locaisEstoque: {
+              orderBy: {
+                periodo: 'asc',
+              },
+              select: {
+                id: true,
+                descricao: true,
+                quantidade: true,
+              },
+              where: {
+                ...this.listingRule.execute().locaisEstoque.some,
+              },
             },
-            select: {
-              id: true,
-              descricao: true,
-              quantidade: true,
-            },
-            where: {
-              ...this.listingRule.execute().locaisEstoque.some,
-            },
-          },
-        }
-      : {};
+          }
+        : {};
 
     const products = await this.prisma.produto.findMany({
       distinct: distinct ? (distinct as any) : undefined,
@@ -278,14 +288,9 @@ export class ProductsService {
         ...(reportAddSelect as any),
       },
       where: {
-        marcaCodigo: user.eVendedor
-          ? {
-              in: user.vendedor.marcas.map((marca) => marca.codigo),
-            }
-          : undefined,
+        ...filterNormalized,
         ...this.listingRule.execute(),
         ...this.searchFilter.execute(search, this.fieldsSearch),
-        AND: filterNormalized,
       },
     });
 
@@ -316,21 +321,21 @@ export class ProductsService {
       },
     });
 
+    if (user.eVendedor) {
+      user.vendedor.marcas.forEach((brand) => {
+        filters.push({
+          value: brand.codigo,
+          name: 'marcaCodigo',
+        });
+      });
+    }
+
     const filterNormalized = await this.filterOrderNormalized.execute(filters);
 
     const normalized = await this.listProductsFilters.execute({
       where: {
-        AND: [
-          this.listingRule.execute(),
-          ...filterNormalized,
-          {
-            marcaCodigo: user.eVendedor
-              ? {
-                  in: user.vendedor.marcas.map((marca) => marca.codigo),
-                }
-              : undefined,
-          },
-        ],
+        ...this.listingRule.execute(),
+        ...filterNormalized,
       },
     });
 

@@ -131,17 +131,14 @@ export class CatalogService {
         },
       },
       where: {
-        AND: [
-          // ...normalizedFilters,
-          {
-            CatalogoProduto: {
-              some: {
-                id: catalogo.id,
-              },
-            },
-            // ...this.listingRule.execute(),
+        ...normalizedFilters,
+        ...this.listingRule.execute(),
+
+        CatalogoProduto: {
+          some: {
+            id: catalogo.id,
           },
-        ],
+        },
       },
       orderBy: [
         {
@@ -155,17 +152,14 @@ export class CatalogService {
       select: { codigo: true },
       distinct: 'referencia',
       where: {
-        AND: [
-          ...normalizedFilters,
-          {
-            CatalogoProduto: {
-              some: {
-                id: catalogo.id,
-              },
-            },
-            ...this.listingRule.execute(),
+        ...normalizedFilters,
+        ...this.listingRule.execute(),
+
+        CatalogoProduto: {
+          some: {
+            id: catalogo.id,
           },
-        ],
+        },
       },
     });
 
@@ -174,7 +168,7 @@ export class CatalogService {
       const agroupProduct = await this.agroupGridProduct.execute({
         reference: product.referencia,
         query: {
-          AND: [...normalizedFilters],
+          ...normalizedFilters,
         },
       });
 

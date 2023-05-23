@@ -13,7 +13,7 @@ export class FilterOrderNormalized {
   ) {}
 
   async execute(filters?: ItemFilter[]) {
-    const filterNormalized: any[] = [];
+    let filterNormalized: any = {};
 
     if (filters) {
       const groupFilters = this.groupByObj.execute(
@@ -96,7 +96,7 @@ export class FilterOrderNormalized {
           };
         }
 
-        filterNormalized.push(newFilter);
+        filterNormalized = { ...filterNormalized, ...newFilter };
       }
     }
 

@@ -3,14 +3,6 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class ListingRule {
   execute() {
-    const now = new Date();
-    const month = now.toLocaleString('pt-br', {
-      month: '2-digit',
-    });
-    const year = now.toLocaleString('pt-br', {
-      year: 'numeric',
-    });
-
     const rule = {
       marca: {
         eVenda: true,
@@ -24,16 +16,7 @@ export class ListingRule {
           quantidade: {
             gt: 0,
           },
-          OR: [
-            {
-              periodo: 'pronta-entrega',
-            },
-            {
-              data: {
-                gte: new Date(`${year}-${month}-01T00:00`),
-              },
-            },
-          ],
+          eAtivo: true,
         },
       },
     };

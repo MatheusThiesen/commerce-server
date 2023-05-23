@@ -28,7 +28,7 @@ export class ProductsController {
       orderby,
       filters,
       distinct,
-      isReport,
+      isReport = 0,
       search,
     }: QueryProducts,
   ) {
@@ -39,13 +39,13 @@ export class ProductsController {
       filters: filters?.map((f) => JSON.parse(f as string)),
       distinct: distinct,
       userId: userId,
-      isReport,
+      isReport: isReport,
       search,
     });
   }
 
   @Get('filters')
-  getFilters(@GetCurrentUserId() userId: string, @Query() { filters }) {
+  getFilters(@GetCurrentUserId() userId: string, @Query() { filters = [] }) {
     return this.productsService.getFiltersForFindAll(
       userId,
       filters?.map((f) => JSON.parse(f as string)),

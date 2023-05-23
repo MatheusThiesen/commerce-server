@@ -13,13 +13,7 @@ export class AgroupGridProduct {
     const normalizedQuery = query ? query : undefined;
 
     const normalizedQueryStock =
-      query && query?.AND
-        ? query?.AND.find((f) => {
-            const [key] = Object.keys(f);
-
-            return key === `locaisEstoque`;
-          })
-        : undefined;
+      query && query?.locaisEstoque?.some ? query : undefined;
 
     const products = await this.prisma.produto.findMany({
       select: {

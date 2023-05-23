@@ -4,7 +4,7 @@ export interface QueryProducts {
   orderby?: string;
   distinct?: string;
   filters?: ItemFilter[] | string[];
-  isReport?: boolean;
+  isReport?: number;
   search?: string;
 }
 
