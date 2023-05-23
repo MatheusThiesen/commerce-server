@@ -289,28 +289,11 @@ export class ProductsService {
       },
     });
 
-    const productsTotal = await this.prisma.produto.findMany({
-      distinct: distinct ? (distinct as any) : undefined,
-      select: {
-        codigo: true,
-      },
-      where: {
-        marcaCodigo: user.eVendedor
-          ? {
-              in: user.vendedor.marcas.map((marca) => marca.codigo),
-            }
-          : undefined,
-        ...this.listingRule.execute(),
-        ...this.searchFilter.execute(search, this.fieldsSearch),
-        AND: filterNormalized,
-      },
-    });
-
     return {
       data: products,
       page,
       pagesize,
-      total: productsTotal.length,
+      hasNextPage: products.length < pagesize,
     };
   }
 
