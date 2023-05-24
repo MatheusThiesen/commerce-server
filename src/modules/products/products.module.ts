@@ -5,6 +5,8 @@ import { CreateManyProductsConsumer } from '../../jobs/CreateManyProducts/create
 import { CreateManyProductsProducerService } from '../../jobs/CreateManyProducts/createManyProducts-producer-service';
 import { TestImageProductConsumer } from '../../jobs/TestImageProduct/testImageProduct-consumer';
 import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
+import { UpdateCacheProductsFiltersConsumer } from '../../jobs/UpdateCacheProductsFilters/updateCacheProductsFilters-consumer';
+import { UpdateCacheProductsFiltersProducerService } from '../../jobs/UpdateCacheProductsFilters/updateCacheProductsFilters-producer-service';
 import { SearchFilter } from '../../utils/SearchFilter.utils';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
@@ -23,6 +25,9 @@ import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
     BullModule.registerQueue({
       name: 'createManyProducts-queue',
     }),
+    BullModule.registerQueue({
+      name: 'updateCacheProductsFilters-queue',
+    }),
   ],
   controllers: [ProductsController],
   providers: [
@@ -34,6 +39,8 @@ import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
     TestImageProductConsumer,
     CreateManyProductsConsumer,
     CreateManyProductsProducerService,
+    UpdateCacheProductsFiltersConsumer,
+    UpdateCacheProductsFiltersProducerService,
     AgroupGridProduct,
     ListingRule,
     FilterOrderNormalized,

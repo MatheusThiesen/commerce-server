@@ -1,3 +1,4 @@
+import { RedisModule } from '@nestjs-modules/ioredis';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
@@ -30,6 +31,13 @@ import { UtilsModule } from './utils/utils.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+
+    RedisModule.forRoot({
+      config: {
+        url: `redis://${process.env.REDIS_HOST}:${+process.env.REDIS_PORT}`,
+      },
+    }),
+
     BullModule.forRoot({
       redis: {
         host: process.env.REDIS_HOST,

@@ -1,8 +1,10 @@
+import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { CreateManyProductsProducerService } from 'src/jobs/CreateManyProducts/createManyProducts-producer-service';
+import { UpdateCacheProductsFiltersProducerService } from 'src/jobs/UpdateCacheProductsFilters/updateCacheProductsFilters-producer-service';
 import { PrismaService } from '../../database/prisma.service';
 import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
 import { OrderBy } from '../../utils/OrderBy.utils';
@@ -62,9 +64,11 @@ export class ProductsService {
     private agroupGridProduct: AgroupGridProduct,
     private readonly testImageProductProducerService: TestImageProductProducerService,
     private readonly createManyProductsProducerService: CreateManyProductsProducerService,
+    private readonly updateCacheProductsFiltersProducerService: UpdateCacheProductsFiltersProducerService,
     private readonly listingRule: ListingRule,
     private readonly filterOrderNormalized: FilterOrderNormalized,
     private readonly searchFilter: SearchFilter,
+    @InjectRedis() private readonly redis: Redis,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
@@ -229,6 +233,12 @@ export class ProductsService {
                 descricao: true,
               },
             },
+            marca: {
+              select: {
+                codigo: true,
+                descricao: true,
+              },
+            },
             locaisEstoque: {
               orderBy: {
                 periodo: 'asc',
@@ -275,13 +285,6 @@ export class ProductsService {
           },
           orderBy: {
             codigo: 'asc',
-          },
-        },
-
-        marca: {
-          select: {
-            codigo: true,
-            descricao: true,
           },
         },
 
@@ -332,14 +335,34 @@ export class ProductsService {
 
     const filterNormalized = await this.filterOrderNormalized.execute(filters);
 
-    const normalized = await this.listProductsFilters.execute({
-      where: {
-        ...this.listingRule.execute(),
-        ...filterNormalized,
-      },
-    });
+    const cacheKey = `products-filters-${filters
+      .map((item) => `${item.name}-${item.value}`)
+      .join('-')}`;
+    const getCache = await this.redis.get(cacheKey);
 
-    return normalized;
+    if (getCache) {
+      this.updateCacheProductsFiltersProducerService.execute({
+        filters: filterNormalized,
+        cacheKey,
+      });
+
+      return JSON.parse(getCache);
+    } else {
+      const normalized = await this.listProductsFilters.execute({
+        where: {
+          ...this.listingRule.execute(),
+          ...filterNormalized,
+        },
+      });
+
+      await this.redis.set(
+        cacheKey,
+        JSON.stringify(normalized),
+        'EX',
+        60 * 60 * 24 * 2,
+      );
+      return normalized;
+    }
   }
 
   async findOne(codigo: number) {
