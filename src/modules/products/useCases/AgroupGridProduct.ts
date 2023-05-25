@@ -12,8 +12,10 @@ export class AgroupGridProduct {
   async execute({ reference, query }: { reference: string; query?: any }) {
     const normalizedQuery = query ? query : undefined;
 
-    const normalizedQueryStock =
-      query && query?.locaisEstoque?.some ? query : undefined;
+    const normalizedFilterStockLocation = {
+      ...this.listingRule.execute()?.locaisEstoque?.some,
+      ...query?.locaisEstoque?.some,
+    };
 
     const products = await this.prisma.produto.findMany({
       select: {
@@ -30,22 +32,12 @@ export class AgroupGridProduct {
             quantidade: true,
           },
 
-          where: {
-            AND: [
-              this.listingRule.execute()?.locaisEstoque?.some,
-              normalizedQueryStock?.locaisEstoque?.some,
-            ],
-          },
+          where: normalizedFilterStockLocation,
         },
       },
       where: {
-        AND: [
-          this.listingRule.execute(),
-          {
-            referencia: reference,
-          },
-          normalizedQuery,
-        ],
+        AND: [normalizedQuery, this.listingRule.execute()],
+        referencia: reference,
       },
     });
     return products;

@@ -291,9 +291,11 @@ export class ProductsService {
         ...(reportAddSelect as any),
       },
       where: {
-        ...filterNormalized,
-        ...this.listingRule.execute(),
-        ...this.searchFilter.execute(search, this.fieldsSearch),
+        AND: [
+          filterNormalized,
+          this.listingRule.execute(),
+          this.searchFilter.execute(search, this.fieldsSearch),
+        ],
       },
     });
 
@@ -301,7 +303,7 @@ export class ProductsService {
       data: products,
       page,
       pagesize,
-      hasNextPage: products.length < pagesize,
+      hasNextPage: products.length >= pagesize,
     };
   }
 

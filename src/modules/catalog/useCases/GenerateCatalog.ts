@@ -59,7 +59,6 @@ export class GenerateCatalog {
     userId,
   }: ListProductsFiltersProps) {
     const products = await this.prisma.produto.findMany({
-      distinct: 'referencia',
       select: {
         codigo: true,
         referencia: true,

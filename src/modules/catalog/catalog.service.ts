@@ -127,12 +127,11 @@ export class CatalogService {
             descricao: true,
             quantidade: true,
           },
-          where: normalizedFilters[0]?.locaisEstoque?.some,
+          where: normalizedFilters?.locaisEstoque?.some,
         },
       },
       where: {
-        ...normalizedFilters,
-        ...this.listingRule.execute(),
+        AND: [this.listingRule.execute(), normalizedFilters],
 
         CatalogoProduto: {
           some: {
@@ -148,28 +147,11 @@ export class CatalogService {
       ],
     });
 
-    const productsTotal = await this.prisma.produto.findMany({
-      select: { codigo: true },
-      distinct: 'referencia',
-      where: {
-        ...normalizedFilters,
-        ...this.listingRule.execute(),
-
-        CatalogoProduto: {
-          some: {
-            id: catalogo.id,
-          },
-        },
-      },
-    });
-
     const productsNormalized: PageData[] = [];
     for (const product of products) {
       const agroupProduct = await this.agroupGridProduct.execute({
         reference: product.referencia,
-        query: {
-          ...normalizedFilters,
-        },
+        query: normalizedFilters,
       });
 
       const grids: GridProps[] = agroupProduct.map((grid) => ({
@@ -240,7 +222,7 @@ export class CatalogService {
       date: new Date(),
       page,
       pagesize,
-      total: productsTotal.length,
+      hasNextPage: products.length >= pagesize,
     };
   }
 
