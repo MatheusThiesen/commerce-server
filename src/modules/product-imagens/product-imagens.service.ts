@@ -92,7 +92,7 @@ export class ProductImagensService {
     const imagens = await this.parseCsv.execute(file);
 
     for (const imageArr of imagens) {
-      const [produtoCod, imagemNome, sequencia] = imageArr;
+      const [imagemNome, sequencia, produtoCod] = imageArr;
 
       const productImage = new ProductImage();
 
