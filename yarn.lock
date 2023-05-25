@@ -878,6 +878,14 @@
     multer "1.4.4-lts.1"
     tslib "2.4.0"
 
+"@nestjs/schedule@^2.2.2":
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@nestjs/schedule/-/schedule-2.2.2.tgz#45eab2485172317cd80eafda55842aeda37b6713"
+  integrity sha512-e9z1bbFwi4QsPkR2ix72OABhBlfRQcl4ZjF8LShlefOskR4ySN4rUzJilH+1rk8vORYDyGDurVdeduPyyfSQRg==
+  dependencies:
+    cron "2.3.0"
+    uuid "9.0.0"
+
 "@nestjs/schematics@^8.0.0", "@nestjs/schematics@^8.0.3":
   version "8.0.11"
   resolved "https://registry.npmjs.org/@nestjs/schematics/-/schematics-8.0.11.tgz"
@@ -1067,6 +1075,14 @@
   resolved "https://registry.npmjs.org/@types/cookiejar/-/cookiejar-2.1.2.tgz"
   integrity sha512-t73xJJrvdTjXrn4jLS9VSGRbz0nUY3cl2DMGDU48lKl+HR9dbbjW2A9r3g40VA++mQpy6uuHg33gy7du2BKpog==
 
+"@types/cron@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@types/cron/-/cron-2.0.1.tgz#d8bf7a24475f64197c7ac868c362b41be596e5f8"
+  integrity sha512-WHa/1rtNtD2Q/H0+YTTZoty+/5rcE66iAFX2IY+JuUoOACsevYyFkSYu/2vdw+G5LrmO7Lxowrqm0av4k3qWNQ==
+  dependencies:
+    "@types/luxon" "*"
+    "@types/node" "*"
+
 "@types/ejs@^3.0.3":
   version "3.1.1"
   resolved "https://registry.npmjs.org/@types/ejs/-/ejs-3.1.1.tgz"
@@ -1167,6 +1183,11 @@
   integrity sha512-zm6xBQpFDIDM6o9r6HSgDeIcLy82TKWctCXEPbJJcXb5AKmi5BNNdLXneixK4lplX3PqIVcwLBCGE/kAGnlD4A==
   dependencies:
     "@types/node" "*"
+
+"@types/luxon@*":
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-3.3.0.tgz#a61043a62c0a72696c73a0a305c544c96501e006"
+  integrity sha512-uKRI5QORDnrGFYgcdAVnHvEIvEZ8noTpP/Bg+HeUzZghwinDlIS87DEenV5r1YoOF9G4x600YsUXLWZ19rmTmg==
 
 "@types/mime@*":
   version "3.0.0"
@@ -2401,6 +2422,13 @@ cron-parser@^4.2.1:
   integrity sha512-guZNLMGUgg6z4+eGhmHGw7ft+v6OQeuHzd1gcLxCo9Yg/qoxmG3nindp2/uwGCLizEisf2H0ptqeVXeoCpP6FA==
   dependencies:
     luxon "^3.0.1"
+
+cron@2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/cron/-/cron-2.3.0.tgz#20df6da18d4f7d2f8937def2eb5fc0d1a320c526"
+  integrity sha512-ZN5HP8zDY41sJolMsbc+GksRATcbvkPKF5wR/qc8FrV4NBVi9ORQa1HmYa5GydaysUB80X9XpRlRkooa5uEtTA==
+  dependencies:
+    luxon "^3.2.1"
 
 cross-fetch@3.1.5:
   version "3.1.5"
@@ -4710,6 +4738,11 @@ luxon@^3.0.1:
   version "3.1.0"
   resolved "https://registry.npmjs.org/luxon/-/luxon-3.1.0.tgz"
   integrity sha512-7w6hmKC0/aoWnEsmPCu5Br54BmbmUp5GfcqBxQngRcXJ+q5fdfjEzn7dxmJh2YdDhgW8PccYtlWKSv4tQkrTQg==
+
+luxon@^3.2.1:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.3.0.tgz#d73ab5b5d2b49a461c47cedbc7e73309b4805b48"
+  integrity sha512-An0UCfG/rSiqtAIiBPO0Y9/zAnHUZxAMiCpTd5h2smgsj7GGmcenvrvww2cqNA8/4A5ZrD1gJpHN2mIHZQF+Mg==
 
 macos-release@^2.5.0:
   version "2.5.0"
@@ -7076,6 +7109,11 @@ uuid@8.3.2, uuid@^8.3.0, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+
+uuid@9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
+  integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"

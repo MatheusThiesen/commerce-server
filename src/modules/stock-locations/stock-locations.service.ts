@@ -105,12 +105,16 @@ export class StockLocationsService {
 
       const stockLocation = new StockLocation();
 
+      const monthCurrent = new Date().getMonth();
+      const month = new Date(data).getMonth();
+
       Object.assign(stockLocation, {
         periodo: periodo,
         descricao: descricao,
         produtoCodigo: Number(produtoCodigo),
         quantidade: Number(quantidade),
         data: data,
+        eAtivo: periodo === 'pronta-entrega' ? true : monthCurrent >= month,
       });
 
       try {

@@ -359,7 +359,7 @@ export class ProductsService {
         cacheKey,
         JSON.stringify(normalized),
         'EX',
-        60 * 60 * 24 * 2,
+        60 * 60 * 24 * 1,
       );
       return normalized;
     }

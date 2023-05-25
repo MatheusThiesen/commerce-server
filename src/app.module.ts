@@ -4,6 +4,7 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AtGuard } from './common/guards';
 import { PrismaModule } from './database/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -31,6 +32,8 @@ import { UtilsModule } from './utils/utils.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+
+    ScheduleModule.forRoot(),
 
     RedisModule.forRoot({
       config: {

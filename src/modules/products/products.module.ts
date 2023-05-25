@@ -11,8 +11,10 @@ import { SearchFilter } from '../../utils/SearchFilter.utils';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { AgroupGridProduct } from './useCases/AgroupGridProduct';
+import { CacheListProductsFilters } from './useCases/CacheListProductsFilters';
 import { ListProductsFilters } from './useCases/ListProductsFilters';
 import { ListingRule } from './useCases/ListingRule';
+import { TurnStock } from './useCases/TurnStock';
 import { VariationsProduct } from './useCases/VariationsProduct';
 import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
 
@@ -44,6 +46,8 @@ import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
     AgroupGridProduct,
     ListingRule,
     FilterOrderNormalized,
+    CacheListProductsFilters,
+    TurnStock,
   ],
 })
 export class ProductsModule {}
