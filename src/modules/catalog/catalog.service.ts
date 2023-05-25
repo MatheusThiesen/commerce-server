@@ -200,8 +200,8 @@ export class CatalogService {
         imageMain: `${this.spaceLink}Produtos/${
           product?.imagens && product.imagens[0]
             ? product.imagens[0].nome
-            : product.referencia
-        }_01` as string,
+            : product.referencia + '_01'
+        }` as string,
         alternativeCode: product?.codigoAlternativo ?? '-',
         reference: product?.referencia ?? '-',
         description: product?.descricao ?? '-',
