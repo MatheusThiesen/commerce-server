@@ -288,6 +288,14 @@ export class ProductsService {
           },
         },
 
+        imagens: {
+          take: 1,
+          orderBy: { sequencia: 'asc' },
+          select: {
+            nome: true,
+          },
+        },
+
         ...(reportAddSelect as any),
       },
       where: {

@@ -122,6 +122,13 @@ export class CatalogService {
             },
           },
         },
+        imagens: {
+          take: 1,
+          orderBy: { sequencia: 'asc' },
+          select: {
+            nome: true,
+          },
+        },
         locaisEstoque: {
           select: {
             descricao: true,
@@ -190,8 +197,11 @@ export class CatalogService {
         isStockLocation: !!catalogo.isStockLocation,
         variations: variations,
 
-        imageMain:
-          `${this.spaceLink}Produtos/${product.referencia}_01` as string,
+        imageMain: `${this.spaceLink}Produtos/${
+          product?.imagens && product.imagens[0]
+            ? product.imagens[0].nome
+            : product.referencia
+        }_01` as string,
         alternativeCode: product?.codigoAlternativo ?? '-',
         reference: product?.referencia ?? '-',
         description: product?.descricao ?? '-',

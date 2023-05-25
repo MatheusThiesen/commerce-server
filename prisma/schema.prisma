@@ -212,8 +212,24 @@ model Produto {
   unidade             UnidadeMedida?    @relation(fields: [unidadeMedida], references: [unidade])
   unidadeMedida       String?
   CatalogoProduto     CatalogoProduto[]
+  imagens             ProdutoImagem[]
 
   @@map("produtos")
+}
+
+model ProdutoImagem {
+  id        String   @id @default(uuid())
+  nome      String
+  sequencia Int
+  eAtivo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
+  produtoCodigo Int
+
+  @@unique([produtoCodigo, nome, sequencia])
+  @@map("produtoImagens")
 }
 
 model Grade {

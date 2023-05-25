@@ -23,6 +23,7 @@ import { LinesModule } from './modules/lines/lines.module';
 import { OrderModule } from './modules/order/order.module';
 import { PriceListsModule } from './modules/price-lists/price-lists.module';
 import { ProductConceptRulesModule } from './modules/product-concept-rules/product-concept-rules.module';
+import { ProductImagensModule } from './modules/product-imagens/product-imagens.module';
 import { ProductsModule } from './modules/products/products.module';
 import { SellersModule } from './modules/sellers/sellers.module';
 import { StockLocationsModule } from './modules/stock-locations/stock-locations.module';
@@ -81,6 +82,7 @@ import { UtilsModule } from './utils/utils.module';
     ClientsToSellersModule,
     CatalogModule,
     OrderModule,
+    ProductImagensModule,
   ],
   providers: [
     {
