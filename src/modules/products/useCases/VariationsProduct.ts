@@ -19,6 +19,14 @@ export class VariationsProduct {
         referencia: true,
         codigoAlternativo: true,
         descricao: true,
+
+        imagens: {
+          take: 1,
+          orderBy: { sequencia: 'asc' },
+          select: {
+            nome: true,
+          },
+        },
       },
       orderBy: {
         referencia: 'desc',
