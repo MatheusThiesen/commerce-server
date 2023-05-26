@@ -188,15 +188,6 @@ export class ProductsService {
 
     const orderByNormalized = this.orderBy.execute(orderBy);
 
-    if (user.eVendedor) {
-      user.vendedor.marcas.forEach((brand) => {
-        filters.push({
-          value: brand.codigo,
-          name: 'marcaCodigo',
-        });
-      });
-    }
-
     const filterNormalized = await this.filterOrderNormalized.execute(filters);
 
     const reportAddSelect =
@@ -299,6 +290,12 @@ export class ProductsService {
         ...(reportAddSelect as any),
       },
       where: {
+        marcaCodigo:
+          user.vendedor && user.vendedor.marcas
+            ? {
+                in: user.vendedor.marcas.map((item) => item.codigo),
+              }
+            : undefined,
         AND: [
           filterNormalized,
           this.listingRule.execute(),
