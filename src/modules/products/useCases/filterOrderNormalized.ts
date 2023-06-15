@@ -24,7 +24,9 @@ export class FilterOrderNormalized {
       for (const filterGroup of groupFilters) {
         let newFilter: any = {
           [filterGroup.value as string]: {
-            in: filterGroup.data.map((item) => item.value),
+            in: filterGroup.data.map((item) =>
+              isNaN(Number(item.value)) ? item.value : Number(item.value),
+            ),
           },
         };
 

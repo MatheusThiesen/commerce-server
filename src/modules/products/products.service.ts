@@ -291,7 +291,7 @@ export class ProductsService {
       },
       where: {
         marcaCodigo:
-          user.vendedor && user.vendedor.marcas
+          user.eVendedor && user.vendedor.marcas
             ? {
                 in: user.vendedor.marcas.map((item) => item.codigo),
               }

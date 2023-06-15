@@ -1,7 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as express from 'express';
-// import * as morgan from 'morgan';
+import * as morgan from 'morgan';
 import * as path from 'path';
 import { AppModule } from './app.module';
 
@@ -14,7 +14,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe());
   app.use('/files', express.static(path.resolve(__dirname, '..', 'temp')));
-  // app.use(morgan('dev'));
+  app.use(morgan('dev'));
   await app.listen(4444);
 }
 bootstrap();
