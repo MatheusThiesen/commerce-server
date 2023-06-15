@@ -263,7 +263,7 @@ export class ClientsService {
       where: {
         AND: [
           ...filterNormalized,
-          this.searchFilter.execute(search, this.fieldsSearch),
+          { OR: this.searchFilter.execute(search, this.fieldsSearch) },
         ],
       },
     });
@@ -272,7 +272,7 @@ export class ClientsService {
       where: {
         AND: [
           ...filterNormalized,
-          this.searchFilter.execute(search, this.fieldsSearch),
+          { OR: this.searchFilter.execute(search, this.fieldsSearch) },
         ],
       },
     });
