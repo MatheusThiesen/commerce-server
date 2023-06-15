@@ -148,13 +148,21 @@ export class GenerateCatalog {
             id: userId,
           },
         },
-        produto: {
-          connect: products.map((product) => ({
-            codigo: product.codigo,
-          })),
-        },
       },
     });
+
+    for (const product of products) {
+      await this.prisma.catalogoProduto.update({
+        where: { id: createdCatalog.id },
+        data: {
+          produto: {
+            connect: {
+              codigo: product.codigo,
+            },
+          },
+        },
+      });
+    }
 
     return createdCatalog.id;
   }
