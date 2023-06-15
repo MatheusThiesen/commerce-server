@@ -299,7 +299,7 @@ export class ProductsService {
         AND: [
           filterNormalized,
           this.listingRule.execute(),
-          this.searchFilter.execute(search, this.fieldsSearch),
+          { OR: this.searchFilter.execute(search, this.fieldsSearch) },
         ],
       },
     });
