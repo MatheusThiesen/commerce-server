@@ -6,9 +6,11 @@ import {
   Patch,
   Post,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Public } from 'src/common/decorators';
 import { GetCurrentUserId } from 'src/common/decorators/get-current-user-id.decorator';
+import { TimeoutInterceptor } from 'src/interceptors/timeout.interceptors';
 import { CatalogService } from './catalog.service';
 import { GenerateCatalog } from './useCases/GenerateCatalog';
 
@@ -20,6 +22,7 @@ export class CatalogController {
   ) {}
 
   @Post()
+  @UseInterceptors(new TimeoutInterceptor())
   create(
     @Body()
     { referencesProduct, orderBy, groupProduct, stockLocation, filters },
