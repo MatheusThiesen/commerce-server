@@ -114,7 +114,8 @@ export class StockLocationsService {
         produtoCodigo: Number(produtoCodigo),
         quantidade: Number(quantidade),
         data: data,
-        eAtivo: periodo === 'pronta-entrega' ? true : monthCurrent >= month,
+        // eAtivo: periodo === 'pronta-entrega' ? true : monthCurrent >= month,
+        eAtivo: true,
       });
 
       try {
