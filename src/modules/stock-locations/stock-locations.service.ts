@@ -105,8 +105,8 @@ export class StockLocationsService {
 
       const stockLocation = new StockLocation();
 
-      const monthCurrent = new Date().getMonth();
-      const month = new Date(data).getMonth();
+      const dateCurrentTime = new Date().getTime();
+      const dateTime = new Date(data).getTime();
 
       Object.assign(stockLocation, {
         periodo: periodo,
@@ -114,8 +114,8 @@ export class StockLocationsService {
         produtoCodigo: Number(produtoCodigo),
         quantidade: Number(quantidade),
         data: data,
-        // eAtivo: periodo === 'pronta-entrega' ? true : monthCurrent >= month,
-        eAtivo: true,
+        eAtivo:
+          periodo === 'pronta-entrega' ? true : dateTime >= dateCurrentTime,
       });
 
       try {

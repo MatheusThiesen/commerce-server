@@ -33,7 +33,7 @@ type listAllProps = {
 
 @Injectable()
 export class ProductsService {
-  readonly spaceLink = 'https://alpar.sfo3.digitaloceanspaces.com/';
+  readonly spaceLink = process.env.SPACE;
 
   readonly fieldsSearch: FieldsProps[] = [
     {
@@ -194,6 +194,25 @@ export class ProductsService {
       Number(isReport) > 0
         ? {
             precoVendaEmpresa: true,
+            qtdEmbalagem: true,
+            corPrimaria: {
+              select: {
+                codigo: true,
+                descricao: true,
+              },
+            },
+            corSecundariaCodigo: true,
+            corSecundaria: {
+              select: {
+                cor: {
+                  select: {
+                    codigo: true,
+                    descricao: true,
+                  },
+                },
+              },
+            },
+
             linha: {
               select: {
                 codigo: true,
@@ -236,6 +255,7 @@ export class ProductsService {
               },
               select: {
                 id: true,
+                periodo: true,
                 descricao: true,
                 quantidade: true,
               },
@@ -599,7 +619,7 @@ export class ProductsService {
       const response = await firstValueFrom(
         this.httpService
           .get<any>(
-            `https://alpar.sfo3.digitaloceanspaces.com/?prefix=Produtos%2F${reference}_01&max-keys=10`,
+            `${this.spaceLink}/?prefix=Produtos%2F${reference}_01&max-keys=10`,
           )
           .pipe(
             catchError((_error: AxiosError) => {

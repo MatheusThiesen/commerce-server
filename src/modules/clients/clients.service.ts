@@ -186,7 +186,7 @@ export class ClientsService {
           },
         },
       },
-      where: { AND: filterNormalized },
+      where: { AND: [...filterNormalized, { eAtivo: true }] },
     });
 
     if (!client) {
@@ -264,6 +264,7 @@ export class ClientsService {
         AND: [
           ...filterNormalized,
           { OR: this.searchFilter.execute(search, this.fieldsSearch) },
+          { eAtivo: true },
         ],
       },
     });
@@ -273,6 +274,7 @@ export class ClientsService {
         AND: [
           ...filterNormalized,
           { OR: this.searchFilter.execute(search, this.fieldsSearch) },
+          { eAtivo: true },
         ],
       },
     });
@@ -298,6 +300,10 @@ export class ClientsService {
     const filterList: FilterListProps[] = [];
 
     const filterNormalized = [];
+
+    filterNormalized.push({
+      eAtivo: true,
+    });
 
     if (user.eVendedor) {
       filterNormalized.push({

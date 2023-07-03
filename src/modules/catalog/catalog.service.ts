@@ -13,7 +13,7 @@ import {
 
 @Injectable()
 export class CatalogService {
-  readonly spaceLink = 'https://alpar.sfo3.digitaloceanspaces.com/';
+  readonly spaceLink = process.env.SPACE;
   readonly limitDays = 7;
 
   constructor(
@@ -151,6 +151,9 @@ export class CatalogService {
           generoCodigo: 'asc',
         },
         this.orderBy.execute(catalogo.orderBy),
+        {
+          codigo: 'desc',
+        },
       ],
     });
 
@@ -187,7 +190,8 @@ export class CatalogService {
         variations = getVariationsProduct
           .filter((f) => f.referencia !== product.referencia)
           .map((v) => ({
-            imageMain: `${this.spaceLink}Produtos/${v.referencia}_01` as string,
+            imageMain:
+              `${this.spaceLink}/Produtos/${v.referencia}_01` as string,
             reference: v.referencia,
           }));
       }
@@ -197,7 +201,7 @@ export class CatalogService {
         isStockLocation: !!catalogo.isStockLocation,
         variations: variations,
 
-        imageMain: `${this.spaceLink}Produtos/${
+        imageMain: `${this.spaceLink}/Produtos/${
           product?.imagens && product.imagens[0]
             ? product.imagens[0].nome
             : product.referencia + '_01'
@@ -233,6 +237,64 @@ export class CatalogService {
       page,
       pagesize,
       hasNextPage: products.length >= pagesize,
+    };
+  }
+
+  async findOneCount({ id }: { id: string }) {
+    const catalogo = await this.prisma.catalogoProduto.findUnique({
+      select: {
+        id: true,
+        orderBy: true,
+        filtro: true,
+        isGroupProduct: true,
+        isStockLocation: true,
+        qtdAcessos: true,
+        createdAt: true,
+      },
+      where: {
+        id,
+      },
+    });
+
+    const now = new Date();
+    now.setDate(now.getDate() - this.limitDays);
+
+    if (!catalogo) {
+      throw new BadRequestException('Id de catálogo inválido ou inexistente');
+    }
+    if (now > catalogo.createdAt) {
+      throw new BadRequestException('Catálogo expirado');
+    }
+
+    const normalizedFilters = catalogo?.filtro
+      ? await this.filterOrderNormalized.execute(JSON.parse(catalogo?.filtro))
+      : undefined;
+
+    const products = await this.prisma.produto.findMany({
+      distinct: 'referencia',
+      select: { codigo: true },
+      where: {
+        AND: [this.listingRule.execute(), normalizedFilters],
+
+        CatalogoProduto: {
+          some: {
+            id: catalogo.id,
+          },
+        },
+      },
+      orderBy: [
+        {
+          generoCodigo: 'asc',
+        },
+        this.orderBy.execute(catalogo.orderBy),
+        {
+          codigo: 'desc',
+        },
+      ],
+    });
+
+    return {
+      total: products.length,
     };
   }
 

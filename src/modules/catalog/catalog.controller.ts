@@ -45,8 +45,17 @@ export class CatalogController {
     });
   }
 
+  @Public()
   @Patch('/visit/:id')
   update(@Param('id') id: string) {
     return this.catalogService.updateVisit(id);
+  }
+
+  @Public()
+  @Get('/totalCount/:id')
+  findOneTotalCount(@Param('id') id: string) {
+    return this.catalogService.findOneCount({
+      id,
+    });
   }
 }

@@ -3,6 +3,8 @@ interface ForgotProps {
 }
 
 export class LayoutMail {
+  readonly spaceLink = process.env.SPACE;
+
   async forgot({ link }: ForgotProps) {
     const messageEmail = `
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -257,7 +259,7 @@ export class LayoutMail {
                               alt="your logo"
                               border="0"
                               class="center fixedwidth"
-                              src="https://alpar.sfo3.digitaloceanspaces.com/Alpar/logo-red.png"
+                              src="${this.spaceLink}/Alpar/logo-red.png"
                               style="
                                 text-decoration: none;
                                 -ms-interpolation-mode: bicubic;
@@ -342,7 +344,7 @@ export class LayoutMail {
                               alt="Esqueceu sua senha?"
                               border="0"
                               class="center fixedwidth"
-                              src="https://alpar.sfo3.digitaloceanspaces.com/Alpar/password.png"
+                              src="${this.spaceLink}/Alpar/password.png"
                               style="
                                 text-decoration: none;
                                 -ms-interpolation-mode: bicubic;
@@ -863,7 +865,7 @@ export class LayoutMail {
                                               MINHA
                                               alt="LinkedIn"
                                               height="20"
-                                              src="https://alpar.sfo3.digitaloceanspaces.com/Alpar/linkedin.png"
+                                              src="${this.spaceLink}/Alpar/linkedin.png"
                                               style="
                                                 text-decoration: none;
                                                 -ms-interpolation-mode: bicubic;
@@ -893,7 +895,7 @@ export class LayoutMail {
                                             ><img
                                               alt="Instagram"
                                               height="20"
-                                              src="https://alpar.sfo3.digitaloceanspaces.com/Alpar/instagram.png"
+                                              src="${this.spaceLink}/Alpar/instagram.png"
                                               style="
                                                 text-decoration: none;
                                                 -ms-interpolation-mode: bicubic;
@@ -923,7 +925,7 @@ export class LayoutMail {
                                             ><img
                                               alt="Whatsapp"
                                               height="20"
-                                              src="https://alpar.sfo3.digitaloceanspaces.com/Alpar/whatsapp.png"
+                                              src="${this.spaceLink}/Alpar/whatsapp.png"
                                               style="
                                                 text-decoration: none;
                                                 -ms-interpolation-mode: bicubic;
