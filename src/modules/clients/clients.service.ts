@@ -453,7 +453,7 @@ export class ClientsService {
         telefone2,
         email,
         email2,
-        eAtivo: eAtivo === 2,
+        eAtivo: eAtivo === 1,
         uf,
         cidadeIbgeCod: this.stringToNumberOrUndefined.execute(cidadeIbgeCod),
         cidade,
