@@ -30,6 +30,14 @@ export class FilterOrderNormalized {
           },
         };
 
+        if (filterGroup.value === 'referencia') {
+          newFilter = {
+            [filterGroup.value as string]: {
+              in: filterGroup.data.map((item) => item.value),
+            },
+          };
+        }
+
         if (filterGroup.value === 'locaisEstoque') {
           newFilter = {
             locaisEstoque: {
