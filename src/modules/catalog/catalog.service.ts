@@ -148,7 +148,19 @@ export class CatalogService {
       },
       orderBy: [
         {
-          generoCodigo: 'asc',
+          marca: {
+            ornador: 'asc',
+          },
+        },
+        {
+          grupo: {
+            ornador: 'asc',
+          },
+        },
+        {
+          genero: {
+            ornador: 'asc',
+          },
         },
         this.orderBy.execute(catalogo.orderBy),
         {
