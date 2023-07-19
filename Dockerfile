@@ -8,8 +8,8 @@ COPY package*.json ./
 # Bundle app source
 COPY . .
 
-RUN npx prisma generate
-RUN npm run build
+# RUN npx prisma generate
+# RUN npm run build
 
 EXPOSE 4444
 
