@@ -1,7 +1,7 @@
 FROM node:latest
 WORKDIR /usr/src/commerce-server
 COPY package*.json ./
-RUN yarn
+# RUN yarn
 # RUN npm install 
 # --only=prod --omit=dev
 
