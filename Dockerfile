@@ -1,8 +1,9 @@
-FROM node
+FROM node:18.16.1
+
 WORKDIR /usr/src/commerce-server
 COPY package*.json ./
-# RUN yarn install --production
-RUN npm install 
+RUN yarn install --production
+# RUN npm install 
 # --only=prod --omit=dev
 
 # Bundle app source
