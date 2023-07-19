@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:latest
 WORKDIR /usr/src/commerce-server
 COPY package*.json ./
 RUN yarn install --production
