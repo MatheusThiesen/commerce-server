@@ -1,7 +1,7 @@
-FROM node:latest
+FROM node:18-alpine
 WORKDIR /usr/src/commerce-server
 COPY package*.json ./
-RUN yarn
+RUN yarn install --production
 # RUN npm install 
 # --only=prod --omit=dev
 
