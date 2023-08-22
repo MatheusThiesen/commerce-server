@@ -46,6 +46,8 @@ model Vendedor {
   marcas                       Marca[]
   Usuario                      Usuario[]
   carteiraClienteRepresentante CarteiraClienteRepresentante[]
+  vendedorPedido               VendedorPedido[]
+  titulo                       Titulo[]
 
   @@map("vendedores")
 }
@@ -83,8 +85,9 @@ model Grupo {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  subGrupos SubGrupo[]
-  produtos  Produto[]
+  subGrupos        SubGrupo[]
+  produtos         Produto[]
+  bloqueiosCliente BloqueiosCliente[]
 
   @@map("grupos")
 }
@@ -109,18 +112,37 @@ model SubGrupo {
 }
 
 model Marca {
-  codigo    Int      @id @unique
-  descricao String
-  ornador   Int?
+  codigo            Int      @id @unique
+  descricao         String
+  ornador           Int?
+  valorPedidoMinimo Float    @default(0)
+  eAtivo            Boolean  @default(true)
+  eVenda            Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  produtos               Produto[]
+  vendedores             Vendedor[]
+  regraCondicaoPagamento RegraCondicaoPagamento[]
+  pedido                 Pedido[]
+  bloqueiosCliente       BloqueiosCliente[]
+  bloqueiosMarca         BloqueiosMarca[]
+
+  @@map("marcas")
+}
+
+model BloqueiosMarca {
+  id        String   @id @default(uuid())
   eAtivo    Boolean  @default(true)
-  eVenda    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  produtos   Produto[]
-  vendedores Vendedor[]
+  marca       Marca  @relation(fields: [marcaCodigo], references: [codigo])
+  marcaCodigo Int
+  uf          String
+  estado      Estado @relation(fields: [uf], references: [uf])
 
-  @@map("marcas")
+  @@map("bloqueiosMarca")
 }
 
 model Cor {
@@ -254,6 +276,7 @@ model ListaPreco {
   descricao String
   valor     Float
   eAtivo    Boolean  @default(true)
+  eVenda    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -284,11 +307,27 @@ model LocalEstoque {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  Produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
+  produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
   produtoCodigo Int
+
+  periodoEstoque PeriodoEstoque @relation(fields: [periodo], references: [periodo])
 
   @@unique([periodo, produtoCodigo])
   @@map("locaisEstoque")
+}
+
+model PeriodoEstoque {
+  periodo   String    @id @unique
+  descricao String
+  data      DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  pedido           Pedido[]
+  LocalEstoque     LocalEstoque[]
+  bloqueiosCliente BloqueiosCliente[]
+
+  @@map("periodosEstoque")
 }
 
 model Genero {
@@ -339,6 +378,7 @@ model RamoAtividade {
   descricao  String
   abreviacao String?
   eAtivo     Boolean  @default(true)
+  eVenda     Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -372,33 +412,93 @@ model ProdutoNaoImportado {
 }
 
 model Pedido {
-  codigo          Int      @id @unique
+  codigo          Int      @id @unique @default(autoincrement())
   dataFaturamento DateTime
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  valorTotal      Float
+  eRascunho       Boolean  @default(false)
+  codigoErp       Int?     @unique
 
-  itens ItemPedido[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cliente                 Cliente           @relation(fields: [clienteCodigo], references: [codigo])
+  clienteCodigo           Int
+  periodoEstoque          PeriodoEstoque    @relation(fields: [periodo], references: [periodo])
+  periodo                 String
+  condicaoPagamento       CondicaoPagamento @relation(fields: [condicaoPagamentoCodigo], references: [codigo])
+  condicaoPagamentoCodigo Int
+  tabelaPreco             TabelaPreco       @relation(fields: [tabelaPrecoCodigo], references: [codigo])
+  tabelaPrecoCodigo       Int
+  situacaoPedido          SituacaoPedido?   @relation(fields: [situacaoPedidoCodigo], references: [codigo])
+  situacaoPedidoCodigo    Int?
+  marca                   Marca             @relation(fields: [marcaCodigo], references: [codigo])
+  marcaCodigo             Int
+  localCobranca           LocalCobranca     @relation(fields: [localCobrancaCodigo], references: [codigo])
+  localCobrancaCodigo     Int
+
+  itens      ItemPedido[]
+  registros  Registro[]
+  vendedores VendedorPedido[]
 
   @@map("pedidos")
 }
 
+model SituacaoPedido {
+  codigo    Int      @id @unique @default(autoincrement())
+  descricao String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pedidos Pedido[]
+
+  @@map("situacoesPedido")
+}
+
+model VendedorPedido {
+  id   String @id @unique @default(uuid())
+  // tipo 1 = 'vendedor', 2 = 'preposto'
+  tipo Int
+
+  vendedorCodigo Int
+  vendedor       Vendedor @relation(fields: [vendedorCodigo], references: [codigo])
+  pedidoCodigo   Int
+  pedido         Pedido   @relation(fields: [pedidoCodigo], references: [codigo])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("vendedoresPedido")
+}
+
 model ItemPedido {
-  codigo       String   @id @unique @default(uuid())
-  quantidade   Int
-  valorUnitaro Float
-  valorTotal   Float
-  situacao     Int
-  sequencia    Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  codigo        String   @id @unique @default(uuid())
+  quantidade    Int
+  sequencia     Int
+  valorUnitario Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   pedido        Pedido  @relation(fields: [pedidoCodigo], references: [codigo])
   pedidoCodigo  Int
   produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
   produtoCodigo Int
 
-  @@unique([pedidoCodigo, produtoCodigo, sequencia])
+  @@unique([pedidoCodigo, produtoCodigo])
   @@map("itensPedido")
+}
+
+model Registro {
+  id             String   @id @unique @default(uuid())
+  requsicao      String
+  resposta       String?
+  situacaoCodigo Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  pedido       Pedido? @relation(fields: [pedidoCodigo], references: [codigo])
+  pedidoCodigo Int?
+
+  @@map("registros")
 }
 
 model CatalogoProduto {
@@ -454,13 +554,43 @@ model Cliente {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  conceito                     Conceito?                      @relation(fields: [conceitoCodigo], references: [codigo])
-  conceitoCodigo               Int?
-  ramoAtividade                RamoAtividade?                 @relation(fields: [ramoAtividadeCodigo], references: [codigo])
-  ramoAtividadeCodigo          Int?
+  conceito            Conceito?      @relation(fields: [conceitoCodigo], references: [codigo])
+  conceitoCodigo      Int?
+  ramoAtividade       RamoAtividade? @relation(fields: [ramoAtividadeCodigo], references: [codigo])
+  ramoAtividadeCodigo Int?
+
   carteiraClienteRepresentante CarteiraClienteRepresentante[]
+  pedido                       Pedido[]
+  bloqueios                    BloqueiosCliente?
+  titulo                       Titulo[]
 
   @@map("clientes")
+}
+
+model BloqueiosCliente {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  marcas          Marca[]
+  grupos          Grupo[]
+  periodosEstoque PeriodoEstoque[]
+
+  cliente       Cliente @relation(fields: [clienteCodigo], references: [codigo])
+  clienteCodigo Int     @unique
+
+  @@map("bloqueiosCliente")
+}
+
+model Estado {
+  uf        String   @id @unique
+  nome      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bloqueiosMarca BloqueiosMarca[]
+
+  @@map("estados")
 }
 
 model CarteiraClienteRepresentante {
@@ -475,4 +605,105 @@ model CarteiraClienteRepresentante {
   clienteCodigo  Int
 
   @@unique([vendedorCodigo, clienteCodigo])
+  @@map("cateirasClieteRepresentante")
+}
+
+model TabelaPreco {
+  codigo    Int      @id @unique
+  descricao String
+  eVenda    Boolean  @default(false)
+  eAtivo    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pedido                   Pedido[]
+  condicaoPagamentoParcela CondicaoPagamentoParcela[]
+
+  @@map("tabelasPreco")
+}
+
+model LocalCobranca {
+  codigo    Int      @id @unique
+  descricao String
+  eAtivo    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  RegraCondicaoPagamento RegraCondicaoPagamento[]
+  pedidos                Pedido[]
+
+  @@map("locaisCobranca")
+}
+
+model CondicaoPagamento {
+  codigo      Int     @id @unique
+  descricao   String
+  valorMinimo Float   @default(9999999)
+  quantidade  Int
+  eAtivo      Boolean @default(false)
+
+  regraCondicaoPagamento RegraCondicaoPagamento[]
+  parcelas               CondicaoPagamentoParcela[]
+  pedido                 Pedido[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("condicoesPagamento")
+}
+
+model CondicaoPagamentoParcela {
+  id        String   @id @unique @default(uuid())
+  sequencia Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  condicaoPagamentoCodigo Int
+  condicaoPagamento       CondicaoPagamento @relation(fields: [condicaoPagamentoCodigo], references: [codigo])
+  tabelaPrecoCodigo       Int
+  tabelaPreco             TabelaPreco       @relation(fields: [tabelaPrecoCodigo], references: [codigo])
+
+  @@unique([condicaoPagamentoCodigo, sequencia, tabelaPrecoCodigo])
+  @@map("condicaoPagamentoParcelas")
+}
+
+model RegraCondicaoPagamento {
+  id               String  @id @unique @default(uuid())
+  valorMinimo      Float   @default(9999999)
+  listaPrecoCodigo Int
+  eAtivo           Boolean @default(false)
+
+  marcaCodigo             Int
+  marca                   Marca             @relation(fields: [marcaCodigo], references: [codigo])
+  condicaoPagamentoCodigo Int
+  condicaoPagamento       CondicaoPagamento @relation(fields: [condicaoPagamentoCodigo], references: [codigo])
+  localCobrancaCodigo     Int?
+  localCobranca           LocalCobranca?    @relation(fields: [localCobrancaCodigo], references: [codigo])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([listaPrecoCodigo, condicaoPagamentoCodigo, marcaCodigo])
+  @@map("regrasCondicaoPagamento")
+}
+
+model Titulo {
+  id              String    @id @default(uuid())
+  numeroDocumento Int
+  valor           Float
+  desdobramento   Int
+  parcela         Int
+  nossoNumero     String?
+  dataVencimento  DateTime
+  dataPagamento   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  vendedor       Vendedor? @relation(fields: [vendedorCodigo], references: [codigo])
+  vendedorCodigo Int?
+  cliente        Cliente   @relation(fields: [clienteCodigo], references: [codigo])
+  clienteCodigo  Int
+
+  @@unique([numeroDocumento, desdobramento, clienteCodigo])
+  @@map("titulos")
 }

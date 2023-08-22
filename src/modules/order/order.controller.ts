@@ -1,17 +1,19 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
-  Patch,
   Post,
+  Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { GetCurrentUserId } from 'src/common/decorators';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrderService } from './order.service';
 
-@Controller('order')
+@Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
@@ -21,22 +23,34 @@ export class OrderController {
   }
 
   @Get()
-  findAll() {
-    return this.orderService.findAll();
+  findAll(
+    @GetCurrentUserId() userId: string,
+    @Query()
+    { page = '0', pagesize = '10', orderby, filters, search },
+  ) {
+    return this.orderService.findAll({
+      page: Number(page),
+      pagesize: Number(pagesize),
+      orderBy: orderby,
+      filters: filters?.map((f) => JSON.parse(f as string)),
+      userId: String(userId),
+      search: search,
+    });
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.orderService.findOne(+id);
+  @Get('filters')
+  getFilters(@GetCurrentUserId() userId: string) {
+    return this.orderService.getFiltersForFindAll(String(userId));
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(+id, updateOrderDto);
+  @Get(':codigo')
+  findOne(@Param('codigo') codigo: string, @GetCurrentUserId() userId: string) {
+    return this.orderService.findOne(+codigo, userId);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
+  @Post('import')
+  @UseInterceptors(FileInterceptor('file'))
+  import(@UploadedFile() file: Express.Multer.File) {
+    return this.orderService.import(file);
   }
 }

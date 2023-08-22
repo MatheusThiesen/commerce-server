@@ -8,6 +8,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AtGuard } from './common/guards';
 import { PrismaModule } from './database/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BillingLocationsModule } from './modules/billing-locations/billing-locations.module';
 import { BranchActivityModule } from './modules/branch-activists/branch-activists.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
@@ -21,7 +22,10 @@ import { GroupsModule } from './modules/groups/groups.module';
 import { HomeModule } from './modules/home/home.module';
 import { LinesModule } from './modules/lines/lines.module';
 import { OrderModule } from './modules/order/order.module';
+import { PaymentConditionsRulesModule } from './modules/payment-conditions-rules/payment-conditions-rules.module';
+import { PaymentConditionsModule } from './modules/payment-conditions/payment-conditions.module';
 import { PriceListsModule } from './modules/price-lists/price-lists.module';
+import { PriceTablesModule } from './modules/price-tables/price-tables.module';
 import { ProductConceptRulesModule } from './modules/product-concept-rules/product-concept-rules.module';
 import { ProductImagensModule } from './modules/product-imagens/product-imagens.module';
 import { ProductsModule } from './modules/products/products.module';
@@ -29,6 +33,7 @@ import { SellersModule } from './modules/sellers/sellers.module';
 import { StockLocationsModule } from './modules/stock-locations/stock-locations.module';
 import { SubgroupsModule } from './modules/subgroups/subgroups.module';
 import { UtilsModule } from './utils/utils.module';
+import { BilletsModule } from './modules/billets/billets.module';
 
 @Module({
   imports: [
@@ -83,6 +88,11 @@ import { UtilsModule } from './utils/utils.module';
     CatalogModule,
     OrderModule,
     ProductImagensModule,
+    PaymentConditionsModule,
+    PaymentConditionsRulesModule,
+    PriceTablesModule,
+    BillingLocationsModule,
+    BilletsModule,
   ],
   providers: [
     {

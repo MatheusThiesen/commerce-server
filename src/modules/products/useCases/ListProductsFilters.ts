@@ -117,7 +117,7 @@ export class ListProductsFilters {
 
     const stockLocations = await this.prisma.localEstoque.findMany({
       distinct: 'periodo',
-      where: { Produto: where, ...where.locaisEstoque.some },
+      where: { produto: where, ...where.locaisEstoque.some },
       select: {
         periodo: true,
         descricao: true,

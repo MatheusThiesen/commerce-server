@@ -54,13 +54,36 @@ export class FilterOrderNormalized {
         if (filterGroup.value === 'clientCod') {
           const findOneClient = await this.prisma.cliente.findUnique({
             select: {
+              bloqueios: {
+                select: {
+                  marcas: {
+                    select: {
+                      codigo: true,
+                    },
+                  },
+                  grupos: {
+                    select: {
+                      codigo: true,
+                    },
+                  },
+                  periodosEstoque: {
+                    select: {
+                      periodo: true,
+                    },
+                  },
+                },
+              },
               conceito: {
                 select: {
                   codigo: true,
                 },
               },
             },
-            where: { codigo: +filterGroup.data[0].value },
+            where: {
+              codigo: filterGroup.data[0]?.value
+                ? Number(filterGroup.data[0].value)
+                : 0,
+            },
           });
 
           newFilter = {
@@ -74,6 +97,43 @@ export class FilterOrderNormalized {
               },
             },
           };
+
+          if (findOneClient?.bloqueios.marcas.length > 0) {
+            newFilter = {
+              ...newFilter,
+              marca: {
+                codigo: {
+                  notIn: findOneClient?.bloqueios.marcas.map(
+                    (brand) => brand.codigo,
+                  ),
+                },
+              },
+            };
+          }
+          if (findOneClient?.bloqueios.grupos.length > 0) {
+            newFilter = {
+              ...newFilter,
+              grupoCodigo: {
+                notIn: findOneClient?.bloqueios.grupos.map(
+                  (group) => group.codigo,
+                ),
+              },
+            };
+          }
+          if (findOneClient?.bloqueios.periodosEstoque.length > 0) {
+            newFilter = {
+              ...newFilter,
+              locaisEstoque: {
+                some: {
+                  periodo: {
+                    notIn: findOneClient?.bloqueios.periodosEstoque.map(
+                      (period) => period.periodo,
+                    ),
+                  },
+                },
+              },
+            };
+          }
         }
 
         if (filterGroup.value === 'priceListCod') {

@@ -53,8 +53,8 @@ export class ProductsController {
   }
 
   @Get(':codigo')
-  findOne(@Param('codigo') codigo: string) {
-    return this.productsService.findOne(+codigo);
+  findOne(@Param('codigo') codigo: string, @Query() { clientCod }) {
+    return this.productsService.findOne(+codigo, clientCod);
   }
 
   @Delete(':id')

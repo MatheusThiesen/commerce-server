@@ -5,6 +5,7 @@ import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { CreateStockLocationDto } from './dto/create-stock-location.dto';
 import { UpdateStockLocationDto } from './dto/update-stock-location.dto';
 import { StockLocation } from './entities/stock-location.entity';
+import { StockPeriod } from './entities/stock-period.entity';
 
 @Injectable()
 export class StockLocationsService {
@@ -24,6 +25,12 @@ export class StockLocationsService {
           produtoCodigo: stockLocation.produtoCodigo,
         },
       },
+    });
+
+    await this.createOrUpdatePeriod({
+      periodo: stockLocation.periodo,
+      descricao: stockLocation.descricao,
+      data: stockLocation.data,
     });
 
     if (stockLocationExists) {
@@ -58,6 +65,12 @@ export class StockLocationsService {
     Object.assign(stockLocation, updateStockLocationDto);
 
     await this.findOne(id);
+
+    await this.createOrUpdatePeriod({
+      periodo: stockLocation.periodo,
+      descricao: stockLocation.descricao,
+      data: stockLocation.data,
+    });
 
     const existProduct = await this.prisma.produto.findUnique({
       where: {
@@ -143,5 +156,28 @@ export class StockLocationsService {
     }
 
     return;
+  }
+
+  async createOrUpdatePeriod(period: StockPeriod) {
+    const alreadyExists = await this.prisma.periodoEstoque.findUnique({
+      where: {
+        periodo: period.periodo,
+      },
+    });
+
+    if (!alreadyExists) {
+      await this.prisma.periodoEstoque.create({
+        data: period,
+      });
+    }
+
+    // else {
+    //   await this.prisma.periodoEstoque.update({
+    //     data: period,
+    //     where: {
+    //       periodo: period.periodo,
+    //     },
+    //   });
+    // }
   }
 }

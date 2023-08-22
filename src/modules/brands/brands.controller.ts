@@ -1,46 +1,29 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
-  Param,
   Post,
-  Put,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { GetCurrentUserId } from 'src/common/decorators';
 import { BrandsService } from './brands.service';
-import { CreateBrandDto } from './dto/create-brand.dto';
-import { UpdateBrandDto } from './dto/update-brand.dto';
 
 @Controller('brands')
 export class BrandsController {
   constructor(private readonly brandsService: BrandsService) {}
 
-  @Post()
-  create(@Body() createBrandDto: CreateBrandDto) {
-    return this.brandsService.create(createBrandDto);
-  }
-
   @Get()
-  findAll() {
-    return this.brandsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.brandsService.findOne(+id);
-  }
-
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateBrandDto: UpdateBrandDto) {
-    return this.brandsService.update(+id, updateBrandDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.brandsService.remove(+id);
+  findAll(
+    @GetCurrentUserId() userId: string,
+    @Query()
+    { filters },
+  ) {
+    return this.brandsService.findAll({
+      filters: filters?.map((f) => JSON.parse(f as string)),
+      userId: String(userId),
+    });
   }
 
   @Post('import')

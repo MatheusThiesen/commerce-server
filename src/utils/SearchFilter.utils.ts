@@ -11,7 +11,7 @@ export class SearchFilter {
   execute(search: string, fields: FieldsProps[]) {
     const OR = [];
 
-    if (!search) return OR;
+    if (!search) return [];
 
     for (const field of fields) {
       if (field.type === 'number') {

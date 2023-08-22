@@ -271,6 +271,42 @@ export class ProductsService {
       take: pagesize,
       skip: page * pagesize,
 
+      select: {
+        codigo: true,
+        referencia: true,
+        codigoAlternativo: true,
+        descricao: true,
+        descricaoAdicional: true,
+        precoVenda: true,
+
+        imagens: {
+          take: 1,
+          orderBy: { sequencia: 'asc' },
+          select: {
+            nome: true,
+          },
+        },
+
+        listaPreco: {
+          select: {
+            id: true,
+            descricao: true,
+            valor: true,
+            codigo: true,
+          },
+          where: {
+            codigo: {
+              in: [28, 42, 56, 300],
+            },
+          },
+          orderBy: {
+            codigo: 'asc',
+          },
+        },
+
+        ...(reportAddSelect as any),
+      },
+
       orderBy: [
         {
           marca: {
@@ -292,41 +328,7 @@ export class ProductsService {
           codigo: 'desc',
         },
       ],
-      select: {
-        codigo: true,
-        referencia: true,
-        codigoAlternativo: true,
-        descricao: true,
-        descricaoAdicional: true,
-        precoVenda: true,
 
-        listaPreco: {
-          select: {
-            id: true,
-            descricao: true,
-            valor: true,
-            codigo: true,
-          },
-          where: {
-            codigo: {
-              in: [28, 42, 56, 300],
-            },
-          },
-          orderBy: {
-            codigo: 'asc',
-          },
-        },
-
-        imagens: {
-          take: 1,
-          orderBy: { sequencia: 'asc' },
-          select: {
-            nome: true,
-          },
-        },
-
-        ...(reportAddSelect as any),
-      },
       where: {
         marcaCodigo:
           user.eVendedor && user.vendedor.marcas
@@ -337,7 +339,9 @@ export class ProductsService {
         AND: [
           filterNormalized,
           this.listingRule.execute(),
-          { OR: this.searchFilter.execute(search, this.fieldsSearch) },
+          {
+            OR: this.searchFilter.execute(search, this.fieldsSearch),
+          },
         ],
       },
     });
@@ -370,6 +374,8 @@ export class ProductsService {
     });
 
     if (user.eVendedor) {
+      if (user.vendedor.marcas.length === 0) return [];
+
       user.vendedor.marcas.forEach((brand) => {
         filters.push({
           value: brand.codigo,
@@ -410,7 +416,18 @@ export class ProductsService {
     }
   }
 
-  async findOne(codigo: number) {
+  async findOne(codigo: number, clientCod?: number) {
+    if (!codigo) throw new BadRequestException('codigo not valid');
+
+    const filterNormalized = clientCod
+      ? await this.filterOrderNormalized.execute([
+          {
+            value: clientCod ?? 0,
+            name: 'clientCod',
+          },
+        ])
+      : {};
+
     const product = await this.prisma.produto.findFirst({
       select: {
         codigo: true,
@@ -517,7 +534,7 @@ export class ProductsService {
         },
       },
       where: {
-        AND: [{ codigo }, { ...this.listingRule.execute() }],
+        AND: [{ codigo }, { ...this.listingRule.execute() }, filterNormalized],
       },
     });
 

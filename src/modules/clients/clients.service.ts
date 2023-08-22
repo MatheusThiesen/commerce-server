@@ -42,14 +42,31 @@ export class ClientsService {
     },
   ];
 
+  readonly daysAgo = 7;
+
   constructor(
     private prisma: PrismaService,
     private parseCsv: ParseCsv,
     private orderBy: OrderBy,
     private readonly groupByObj: GroupByObj,
-    private readonly stringToNumberOrUndefined: StringToNumberOrUndefined,
     private readonly searchFilter: SearchFilter,
+    private readonly stringToNumberOrUndefined: StringToNumberOrUndefined,
   ) {}
+
+  getDateDaysAgo() {
+    const now = new Date();
+    now.setDate(now.getDate() - this.daysAgo);
+    const daysAgo = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+    );
+
+    return daysAgo;
+  }
 
   async create(createClientDto: CreateClientDto) {
     const client = new Client();
@@ -94,8 +111,8 @@ export class ClientsService {
         codigo: true,
         razaoSocial: true,
         nomeFantasia: true,
-        cidade: true,
         cnpj: true,
+        cidade: true,
         bairro: true,
         logradouro: true,
         numero: true,
@@ -108,6 +125,17 @@ export class ClientsService {
         obs: true,
         email: true,
         email2: true,
+        titulo: {
+          select: {
+            id: true,
+          },
+          where: {
+            dataPagamento: null,
+            dataVencimento: {
+              lte: this.getDateDaysAgo(),
+            },
+          },
+        },
         conceito: {
           select: {
             codigo: true,
@@ -186,7 +214,18 @@ export class ClientsService {
           },
         },
       },
-      where: { AND: [...filterNormalized, { eAtivo: true }] },
+      where: {
+        AND: [
+          ...filterNormalized,
+          {
+            eAtivo: true,
+            ramoAtividade: {
+              eAtivo: true,
+              eVenda: true,
+            },
+          },
+        ],
+      },
     });
 
     if (!client) {
@@ -258,13 +297,31 @@ export class ClientsService {
         numero: true,
         cep: true,
         uf: true,
+
+        titulo: {
+          select: {
+            id: true,
+          },
+          where: {
+            dataPagamento: null,
+            dataVencimento: {
+              lte: this.getDateDaysAgo(),
+            },
+          },
+        },
       },
       orderBy: [orderByNormalized] ?? [{ codigo: 'desc' }],
       where: {
         AND: [
           ...filterNormalized,
           { OR: this.searchFilter.execute(search, this.fieldsSearch) },
-          { eAtivo: true },
+          {
+            eAtivo: true,
+            ramoAtividade: {
+              eAtivo: true,
+              eVenda: true,
+            },
+          },
         ],
       },
     });
@@ -274,7 +331,13 @@ export class ClientsService {
         AND: [
           ...filterNormalized,
           { OR: this.searchFilter.execute(search, this.fieldsSearch) },
-          { eAtivo: true },
+          {
+            eAtivo: true,
+            ramoAtividade: {
+              eAtivo: true,
+              eVenda: true,
+            },
+          },
         ],
       },
     });
@@ -453,7 +516,7 @@ export class ClientsService {
         telefone2,
         email,
         email2,
-        eAtivo: eAtivo === 1,
+        eAtivo: Number(eAtivo) === 1,
         uf,
         cidadeIbgeCod: this.stringToNumberOrUndefined.execute(cidadeIbgeCod),
         cidade,
