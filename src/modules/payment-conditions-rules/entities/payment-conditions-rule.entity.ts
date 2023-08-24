@@ -1,9 +1,9 @@
 export class PaymentConditionsRule {
   id?: string;
-  condicaoPagamentoCodigo?: number;
+  condicaoPagamentoCodigo: number;
   marcaCodigo: number;
-  localCobrancaCod: number;
-  listaPrecoCodigo?: number;
+  localCobrancaCodigo: number;
+  listaPrecoCodigo: number;
   valorMinimo?: number;
   eAtivo?: boolean;
   createdAt?: Date;

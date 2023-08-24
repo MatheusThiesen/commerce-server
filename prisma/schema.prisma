@@ -539,7 +539,6 @@ model Cliente {
   telefone2        String?
   eAtivo           Boolean @default(false)
 
-  uf            String
   cidadeIbgeCod Int?
   cidade        String
   bairro        String
@@ -558,6 +557,8 @@ model Cliente {
   conceitoCodigo      Int?
   ramoAtividade       RamoAtividade? @relation(fields: [ramoAtividadeCodigo], references: [codigo])
   ramoAtividadeCodigo Int?
+  estado              Estado         @relation(fields: [uf], references: [uf])
+  uf                  String
 
   carteiraClienteRepresentante CarteiraClienteRepresentante[]
   pedido                       Pedido[]
@@ -589,6 +590,7 @@ model Estado {
   updatedAt DateTime @updatedAt
 
   bloqueiosMarca BloqueiosMarca[]
+  cliente        Cliente[]
 
   @@map("estados")
 }

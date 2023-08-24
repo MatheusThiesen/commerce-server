@@ -35,30 +35,10 @@ export class PaymentConditionsRulesService {
     }
 
     const created = await this.prisma.regraCondicaoPagamento.create({
-      data: {
-        marcaCodigo: rule.marcaCodigo,
-        condicaoPagamentoCodigo: rule.condicaoPagamentoCodigo,
-        listaPrecoCodigo: rule.listaPrecoCodigo,
-        valorMinimo: rule.valorMinimo,
-        eAtivo: rule.eAtivo,
-      },
+      data: rule,
     });
 
     return created;
-  }
-
-  async findOne(id: string) {
-    const rule = await this.prisma.regraCondicaoPagamento.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    if (!rule) {
-      throw new Error('Rule does not exist');
-    }
-
-    return rule;
   }
 
   async update(id: string, updateRuleDto: CreatePaymentConditionsRuleDto) {
@@ -74,6 +54,20 @@ export class PaymentConditionsRulesService {
     });
 
     return updated;
+  }
+
+  async findOne(id: string) {
+    const rule = await this.prisma.regraCondicaoPagamento.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!rule) {
+      throw new Error('Rule does not exist');
+    }
+
+    return rule;
   }
 
   async import(file: Express.Multer.File) {
@@ -118,10 +112,7 @@ export class PaymentConditionsRulesService {
           await this.create(rule);
         }
       } catch (error) {
-        console.log(!ruleExists ? 'Criar' : 'Editar');
-
         console.log(rule);
-
         console.log(error);
       }
     }

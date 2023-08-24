@@ -73,6 +73,18 @@ export class FilterOrderNormalized {
                   },
                 },
               },
+              estado: {
+                select: {
+                  bloqueiosMarca: {
+                    select: {
+                      marcaCodigo: true,
+                    },
+                    where: {
+                      eAtivo: true,
+                    },
+                  },
+                },
+              },
               conceito: {
                 select: {
                   codigo: true,
@@ -98,7 +110,7 @@ export class FilterOrderNormalized {
             },
           };
 
-          if (findOneClient?.bloqueios.marcas.length > 0) {
+          if (findOneClient?.bloqueios?.marcas.length > 0) {
             newFilter = {
               ...newFilter,
               marca: {
@@ -110,7 +122,7 @@ export class FilterOrderNormalized {
               },
             };
           }
-          if (findOneClient?.bloqueios.grupos.length > 0) {
+          if (findOneClient?.bloqueios?.grupos.length > 0) {
             newFilter = {
               ...newFilter,
               grupoCodigo: {
@@ -120,7 +132,7 @@ export class FilterOrderNormalized {
               },
             };
           }
-          if (findOneClient?.bloqueios.periodosEstoque.length > 0) {
+          if (findOneClient?.bloqueios?.periodosEstoque.length > 0) {
             newFilter = {
               ...newFilter,
               locaisEstoque: {
@@ -130,6 +142,19 @@ export class FilterOrderNormalized {
                       (period) => period.periodo,
                     ),
                   },
+                },
+              },
+            };
+          }
+
+          if (findOneClient?.estado?.bloqueiosMarca.length > 0) {
+            newFilter = {
+              ...newFilter,
+              marca: {
+                codigo: {
+                  notIn: findOneClient?.estado?.bloqueiosMarca.map(
+                    (brand) => brand.marcaCodigo,
+                  ),
                 },
               },
             };

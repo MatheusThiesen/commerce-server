@@ -87,6 +87,15 @@ export class BilletsService {
         clienteCodigo,
       ] = billetArr;
 
+      const sellerAlreadyExist = await this.prisma.cliente.findUnique({
+        select: {
+          codigo: true,
+        },
+        where: {
+          codigo: Number(vendedorCodigo),
+        },
+      });
+
       const billet = new Billet();
       Object.assign(billet, {
         numeroDocumento: Number(numeroDocumento),
@@ -96,7 +105,7 @@ export class BilletsService {
         nossoNumero: String(nossoNumero),
         dataVencimento: dataVencimento ? new Date(dataVencimento) : undefined,
         dataPagamento: new Date(dataPagamento),
-        vendedorCodigo: Number(vendedorCodigo),
+        vendedorCodigo: sellerAlreadyExist?.codigo,
         clienteCodigo: Number(clienteCodigo),
       });
 
@@ -113,10 +122,21 @@ export class BilletsService {
         },
       });
 
-      if (billetExists) {
-        await this.update(billetExists.id, billet);
-      } else {
-        await this.create(billet);
+      const clientAlreadyExist = await this.prisma.cliente.findUnique({
+        select: {
+          codigo: true,
+        },
+        where: {
+          codigo: billet.clienteCodigo,
+        },
+      });
+
+      if (clientAlreadyExist) {
+        if (billetExists) {
+          await this.update(billetExists.id, billet);
+        } else {
+          await this.create(billet);
+        }
       }
     }
 
