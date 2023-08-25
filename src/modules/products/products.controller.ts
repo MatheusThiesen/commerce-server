@@ -68,9 +68,4 @@ export class ProductsController {
   import(@UploadedFile() file: Express.Multer.File) {
     return this.productsService.import(file);
   }
-
-  @Post('testAllImages')
-  testAllImages() {
-    return this.productsService.testImageJob();
-  }
 }

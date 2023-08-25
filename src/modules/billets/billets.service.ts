@@ -104,7 +104,7 @@ export class BilletsService {
         parcela: Number(parcela),
         nossoNumero: String(nossoNumero),
         dataVencimento: dataVencimento ? new Date(dataVencimento) : undefined,
-        dataPagamento: new Date(dataPagamento),
+        dataPagamento: dataPagamento ? new Date(dataPagamento) : undefined,
         vendedorCodigo: sellerAlreadyExist?.codigo,
         clienteCodigo: Number(clienteCodigo),
       });

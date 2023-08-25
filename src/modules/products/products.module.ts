@@ -3,8 +3,6 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { CreateManyProductsConsumer } from '../../jobs/CreateManyProducts/createManyProducts-consumer';
 import { CreateManyProductsProducerService } from '../../jobs/CreateManyProducts/createManyProducts-producer-service';
-import { TestImageProductConsumer } from '../../jobs/TestImageProduct/testImageProduct-consumer';
-import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
 import { UpdateCacheProductsFiltersConsumer } from '../../jobs/UpdateCacheProductsFilters/updateCacheProductsFilters-consumer';
 import { UpdateCacheProductsFiltersProducerService } from '../../jobs/UpdateCacheProductsFilters/updateCacheProductsFilters-producer-service';
 import { SearchFilter } from '../../utils/SearchFilter.utils';
@@ -22,9 +20,6 @@ import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
   imports: [
     HttpModule,
     BullModule.registerQueue({
-      name: 'testImageProduct-queue',
-    }),
-    BullModule.registerQueue({
       name: 'createManyProducts-queue',
     }),
     BullModule.registerQueue({
@@ -37,8 +32,6 @@ import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
     ListProductsFilters,
     SearchFilter,
     VariationsProduct,
-    TestImageProductProducerService,
-    TestImageProductConsumer,
     CreateManyProductsConsumer,
     CreateManyProductsProducerService,
     UpdateCacheProductsFiltersConsumer,

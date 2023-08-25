@@ -6,7 +6,6 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { CreateManyProductsProducerService } from 'src/jobs/CreateManyProducts/createManyProducts-producer-service';
 import { UpdateCacheProductsFiltersProducerService } from 'src/jobs/UpdateCacheProductsFilters/updateCacheProductsFilters-producer-service';
 import { PrismaService } from '../../database/prisma.service';
-import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
 import { OrderBy } from '../../utils/OrderBy.utils';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { FieldsProps, SearchFilter } from '../../utils/SearchFilter.utils';
@@ -62,7 +61,6 @@ export class ProductsService {
     private listProductsFilters: ListProductsFilters,
     private variationsProduct: VariationsProduct,
     private agroupGridProduct: AgroupGridProduct,
-    private readonly testImageProductProducerService: TestImageProductProducerService,
     private readonly createManyProductsProducerService: CreateManyProductsProducerService,
     private readonly updateCacheProductsFiltersProducerService: UpdateCacheProductsFiltersProducerService,
     private readonly listingRule: ListingRule,
@@ -669,11 +667,6 @@ export class ProductsService {
     } catch (error) {
       return false;
     }
-  }
-
-  async testImageJob(reference?: string) {
-    await this.testImageProductProducerService.execute({ reference });
-    return;
   }
 
   normalizedMonth(datePeriod: Date, type: 'period' | 'name') {
