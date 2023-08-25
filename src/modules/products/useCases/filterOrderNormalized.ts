@@ -162,14 +162,13 @@ export class FilterOrderNormalized {
         }
 
         if (filterGroup.value === 'priceListCod') {
-          newFilter = {};
-          //   newFilter = {
-          //     listaPreco: {
-          //       some: {
-          //         codigo: { in: filterGroup.data.map((item) => item.value) },
-          //       },
-          //     },
-          //   };
+          newFilter = {
+            listaPreco: {
+              some: {
+                codigo: { in: filterGroup.data.map((item) => item.value) },
+              },
+            },
+          };
         }
 
         if (filterGroup.value === 'concept') {
