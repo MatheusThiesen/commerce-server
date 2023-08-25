@@ -1,4 +1,3 @@
-import { HttpModule } from '@nestjs/axios';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { CreateManyProductsConsumer } from '../../jobs/CreateManyProducts/createManyProducts-consumer';
@@ -18,7 +17,6 @@ import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
 
 @Module({
   imports: [
-    HttpModule,
     BullModule.registerQueue({
       name: 'createManyProducts-queue',
     }),

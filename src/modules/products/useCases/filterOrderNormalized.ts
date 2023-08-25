@@ -132,20 +132,20 @@ export class FilterOrderNormalized {
               },
             };
           }
-          if (findOneClient?.bloqueios?.periodosEstoque.length > 0) {
-            newFilter = {
-              ...newFilter,
-              locaisEstoque: {
-                some: {
-                  periodo: {
-                    notIn: findOneClient?.bloqueios.periodosEstoque.map(
-                      (period) => period.periodo,
-                    ),
-                  },
-                },
-              },
-            };
-          }
+          // if (findOneClient?.bloqueios?.periodosEstoque.length > 0) {
+          //   newFilter = {
+          //     ...newFilter,
+          //     locaisEstoque: {
+          //       some: {
+          //         periodo: {
+          //           notIn: findOneClient?.bloqueios.periodosEstoque.map(
+          //             (period) => period.periodo,
+          //           ),
+          //         },
+          //       },
+          //     },
+          //   };
+          // }
 
           if (findOneClient?.estado?.bloqueiosMarca.length > 0) {
             newFilter = {
@@ -162,13 +162,14 @@ export class FilterOrderNormalized {
         }
 
         if (filterGroup.value === 'priceListCod') {
-          newFilter = {
-            listaPreco: {
-              some: {
-                codigo: { in: filterGroup.data.map((item) => item.value) },
-              },
-            },
-          };
+          newFilter = {};
+          //   newFilter = {
+          //     listaPreco: {
+          //       some: {
+          //         codigo: { in: filterGroup.data.map((item) => item.value) },
+          //       },
+          //     },
+          //   };
         }
 
         if (filterGroup.value === 'concept') {
