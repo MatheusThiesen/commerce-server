@@ -1,12 +1,8 @@
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
-import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { AxiosError } from 'axios';
-import { catchError, firstValueFrom } from 'rxjs';
 import { CreateManyProductsProducerService } from 'src/jobs/CreateManyProducts/createManyProducts-producer-service';
 import { UpdateCacheProductsFiltersProducerService } from 'src/jobs/UpdateCacheProductsFilters/updateCacheProductsFilters-producer-service';
 import { PrismaService } from '../../database/prisma.service';
-import { TestImageProductProducerService } from '../../jobs/TestImageProduct/testImageProduct-producer-service';
 import { OrderBy } from '../../utils/OrderBy.utils';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { FieldsProps, SearchFilter } from '../../utils/SearchFilter.utils';
@@ -55,14 +51,12 @@ export class ProductsService {
   ];
 
   constructor(
-    private readonly httpService: HttpService,
     private prisma: PrismaService,
     private parseCsv: ParseCsv,
     private orderBy: OrderBy,
     private listProductsFilters: ListProductsFilters,
     private variationsProduct: VariationsProduct,
     private agroupGridProduct: AgroupGridProduct,
-    private readonly testImageProductProducerService: TestImageProductProducerService,
     private readonly createManyProductsProducerService: CreateManyProductsProducerService,
     private readonly updateCacheProductsFiltersProducerService: UpdateCacheProductsFiltersProducerService,
     private readonly listingRule: ListingRule,
@@ -647,33 +641,6 @@ export class ProductsService {
     if (alreadyExistSubgroup) product.subGrupoId = alreadyExistSubgroup.id;
 
     return product;
-  }
-
-  async testImage(reference: string): Promise<boolean> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService
-          .get<any>(
-            `${this.spaceLink}/?prefix=Produtos%2F${reference}_01&max-keys=10`,
-          )
-          .pipe(
-            catchError((_error: AxiosError) => {
-              throw 'An error happened!';
-            }),
-          ),
-      );
-
-      const findImage = String(response.data).indexOf('<Contents>');
-
-      return findImage === -1 ? false : true;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  async testImageJob(reference?: string) {
-    await this.testImageProductProducerService.execute({ reference });
-    return;
   }
 
   normalizedMonth(datePeriod: Date, type: 'period' | 'name') {

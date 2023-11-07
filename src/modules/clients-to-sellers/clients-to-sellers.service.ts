@@ -24,23 +24,38 @@ export class ClientsToSellersService {
             },
           });
 
-        if (walletExist) {
-          await this.prisma.carteiraClienteRepresentante.update({
-            data: {
-              tipo: Number(tipo),
-            },
-            where: {
-              id: walletExist.id,
-            },
-          });
+        const alreadyExistClient = await this.prisma.cliente.findUnique({
+          select: { codigo: true },
+          where: { codigo: Number(clienteCod) },
+        });
+        const alreadyExistSeller = await this.prisma.vendedor.findUnique({
+          select: { codigo: true },
+          where: { codigo: Number(sellerCod) },
+        });
+
+        if (alreadyExistClient && alreadyExistSeller) {
+          if (walletExist) {
+            await this.prisma.carteiraClienteRepresentante.update({
+              data: {
+                tipo: Number(tipo),
+              },
+              where: {
+                id: walletExist.id,
+              },
+            });
+          } else {
+            await this.prisma.carteiraClienteRepresentante.create({
+              data: {
+                clienteCodigo: +clienteCod,
+                vendedorCodigo: +sellerCod,
+                tipo: +tipo,
+              },
+            });
+          }
         } else {
-          await this.prisma.carteiraClienteRepresentante.create({
-            data: {
-              clienteCodigo: +clienteCod,
-              vendedorCodigo: +sellerCod,
-              tipo: +tipo,
-            },
-          });
+          if (!alreadyExistClient)
+            console.log(`Client not exist ${clienteCod}`);
+          if (!alreadyExistSeller) console.log(`Seller not exist ${sellerCod}`);
         }
       } catch (error) {
         console.log(error);

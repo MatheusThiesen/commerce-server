@@ -82,6 +82,8 @@ export class ClientsService {
       throw new Error('client already exists');
     }
 
+    await this.createOrUpdateState(client.uf);
+
     const created = await this.prisma.cliente.create({
       data: client,
     });
@@ -94,6 +96,8 @@ export class ClientsService {
     Object.assign(client, updateClientDto);
 
     await this.findOne(codigo);
+
+    await this.createOrUpdateState(client.uf);
 
     const updeted = await this.prisma.cliente.update({
       data: client,
@@ -544,5 +548,21 @@ export class ClientsService {
     }
 
     return;
+  }
+
+  async createOrUpdateState(state: string) {
+    const alreadyExists = await this.prisma.estado.findUnique({
+      where: {
+        uf: state,
+      },
+    });
+
+    if (!alreadyExists) {
+      await this.prisma.estado.create({
+        data: {
+          uf: state,
+        },
+      });
+    }
   }
 }

@@ -40,6 +40,15 @@ export class ProductImagensService {
       throw new BadRequestException('Product does not exist');
     }
 
+    await this.prisma.produto.update({
+      data: {
+        possuiFoto: true,
+      },
+      where: {
+        codigo: existProduct.codigo,
+      },
+    });
+
     const createdProductImage = await this.prisma.produtoImagem.create({
       data: productImage,
     });
@@ -79,6 +88,15 @@ export class ProductImagensService {
     if (!existProduct) {
       throw new BadRequestException('Product does not exist');
     }
+
+    await this.prisma.produto.update({
+      data: {
+        possuiFoto: true,
+      },
+      where: {
+        codigo: existProduct.codigo,
+      },
+    });
 
     const updatedProductImage = await this.prisma.produtoImagem.update({
       data: productImage,
