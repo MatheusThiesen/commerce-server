@@ -8,7 +8,7 @@ export interface FieldsProps {
 
 @Injectable()
 export class SearchFilter {
-  execute(search: string, fields: FieldsProps[]) {
+  execute(search: string, fields: FieldsProps[]): Array<any> {
     const OR = [];
 
     if (!search) return [];
@@ -35,6 +35,6 @@ export class SearchFilter {
       }
     }
 
-    return { OR };
+    return OR;
   }
 }

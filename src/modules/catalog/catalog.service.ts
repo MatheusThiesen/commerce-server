@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { OrderBy } from 'src/utils/OrderBy.utils';
+import { FieldsProps, SearchFilter } from 'src/utils/SearchFilter.utils';
 import { AgroupGridProduct } from '../products/useCases/AgroupGridProduct';
 import { ListingRule } from '../products/useCases/ListingRule';
 import { VariationsProduct } from '../products/useCases/VariationsProduct';
@@ -16,6 +17,25 @@ export class CatalogService {
   readonly spaceLink = process.env.SPACE;
   readonly limitDays = 7;
 
+  readonly fieldsSearch: FieldsProps[] = [
+    {
+      name: 'descricao',
+      type: 'string',
+    },
+    {
+      name: 'codigo',
+      type: 'number',
+    },
+    {
+      name: 'codigoAlternativo',
+      type: 'string',
+    },
+    {
+      name: 'referencia',
+      type: 'string',
+    },
+  ];
+
   constructor(
     private prisma: PrismaService,
     private orderBy: OrderBy,
@@ -23,16 +43,19 @@ export class CatalogService {
     private variationsProduct: VariationsProduct,
     private readonly listingRule: ListingRule,
     private readonly filterOrderNormalized: FilterOrderNormalized,
+    private readonly searchFilter: SearchFilter,
   ) {}
 
   async findOne({
     id,
     page,
     pagesize,
+    search,
   }: {
     id: string;
     page: number;
     pagesize: number;
+    search: string;
   }) {
     const catalogo = await this.prisma.catalogoProduto.findUnique({
       select: {
@@ -138,7 +161,51 @@ export class CatalogService {
         },
       },
       where: {
-        AND: [this.listingRule.execute(), normalizedFilters],
+        AND: [
+          this.listingRule.execute(),
+          normalizedFilters,
+          {
+            OR: search
+              ? [
+                  {
+                    genero: {
+                      descricao: {
+                        mode: 'insensitive',
+                        contains: search,
+                      },
+                    },
+                  },
+                  {
+                    corPrimaria: {
+                      descricao: {
+                        mode: 'insensitive',
+                        contains: search,
+                      },
+                    },
+                  },
+                  {
+                    corSecundaria: {
+                      cor: {
+                        descricao: {
+                          mode: 'insensitive',
+                          contains: search,
+                        },
+                      },
+                    },
+                  },
+                  {
+                    linha: {
+                      descricao: {
+                        mode: 'insensitive',
+                        contains: search,
+                      },
+                    },
+                  },
+                  ...this.searchFilter.execute(search, this.fieldsSearch),
+                ]
+              : undefined,
+          },
+        ],
 
         CatalogoProduto: {
           some: {
@@ -177,12 +244,7 @@ export class CatalogService {
       });
 
       const grids: GridProps[] = agroupProduct.map((grid) => ({
-        name: `${grid.codigo} - ${
-          grid.descricaoAdicional
-        } - PDV: ${grid.precoVenda.toLocaleString('pt-br', {
-          style: 'currency',
-          currency: 'BRL',
-        })}`,
+        name: `${grid.codigo} - ${grid.descricaoAdicional}`,
         stocks: catalogo.isStockLocation
           ? grid.locaisEstoque.map((stock) => ({
               description: stock.descricao,
@@ -227,7 +289,9 @@ export class CatalogService {
           product?.corSecundaria?.cor?.descricao
             ? `${product.corPrimaria.descricao} e ${product.corSecundaria.cor.descricao}`
             : product?.corPrimaria?.descricao ?? '-',
-        price: product?.precoVenda?.toLocaleString('pt-br', {
+        price: Math.max(
+          ...agroupProduct.map((p) => p.precoVenda),
+        )?.toLocaleString('pt-br', {
           style: 'currency',
           currency: 'BRL',
         }),
@@ -252,7 +316,7 @@ export class CatalogService {
     };
   }
 
-  async findOneCount({ id }: { id: string }) {
+  async findOneCount({ id, search }: { id: string; search?: string }) {
     const catalogo = await this.prisma.catalogoProduto.findUnique({
       select: {
         id: true,
@@ -286,7 +350,51 @@ export class CatalogService {
       distinct: 'referencia',
       select: { codigo: true },
       where: {
-        AND: [this.listingRule.execute(), normalizedFilters],
+        AND: [
+          this.listingRule.execute(),
+          normalizedFilters,
+          {
+            OR: search
+              ? [
+                  {
+                    genero: {
+                      descricao: {
+                        mode: 'insensitive',
+                        contains: search,
+                      },
+                    },
+                  },
+                  {
+                    corPrimaria: {
+                      descricao: {
+                        mode: 'insensitive',
+                        contains: search,
+                      },
+                    },
+                  },
+                  {
+                    corSecundaria: {
+                      cor: {
+                        descricao: {
+                          mode: 'insensitive',
+                          contains: search,
+                        },
+                      },
+                    },
+                  },
+                  {
+                    linha: {
+                      descricao: {
+                        mode: 'insensitive',
+                        contains: search,
+                      },
+                    },
+                  },
+                  ...this.searchFilter.execute(search, this.fieldsSearch),
+                ]
+              : undefined,
+          },
+        ],
 
         CatalogoProduto: {
           some: {
@@ -294,15 +402,6 @@ export class CatalogService {
           },
         },
       },
-      orderBy: [
-        {
-          generoCodigo: 'asc',
-        },
-        this.orderBy.execute(catalogo.orderBy),
-        {
-          codigo: 'desc',
-        },
-      ],
     });
 
     return {

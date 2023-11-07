@@ -37,11 +37,15 @@ export class CatalogController {
 
   @Public()
   @Get(':id')
-  findOne(@Param('id') id: string, @Query() { page = '0', pagesize = '10' }) {
+  findOne(
+    @Param('id') id: string,
+    @Query() { page = '0', pagesize = '10', search },
+  ) {
     return this.catalogService.findOne({
       id,
       page: +page,
       pagesize: +pagesize,
+      search,
     });
   }
 
@@ -53,9 +57,10 @@ export class CatalogController {
 
   @Public()
   @Get('/totalCount/:id')
-  findOneTotalCount(@Param('id') id: string) {
+  findOneTotalCount(@Param('id') id: string, @Query() { search }) {
     return this.catalogService.findOneCount({
       id,
+      search,
     });
   }
 }
