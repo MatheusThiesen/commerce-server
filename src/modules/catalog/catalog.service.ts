@@ -244,7 +244,7 @@ export class CatalogService {
       });
 
       const grids: GridProps[] = agroupProduct.map((grid) => ({
-        name: `${grid.codigo} - ${grid.descricaoAdicional}`,
+        name: `${grid.descricaoAdicional} (${grid.codigo})`,
         stocks: catalogo.isStockLocation
           ? grid.locaisEstoque.map((stock) => ({
               description: stock.descricao,
