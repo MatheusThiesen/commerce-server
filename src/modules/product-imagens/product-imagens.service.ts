@@ -31,6 +31,10 @@ export class ProductImagensService {
     }
 
     const existProduct = await this.prisma.produto.findUnique({
+      select: {
+        codigo: true,
+        referencia: true,
+      },
       where: {
         codigo: productImage.produtoCodigo,
       },
@@ -38,6 +42,12 @@ export class ProductImagensService {
 
     if (!existProduct) {
       throw new BadRequestException('Product does not exist');
+    }
+
+    const [referenceFile] = productImage.nome.split('_');
+
+    if (referenceFile.toUpperCase() !== existProduct.referencia.toUpperCase()) {
+      throw new BadRequestException(`References don't match`);
     }
 
     await this.prisma.produto.update({
@@ -80,6 +90,10 @@ export class ProductImagensService {
     await this.findOne(id);
 
     const existProduct = await this.prisma.produto.findUnique({
+      select: {
+        codigo: true,
+        referencia: true,
+      },
       where: {
         codigo: productImage.produtoCodigo,
       },
@@ -87,6 +101,12 @@ export class ProductImagensService {
 
     if (!existProduct) {
       throw new BadRequestException('Product does not exist');
+    }
+
+    const [referenceFile] = productImage.nome.split('_');
+
+    if (referenceFile.toUpperCase() !== existProduct.referencia.toUpperCase()) {
+      throw new BadRequestException(`References don't match`);
     }
 
     await this.prisma.produto.update({
