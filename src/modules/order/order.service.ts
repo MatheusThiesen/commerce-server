@@ -630,7 +630,15 @@ export class OrderService {
 
     const filterList: FilterListProps[] = [];
 
-    const filterNormalized = [];
+    const filterNormalized = [
+      {
+        vendedores: {
+          some: {
+            vendedorCodigo: user.vendedorCodigo,
+          },
+        },
+      },
+    ];
 
     const clients = await this.prisma.pedido.findMany({
       distinct: 'clienteCodigo',

@@ -34,6 +34,7 @@ export class AuthService {
         id: true,
         email: true,
         eVendedor: true,
+        vendedorCodigo: true,
         tokenRefresh: true,
       },
       where: {
