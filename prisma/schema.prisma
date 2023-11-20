@@ -239,6 +239,9 @@ model Produto {
   imagens             ProdutoImagem[]
 
   @@index([marcaCodigo, grupoCodigo, subGrupoId, eAtivo, linhaCodigo, colecaoCodigo, generoCodigo, possuiFoto])
+  @@index([grupoCodigo])
+  @@index([subGrupoId])
+  @@index([linhaCodigo])
   @@map("produtos")
 }
 
