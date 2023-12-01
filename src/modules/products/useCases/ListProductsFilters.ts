@@ -29,6 +29,16 @@ export class ListProductsFilters {
   async execute({ where }: ListProductsFiltersProps) {
     const filterList: FilterListProps[] = [];
 
+    const salePrices = await this.prisma.produto.aggregate({
+      _max: {
+        precoVenda: true,
+      },
+      _min: {
+        precoVenda: true,
+      },
+      where: where,
+    });
+
     const brands = await this.prisma.produto.findMany({
       distinct: 'marcaCodigo',
       where: where,
@@ -172,6 +182,20 @@ export class ListProductsFilters {
           name: brand.marca.descricao,
           value: brand.marca.codigo,
         })),
+      },
+      {
+        label: 'Preço de venda',
+        name: 'salePrices',
+        data: [
+          {
+            name: 'min',
+            value: salePrices._min.precoVenda,
+          },
+          {
+            name: 'max',
+            value: salePrices._max.precoVenda,
+          },
+        ],
       },
       {
         label: 'Linha',

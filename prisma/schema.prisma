@@ -35,9 +35,11 @@ model Vendedor {
   nome          String
   nomeGuerra    String
   email         String?
+  codDiretor    Int?
   codGerente    Int?
   codSupervisor Int?
   eAtivo        Boolean  @default(true)
+  eDiretor      Boolean  @default(false)
   eGerente      Boolean  @default(false)
   eSupervisor   Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -48,6 +50,7 @@ model Vendedor {
   carteiraClienteRepresentante CarteiraClienteRepresentante[]
   vendedorPedido               VendedorPedido[]
   titulo                       Titulo[]
+  diferenciado                 Diferenciado[]
 
   @@map("vendedores")
 }
@@ -415,12 +418,34 @@ model ProdutoNaoImportado {
   @@map("produtosNaoImportado")
 }
 
+model Diferenciado {
+  id String @id @unique @default(uuid())
+
+  motivoDiferenciado String?
+  tipoDesconto       Int? // 1 - valor OR 2 - percentual
+  percentualDesconto Int?
+  valorDesconto      Int?
+
+  vendedorCodigo Int
+  vendedor       Vendedor @relation(fields: [vendedorCodigo], references: [codigo])
+  pedidoCodigo   Int
+  pedido         Pedido   @relation(fields: [pedidoCodigo], references: [codigo])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Pedido {
   codigo          Int      @id @unique @default(autoincrement())
   dataFaturamento DateTime
   valorTotal      Float
   eRascunho       Boolean  @default(false)
   codigoErp       Int?     @unique
+
+  eDiferenciado      Boolean @default(false)
+  tipoDesconto       Int? // 1 - valor OR 2 - percentual
+  percentualDesconto Int?
+  valorDesconto      Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -440,9 +465,10 @@ model Pedido {
   localCobranca           LocalCobranca     @relation(fields: [localCobrancaCodigo], references: [codigo])
   localCobrancaCodigo     Int
 
-  itens      ItemPedido[]
-  registros  Registro[]
-  vendedores VendedorPedido[]
+  itens        ItemPedido[]
+  registros    Registro[]
+  vendedores   VendedorPedido[]
+  diferenciado Diferenciado[]
 
   @@map("pedidos")
 }
