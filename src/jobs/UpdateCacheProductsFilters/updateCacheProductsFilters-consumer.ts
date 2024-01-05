@@ -1,4 +1,4 @@
-import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
+import { InjectRedis } from '@nestjs-modules/ioredis';
 import {
   // OnQueueActive,
   // OnQueueCompleted,
@@ -7,6 +7,7 @@ import {
   Processor,
 } from '@nestjs/bull';
 import { Job } from 'bull';
+import Redis from 'ioredis';
 import { ListProductsFilters } from 'src/modules/products/useCases/ListProductsFilters';
 import { ListingRule } from 'src/modules/products/useCases/ListingRule';
 

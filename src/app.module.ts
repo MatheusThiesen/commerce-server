@@ -8,6 +8,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AtGuard } from './common/guards';
 import { PrismaModule } from './database/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BilletsModule } from './modules/billets/billets.module';
 import { BillingLocationsModule } from './modules/billing-locations/billing-locations.module';
 import { BranchActivityModule } from './modules/branch-activists/branch-activists.module';
 import { BrandsModule } from './modules/brands/brands.module';
@@ -33,7 +34,6 @@ import { SellersModule } from './modules/sellers/sellers.module';
 import { StockLocationsModule } from './modules/stock-locations/stock-locations.module';
 import { SubgroupsModule } from './modules/subgroups/subgroups.module';
 import { UtilsModule } from './utils/utils.module';
-import { BilletsModule } from './modules/billets/billets.module';
 
 @Module({
   imports: [
@@ -41,10 +41,11 @@ import { BilletsModule } from './modules/billets/billets.module';
 
     ScheduleModule.forRoot(),
 
-    RedisModule.forRoot({
-      config: {
+    RedisModule.forRootAsync({
+      useFactory: () => ({
+        type: 'single',
         url: `redis://${process.env.REDIS_HOST}:${+process.env.REDIS_PORT}`,
-      },
+      }),
     }),
 
     BullModule.forRoot({

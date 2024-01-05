@@ -1,5 +1,6 @@
-import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
+import { InjectRedis } from '@nestjs-modules/ioredis';
 import { BadRequestException, Injectable } from '@nestjs/common';
+import Redis from 'ioredis';
 import { CreateManyProductsProducerService } from 'src/jobs/CreateManyProducts/createManyProducts-producer-service';
 import { UpdateCacheProductsFiltersProducerService } from 'src/jobs/UpdateCacheProductsFilters/updateCacheProductsFilters-producer-service';
 import { PrismaService } from '../../database/prisma.service';
