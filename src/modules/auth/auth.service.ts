@@ -5,7 +5,8 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { compare, hash } from 'bcryptjs';
+import * as argon from 'argon2';
+import { hash } from 'argon2';
 import * as crypto from 'crypto';
 import { sendMailProducerService } from 'src/jobs/SendMail/sendMail-producer-service';
 import { LayoutMail } from 'src/utils/LayoutMail.utils';
@@ -58,7 +59,7 @@ export class AuthService {
     if (!user || !user.tokenRefresh)
       throw new UnauthorizedException('Access Denied');
 
-    const rtMatches = await compare(user.tokenRefresh, rt);
+    const rtMatches = await argon.verify(user.tokenRefresh, rt);
     if (!rtMatches) throw new UnauthorizedException('Access Denied');
 
     const tokens = await this.getTokens(user.id, user.email);
@@ -78,7 +79,7 @@ export class AuthService {
     const user = new User();
     Object.assign(user, {
       ...dto,
-      senha: await hash(dto.senha, 8),
+      senha: await hash(dto.senha),
     });
 
     const createdUser = await this.prisma.usuario.create({
@@ -100,7 +101,7 @@ export class AuthService {
 
     if (!user || !user.eAtivo) throw new UnauthorizedException('Access Denied');
 
-    const passwordMatches = await compare(user.senha, dto.senha);
+    const passwordMatches = await argon.verify(user.senha, dto.senha);
     if (!passwordMatches) throw new UnauthorizedException('Access Denied');
 
     const tokens = await this.getTokens(user.id, user.email);
@@ -226,13 +227,13 @@ export class AuthService {
 
     if (!user) throw new BadRequestException('Access Denied');
 
-    const passwordMatches = await compare(user.senha, dto.antigaSenha);
+    const passwordMatches = await argon.verify(user.senha, dto.antigaSenha);
     if (!passwordMatches)
       throw new BadRequestException('Senha atual não corresponde');
 
     await this.prisma.usuario.update({
       data: {
-        senha: await hash(dto.senha, 8),
+        senha: await hash(dto.senha),
       },
       where: { id: userId },
     });
@@ -301,7 +302,7 @@ export class AuthService {
 
     await this.prisma.usuario.update({
       data: {
-        senha: await hash(password, 8),
+        senha: await hash(password),
         senhaResetToken: '',
       },
       where: {
@@ -316,7 +317,7 @@ export class AuthService {
   }
 
   async updateRtPassword(userId: string, rt: string): Promise<void> {
-    const tokenRefresh = await hash(rt, 8);
+    const tokenRefresh = await argon.hash(rt);
     await this.prisma.usuario.update({
       where: {
         id: userId,
