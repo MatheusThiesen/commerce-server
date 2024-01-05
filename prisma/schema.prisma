@@ -242,9 +242,12 @@ model Produto {
   imagens             ProdutoImagem[]
 
   @@index([marcaCodigo, grupoCodigo, subGrupoId, eAtivo, linhaCodigo, colecaoCodigo, generoCodigo, possuiFoto])
+  @@index([marcaCodigo])
+  @@index([generoCodigo])
   @@index([grupoCodigo])
   @@index([subGrupoId])
   @@index([linhaCodigo])
+  @@index([colecaoCodigo])
   @@map("produtos")
 }
 
