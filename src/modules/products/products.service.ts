@@ -274,30 +274,30 @@ export class ProductsService {
         descricaoAdicional: true,
         precoVenda: true,
 
-        imagens: {
-          take: 1,
-          orderBy: { sequencia: 'asc' },
-          select: {
-            nome: true,
-          },
-        },
+        // imagens: {
+        //   take: 1,
+        //   orderBy: { sequencia: 'asc' },
+        //   select: {
+        //     nome: true,
+        //   },
+        // },
 
-        listaPreco: {
-          select: {
-            id: true,
-            descricao: true,
-            valor: true,
-            codigo: true,
-          },
-          where: {
-            codigo: {
-              in: [28, 42, 56, 300],
-            },
-          },
-          orderBy: {
-            codigo: 'asc',
-          },
-        },
+        // listaPreco: {
+        //   select: {
+        //     id: true,
+        //     descricao: true,
+        //     valor: true,
+        //     codigo: true,
+        //   },
+        //   where: {
+        //     codigo: {
+        //       in: [28, 42, 56, 300],
+        //     },
+        //   },
+        //   orderBy: {
+        //     codigo: 'asc',
+        //   },
+        // },
 
         ...(reportAddSelect as any),
       },
