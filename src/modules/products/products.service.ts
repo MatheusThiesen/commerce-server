@@ -12,6 +12,7 @@ import { ItemFilter } from './dto/query-products.type';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { AgroupGridProduct } from './useCases/AgroupGridProduct';
+import { FetchProducts } from './useCases/FetchProducts';
 import { ListProductsFilters } from './useCases/ListProductsFilters';
 import { ListingRule } from './useCases/ListingRule';
 import { VariationsProduct } from './useCases/VariationsProduct';
@@ -63,6 +64,7 @@ export class ProductsService {
     private readonly listingRule: ListingRule,
     private readonly filterOrderNormalized: FilterOrderNormalized,
     private readonly searchFilter: SearchFilter,
+    private readonly fetchProducts: FetchProducts,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
@@ -261,6 +263,21 @@ export class ProductsService {
           }
         : {};
 
+    // const fetchProducts = await this.fetchProducts.execute({
+    //   orderBy,
+    //   page,
+    //   pagesize,
+    //   filters,
+    //   userId,
+    // });
+
+    // return {
+    //   data: fetchProducts.products,
+    //   page,
+    //   pagesize,
+    //   hasNextPage: fetchProducts.products.length >= pagesize,
+    // };
+
     const products = await this.prisma.produto.findMany({
       distinct: distinct ? (distinct as any) : undefined,
       take: pagesize,
@@ -274,30 +291,30 @@ export class ProductsService {
         descricaoAdicional: true,
         precoVenda: true,
 
-        // imagens: {
-        //   take: 1,
-        //   orderBy: { sequencia: 'asc' },
-        //   select: {
-        //     nome: true,
-        //   },
-        // },
+        imagens: {
+          take: 1,
+          orderBy: { sequencia: 'asc' },
+          select: {
+            nome: true,
+          },
+        },
 
-        // listaPreco: {
-        //   select: {
-        //     id: true,
-        //     descricao: true,
-        //     valor: true,
-        //     codigo: true,
-        //   },
-        //   where: {
-        //     codigo: {
-        //       in: [28, 42, 56, 300],
-        //     },
-        //   },
-        //   orderBy: {
-        //     codigo: 'asc',
-        //   },
-        // },
+        listaPreco: {
+          select: {
+            id: true,
+            descricao: true,
+            valor: true,
+            codigo: true,
+          },
+          where: {
+            codigo: {
+              in: [28, 42, 56, 300],
+            },
+          },
+          orderBy: {
+            codigo: 'asc',
+          },
+        },
 
         ...(reportAddSelect as any),
       },

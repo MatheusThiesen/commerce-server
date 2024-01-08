@@ -51,6 +51,45 @@ export class FilterOrderNormalized {
           };
         }
 
+        if (filterGroup.value === 'priceListCod') {
+          newFilter = {
+            listaPreco: {
+              some: {
+                codigo: { in: filterGroup.data.map((item) => item.value) },
+              },
+            },
+          };
+        }
+
+        if (filterGroup.value === 'concept') {
+          newFilter = {
+            subGrupo: {
+              regraProdutoConceito: {
+                some: {
+                  conceitoCodigo: {
+                    in: filterGroup.data.map((item) => item.value),
+                  },
+                },
+              },
+            },
+          };
+        }
+
+        if (filterGroup.value === 'possuiFoto') {
+          newFilter = {
+            possuiFoto: Boolean(Number(filterGroup.data[0].value)),
+          };
+        }
+
+        if (filterGroup.value === 'salePrices') {
+          newFilter = {
+            precoVenda: {
+              gte: filterGroup.data[0].value,
+              lte: filterGroup.data[1].value,
+            },
+          };
+        }
+
         if (filterGroup.value === 'clientCod') {
           const findOneClient = await this.prisma.cliente.findUnique({
             select: {
@@ -159,45 +198,6 @@ export class FilterOrderNormalized {
               },
             };
           }
-        }
-
-        if (filterGroup.value === 'priceListCod') {
-          newFilter = {
-            listaPreco: {
-              some: {
-                codigo: { in: filterGroup.data.map((item) => item.value) },
-              },
-            },
-          };
-        }
-
-        if (filterGroup.value === 'concept') {
-          newFilter = {
-            subGrupo: {
-              regraProdutoConceito: {
-                some: {
-                  conceitoCodigo: {
-                    in: filterGroup.data.map((item) => item.value),
-                  },
-                },
-              },
-            },
-          };
-        }
-
-        if (filterGroup.value === 'possuiFoto') {
-          newFilter = {
-            possuiFoto: Boolean(Number(filterGroup.data[0].value)),
-          };
-        }
-
-        if (filterGroup.value === 'salePrices') {
-          newFilter = {
-            precoVenda: {
-              gte: filterGroup.data[0].value,
-              lte: filterGroup.data[1].value,
-            },
-          };
         }
 
         filterNormalized = { ...filterNormalized, ...newFilter };

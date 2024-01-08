@@ -8,15 +8,6 @@ interface ListProductsFiltersProps {
 }
 
 /*
-Filtros
--[X] Marca
--[X] Colecao
--[X] Linha
--[X] Grupo
--[X] Subgrupo
--[X] Referencia
--[X] Cód. Produto
-
 **Talvez
   - CorPrimaria
   - CorSecundaria
