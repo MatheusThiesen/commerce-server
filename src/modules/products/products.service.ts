@@ -12,7 +12,6 @@ import { ItemFilter } from './dto/query-products.type';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { AgroupGridProduct } from './useCases/AgroupGridProduct';
-import { FetchProducts } from './useCases/FetchProducts';
 import { ListProductsFilters } from './useCases/ListProductsFilters';
 import { ListingRule } from './useCases/ListingRule';
 import { VariationsProduct } from './useCases/VariationsProduct';
@@ -64,7 +63,6 @@ export class ProductsService {
     private readonly listingRule: ListingRule,
     private readonly filterOrderNormalized: FilterOrderNormalized,
     private readonly searchFilter: SearchFilter,
-    private readonly fetchProducts: FetchProducts,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 

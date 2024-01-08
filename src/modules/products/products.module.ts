@@ -9,7 +9,6 @@ import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { AgroupGridProduct } from './useCases/AgroupGridProduct';
 import { CacheListProductsFilters } from './useCases/CacheListProductsFilters';
-import { FetchProducts } from './useCases/FetchProducts';
 import { ListProductsFilters } from './useCases/ListProductsFilters';
 import { ListingRule } from './useCases/ListingRule';
 import { TurnStock } from './useCases/TurnStock';
@@ -28,7 +27,6 @@ import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
   controllers: [ProductsController],
   providers: [
     ProductsService,
-    FetchProducts,
     ListProductsFilters,
     SearchFilter,
     VariationsProduct,
