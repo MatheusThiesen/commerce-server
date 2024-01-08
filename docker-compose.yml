@@ -3,7 +3,7 @@ services:
   api:
     container_name: commerce-server-api
     build: ./
-    restart: alwaysw
+    restart: always
     image: commerce-server-api
     ports:
       - 5469:4444
