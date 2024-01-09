@@ -203,6 +203,11 @@ model Produto {
   descricaoAdicional    String?
   precoVenda            Float
   precoVendaEmpresa     Float?
+  imagemPreview         String?
+  precoTabela28         Float?
+  precoTabela42         Float?
+  precoTabela56         Float?
+  precoTabela300        Float?
   qtdEmbalagem          Int      @default(0)
   obs                   String?
   ncm                   String?
@@ -286,13 +291,13 @@ model ListaPreco {
   descricao String
   valor     Float
   eAtivo    Boolean  @default(true)
-  eVenda    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
   produtoCodigo Int
 
+  @@unique([produtoCodigo, codigo])
   @@map("listasPreco")
 }
 
@@ -421,11 +426,16 @@ model ProdutoNaoImportado {
   @@map("produtosNaoImportado")
 }
 
+enum TipoDescontoDiferenciado {
+  VALOR
+  PERCENTUAL
+}
+
 model Diferenciado {
   id String @id @unique @default(uuid())
 
   motivoDiferenciado String?
-  tipoDesconto       Int? // 1 - valor OR 2 - percentual
+  tipoDesconto       TipoDescontoDiferenciado
   percentualDesconto Int?
   valorDesconto      Int?
 
@@ -445,8 +455,8 @@ model Pedido {
   eRascunho       Boolean  @default(false)
   codigoErp       Int?     @unique
 
-  eDiferenciado      Boolean @default(false)
-  tipoDesconto       Int? // 1 - valor OR 2 - percentual
+  eDiferenciado      Boolean                   @default(false)
+  tipoDesconto       TipoDescontoDiferenciado?
   percentualDesconto Int?
   valorDesconto      Float?
 

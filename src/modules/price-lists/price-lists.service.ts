@@ -15,7 +15,10 @@ export class PriceListsService {
 
     const priceListExists = await this.prisma.listaPreco.findUnique({
       where: {
-        id: createPriceListDto.id,
+        produtoCodigo_codigo: {
+          codigo: createPriceListDto.codigo,
+          produtoCodigo: createPriceListDto.produtoCodigo,
+        },
       },
     });
 
@@ -26,6 +29,12 @@ export class PriceListsService {
     const createdColor = await this.prisma.listaPreco.create({
       data: priceList,
     });
+
+    await this.updateProduct(
+      createPriceListDto.produtoCodigo,
+      createPriceListDto.codigo,
+      createPriceListDto.valor,
+    );
 
     return createdColor;
   }
@@ -48,7 +57,14 @@ export class PriceListsService {
     const priceList = new PriceList();
     Object.assign(priceList, updatePriceListDto);
 
-    await this.findOne(id);
+    await this.prisma.listaPreco.findUniqueOrThrow({
+      where: {
+        produtoCodigo_codigo: {
+          codigo: priceList.codigo,
+          produtoCodigo: priceList.produtoCodigo,
+        },
+      },
+    });
 
     const updetedPriceList = await this.prisma.listaPreco.update({
       data: priceList,
@@ -56,6 +72,12 @@ export class PriceListsService {
         id: id,
       },
     });
+
+    await this.updateProduct(
+      updetedPriceList.produtoCodigo,
+      updetedPriceList.codigo,
+      updetedPriceList.valor,
+    );
 
     return updetedPriceList;
   }
@@ -79,7 +101,10 @@ export class PriceListsService {
 
       const priceListExists = await this.prisma.listaPreco.findUnique({
         where: {
-          id: priceList.id,
+          produtoCodigo_codigo: {
+            codigo: priceList.codigo,
+            produtoCodigo: priceList.produtoCodigo,
+          },
         },
       });
 
@@ -95,5 +120,18 @@ export class PriceListsService {
     }
 
     return;
+  }
+
+  async updateProduct(productCode: number, listCode: number, value: number) {
+    const updated = {
+      [`precoTabela${listCode}`]: value,
+    };
+
+    await this.prisma.produto.update({
+      data: updated,
+      where: {
+        codigo: productCode,
+      },
+    });
   }
 }

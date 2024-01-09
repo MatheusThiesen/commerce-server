@@ -37,7 +37,7 @@ export class ProductsController {
       pagesize: Number(pagesize),
       orderBy: orderby,
       filters: filters?.map((f) => JSON.parse(f as string)),
-      distinct: distinct,
+      distinct: distinct as 'codigoAlternativo' | 'referencia',
       userId: userId,
       isReport: isReport,
       search,

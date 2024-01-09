@@ -3,12 +3,27 @@ import { GroupByObj } from 'src/utils/GroupByObj.utils';
 import { PrismaService } from '../../../database/prisma.service';
 import { ItemFilter } from '../dto/query-products.type';
 
+interface GetProductParams {
+  codigo: number;
+  codigoAlternativo: string;
+  referencia: string;
+  descricao: string;
+  precoVenda: number;
+  precoTabela28: number;
+  precoTabela42: number;
+  precoTabela56: number;
+  precoTabela300: number;
+}
+
 interface FetchProductsRequest {
   page: number;
   pagesize: number;
   orderBy: string;
   filters: ItemFilter[];
   userId: string;
+
+  distinct?: 'codigoAlternativo' | 'referencia';
+  search?: string;
 }
 interface FetchProductsResponse {
   products: any[];
@@ -27,54 +42,107 @@ export class FetchProducts {
     orderBy,
     filters,
     userId,
+    distinct,
+    search,
   }: FetchProductsRequest): Promise<FetchProductsResponse> {
     const brandsForSeller = await this.verifyUserAndBrandsForSeller(userId);
 
     const orderByNormalized = this.orderByNormalized(orderBy);
     const whereNormalized = await this.whereNormalized(filters);
+    const searchNormalized = this.searchNormalized(search);
+    const distinctNormalized = this.distinctNormalized(distinct);
 
-    const products = await this.prisma.$queryRawUnsafe<any[]>(`
-    with listProduct as (
-      select 
-        p."codigoAlternativo",
-        p.codigo,
-        p.referencia,
-        p.descricao,
-        p."descricaoAdicional",
-        p."precoVenda",
-        p."marcaCodigo",
-        p."linhaCodigo",
-        p."colecaoCodigo",
-        p."grupoCodigo",
-        p."subGrupoId",
-        p."generoCodigo",
-        
-        m.ornador as "marcaOrdernador", g.ornador as "grupoOrdernador", gen.ornador as "generoOrdernador"
+    const query = `
+      with listProduct as (
+        select
+          ${distinctNormalized} 
+          p.referencia,
+          p."codigoAlternativo",
+          p.codigo,
+          p.descricao,
+          p."precoVenda",
+          p."precoTabela28",
+          p."precoTabela42",
+          p."precoTabela56",
+          p."precoTabela300",
+          m.ornador as "marcaOrdernador", g.ornador as "grupoOrdernador", gen.ornador as "generoOrdernador"
         from produtos p 
         inner join "locaisEstoque" le on le."produtoCodigo" = p.codigo
         inner join marcas m on p."marcaCodigo" = m.codigo 
         inner join grupos g on p."grupoCodigo" = g.codigo 
         inner join generos gen on p."generoCodigo" = gen.codigo 
         where 
-        -- Regra de produto ativo
-        p."eAtivo" and
-        m."eVenda" and
-        g."eVenda" and
-        le."eAtivo" and le.quantidade > 0 
-        ${brandsForSeller}
-        -- Filtros adicionais
-        ${whereNormalized}
-    )
+          -- Regra de produto ativo
+          p."eAtivo" and
+          m."eVenda" and
+          g."eVenda" and
+          le."eAtivo" and le.quantidade > 0 
+          ${brandsForSeller}
+          -- Filtros adicionais
+          ${whereNormalized}
+          ${searchNormalized}
+      )
+      select
+        l."codigoAlternativo",
+        l.codigo,
+        l.referencia,
+        l.descricao,
+        l."precoVenda",
+        l."precoTabela28",
+        l."precoTabela42",
+        l."precoTabela56",
+        l."precoTabela300"       
+      from listProduct l
+      order by l."marcaOrdernador" asc, l."grupoOrdernador" asc, l."generoOrdernador" asc, ${orderByNormalized}, l.codigo desc
+      limit ${pagesize}
+      offset ${page * pagesize}
+    `;
 
-    select * from listProduct l
-    order by l."marcaOrdernador" asc, l."grupoOrdernador" asc, l."generoOrdernador" asc, ${orderByNormalized}, l.codigo desc
-    limit ${pagesize}
-    offset ${page * pagesize}
-  `);
+    const products = await this.prisma.$queryRawUnsafe<GetProductParams[]>(
+      query,
+    );
 
     return {
-      products,
+      products: products,
     };
+  }
+
+  orderByNormalized(orderby: string) {
+    if (!orderby) return '';
+
+    const [field, orderbyType] = orderby.split('.');
+
+    return `l."${field}" ${orderbyType}`;
+  }
+
+  searchNormalized(search: string) {
+    if (!search) return '';
+
+    const query: string[] = [];
+
+    query.push(`UPPER(p.descricao) like UPPER('%${search}%')`);
+    query.push(`UPPER(p.referencia) like UPPER('%${search}%')`);
+    query.push(`UPPER(p."codigoAlternativo") like UPPER('%${search}%')`);
+
+    if (!isNaN(Number(search))) {
+      query.push(`p.codigo = ${Number(search)}`);
+    }
+
+    return 'and (' + query.join(' or ') + ')';
+  }
+
+  distinctNormalized(distinct: 'codigoAlternativo' | 'referencia' | undefined) {
+    if (!distinct) {
+      return `DISTINCT ON (p.codigo)`;
+    }
+
+    if (distinct === 'referencia') {
+      return `DISTINCT ON (p.referencia)`;
+    }
+
+    if (distinct === 'codigoAlternativo') {
+      return `DISTINCT ON (p."codigoAlternativo")`;
+    }
   }
 
   async whereNormalized(filters: ItemFilter[]) {
@@ -251,14 +319,6 @@ export class FetchProducts {
     }
 
     return 'and ' + query.join(' and ');
-  }
-
-  orderByNormalized(orderby: string) {
-    if (!orderby) return '';
-
-    const [field, orderbyType] = orderby.split('.');
-
-    return `l."${field}" ${orderbyType}`;
   }
 
   async verifyUserAndBrandsForSeller(userId) {

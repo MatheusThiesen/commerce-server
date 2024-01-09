@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "produtos" ADD COLUMN     "precoTabela28" DOUBLE PRECISION,
+ADD COLUMN     "precoTabela300" DOUBLE PRECISION,
+ADD COLUMN     "precoTabela42" DOUBLE PRECISION,
+ADD COLUMN     "precoTabela56" DOUBLE PRECISION;

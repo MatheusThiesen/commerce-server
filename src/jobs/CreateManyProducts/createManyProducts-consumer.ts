@@ -47,6 +47,7 @@ class CreateManyProductsConsumer {
         ncm,
         unidadeMedida,
         unidadeMedidaDescricao,
+        imagemPreview,
       ] = productsArr;
 
       const product = new Product();
@@ -76,6 +77,7 @@ class CreateManyProductsConsumer {
         ncm: ncm,
         unidadeMedida: unidadeMedida,
         unidadeMedidaDescricao: unidadeMedidaDescricao,
+        imagemPreview: imagemPreview,
       });
 
       const productExists = await this.prisma.produto.findUnique({

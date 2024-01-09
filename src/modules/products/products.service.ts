@@ -12,6 +12,7 @@ import { ItemFilter } from './dto/query-products.type';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { AgroupGridProduct } from './useCases/AgroupGridProduct';
+import { FetchProducts } from './useCases/FetchProducts';
 import { ListProductsFilters } from './useCases/ListProductsFilters';
 import { ListingRule } from './useCases/ListingRule';
 import { VariationsProduct } from './useCases/VariationsProduct';
@@ -23,9 +24,9 @@ type listAllProps = {
   orderBy: string;
   filters: ItemFilter[];
   userId: string;
-  distinct?: string;
-  isReport?: number;
+  distinct?: 'codigoAlternativo' | 'referencia';
   search?: string;
+  isReport?: number;
 };
 
 @Injectable()
@@ -63,6 +64,7 @@ export class ProductsService {
     private readonly listingRule: ListingRule,
     private readonly filterOrderNormalized: FilterOrderNormalized,
     private readonly searchFilter: SearchFilter,
+    private readonly fetchProducts: FetchProducts,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
@@ -261,106 +263,91 @@ export class ProductsService {
           }
         : {};
 
-    // const fetchProducts = await this.fetchProducts.execute({
-    //   orderBy,
-    //   page,
-    //   pagesize,
-    //   filters,
-    //   userId,
-    // });
+    if (Number(isReport) > 0) {
+      const products = await this.prisma.produto.findMany({
+        distinct: distinct ? (distinct as any) : undefined,
+        take: pagesize,
+        skip: page * pagesize,
 
-    // return {
-    //   data: fetchProducts.products,
-    //   page,
-    //   pagesize,
-    //   hasNextPage: fetchProducts.products.length >= pagesize,
-    // };
+        select: {
+          codigo: true,
+          referencia: true,
+          codigoAlternativo: true,
+          descricao: true,
+          descricaoAdicional: true,
+          precoVenda: true,
 
-    const products = await this.prisma.produto.findMany({
-      distinct: distinct ? (distinct as any) : undefined,
-      take: pagesize,
-      skip: page * pagesize,
+          precoTabela28: true,
+          precoTabela42: true,
+          precoTabela56: true,
+          precoTabela300: true,
+          imagemPreview: true,
 
-      select: {
-        codigo: true,
-        referencia: true,
-        codigoAlternativo: true,
-        descricao: true,
-        descricaoAdicional: true,
-        precoVenda: true,
-
-        imagens: {
-          take: 1,
-          orderBy: { sequencia: 'asc' },
-          select: {
-            nome: true,
-          },
+          ...(reportAddSelect as any),
         },
 
-        listaPreco: {
-          select: {
-            id: true,
-            descricao: true,
-            valor: true,
-            codigo: true,
-          },
-          where: {
-            codigo: {
-              in: [28, 42, 56, 300],
+        orderBy: [
+          {
+            marca: {
+              ornador: 'asc',
             },
           },
-          orderBy: {
-            codigo: 'asc',
-          },
-        },
-
-        ...(reportAddSelect as any),
-      },
-
-      orderBy: [
-        {
-          marca: {
-            ornador: 'asc',
-          },
-        },
-        {
-          grupo: {
-            ornador: 'asc',
-          },
-        },
-        {
-          genero: {
-            ornador: 'asc',
-          },
-        },
-        orderByNormalized,
-        {
-          codigo: 'desc',
-        },
-      ],
-
-      where: {
-        marcaCodigo:
-          user.eVendedor && user.vendedor.marcas
-            ? {
-                in: user.vendedor.marcas.map((item) => item.codigo),
-              }
-            : undefined,
-        AND: [
-          filterNormalized,
-          this.listingRule.execute(),
           {
-            OR: this.searchFilter.execute(search, this.fieldsSearch),
+            grupo: {
+              ornador: 'asc',
+            },
+          },
+          {
+            genero: {
+              ornador: 'asc',
+            },
+          },
+          orderByNormalized,
+          {
+            codigo: 'desc',
           },
         ],
-      },
+
+        where: {
+          marcaCodigo:
+            user.eVendedor && user.vendedor.marcas
+              ? {
+                  in: user.vendedor.marcas.map((item) => item.codigo),
+                }
+              : undefined,
+          AND: [
+            filterNormalized,
+            this.listingRule.execute(),
+            {
+              OR: this.searchFilter.execute(search, this.fieldsSearch),
+            },
+          ],
+        },
+      });
+
+      return {
+        data: products,
+        page,
+        pagesize,
+        hasNextPage: products.length >= pagesize,
+      };
+    }
+
+    const fetchProducts = await this.fetchProducts.execute({
+      orderBy,
+      page,
+      pagesize,
+      filters,
+      userId,
+      distinct,
+      search,
     });
 
     return {
-      data: products,
+      data: fetchProducts.products,
       page,
       pagesize,
-      hasNextPage: products.length >= pagesize,
+      hasNextPage: fetchProducts.products.length >= pagesize,
     };
   }
 
