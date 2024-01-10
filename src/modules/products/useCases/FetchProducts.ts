@@ -120,9 +120,9 @@ export class FetchProducts {
 
     const query: string[] = [];
 
-    query.push(`UPPER(p.descricao) like UPPER('%${search}%')`);
-    query.push(`UPPER(p.referencia) like UPPER('%${search}%')`);
-    query.push(`UPPER(p."codigoAlternativo") like UPPER('%${search}%')`);
+    query.push(`unaccent(p.descricao) ilike unaccent('%${search}%')`);
+    query.push(`unaccent(p.referencia) ilike unaccent('%${search}%')`);
+    query.push(`unaccent(p."codigoAlternativo") ilike unaccent('%${search}%')`);
 
     if (!isNaN(Number(search))) {
       query.push(`p.codigo = ${Number(search)}`);
