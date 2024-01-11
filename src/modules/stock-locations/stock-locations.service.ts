@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
+import * as dayjs from 'dayjs';
 import { ParseCsv } from '../../utils/ParseCsv.utils';
 import { CreateStockLocationDto } from './dto/create-stock-location.dto';
 import { UpdateStockLocationDto } from './dto/update-stock-location.dto';
@@ -155,6 +156,30 @@ export class StockLocationsService {
       }
     }
 
+    const yesterday = dayjs()
+      .set('s', 59)
+      .set('m', 59)
+      .set('h', 23)
+      .add(-1, 'day')
+      .toDate();
+
+    await this.prisma.localEstoque.deleteMany({
+      where: {
+        OR: [
+          {
+            quantidade: {
+              lte: 0,
+            },
+          },
+          {
+            updatedAt: {
+              lte: yesterday,
+            },
+          },
+        ],
+      },
+    });
+
     return;
   }
 
@@ -170,14 +195,5 @@ export class StockLocationsService {
         data: period,
       });
     }
-
-    // else {
-    //   await this.prisma.periodoEstoque.update({
-    //     data: period,
-    //     where: {
-    //       periodo: period.periodo,
-    //     },
-    //   });
-    // }
   }
 }
