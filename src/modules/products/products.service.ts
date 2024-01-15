@@ -487,6 +487,11 @@ export class ProductsService {
             descricao: true,
           },
         },
+        imagens: {
+          select: {
+            nome: true,
+          },
+        },
         corSecundariaCodigo: true,
         corSecundaria: {
           select: {
