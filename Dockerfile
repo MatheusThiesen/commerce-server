@@ -1,8 +1,8 @@
-FROM node:20.3.1
+FROM node:20.10.0
 
 WORKDIR /usr/src/commerce-server
 COPY package*.json ./
-RUN npm install 
+RUN yarn 
 #install --production
 # RUN npm install 
 # --only=prod --omit=dev
