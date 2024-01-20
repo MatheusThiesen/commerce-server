@@ -1,5 +1,5 @@
 import { BullModule } from '@nestjs/bull';
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { CreateManyProductsConsumer } from '../../jobs/CreateManyProducts/createManyProducts-consumer';
 import { CreateManyProductsProducerService } from '../../jobs/CreateManyProducts/createManyProducts-producer-service';
 import { UpdateCacheProductsFiltersConsumer } from '../../jobs/UpdateCacheProductsFilters/updateCacheProductsFilters-consumer';
@@ -16,6 +16,7 @@ import { TurnStock } from './useCases/TurnStock';
 import { VariationsProduct } from './useCases/VariationsProduct';
 import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
 
+@Global()
 @Module({
   imports: [
     BullModule.registerQueue({
@@ -27,6 +28,22 @@ import { FilterOrderNormalized } from './useCases/filterOrderNormalized';
   ],
   controllers: [ProductsController],
   providers: [
+    ProductsService,
+    FetchProducts,
+    ListProductsFilters,
+    SearchFilter,
+    VariationsProduct,
+    CreateManyProductsConsumer,
+    CreateManyProductsProducerService,
+    UpdateCacheProductsFiltersConsumer,
+    UpdateCacheProductsFiltersProducerService,
+    AgroupGridProduct,
+    ListingRule,
+    FilterOrderNormalized,
+    CacheListProductsFilters,
+    TurnStock,
+  ],
+  exports: [
     ProductsService,
     FetchProducts,
     ListProductsFilters,

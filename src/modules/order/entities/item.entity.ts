@@ -5,4 +5,5 @@ export class Item {
   sequencia: number;
   pedidoCodigo?: number;
   produtoCodigo: number;
+  produto?: unknown;
 }

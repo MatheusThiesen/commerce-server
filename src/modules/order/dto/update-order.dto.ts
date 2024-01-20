@@ -1,3 +1,3 @@
-import { CreateOrderDto } from './create-order.dto';
+import { Order } from '../entities/order.entity';
 
-export class UpdateOrderDto extends CreateOrderDto {}
+export class UpdateOrderDto extends Order {}

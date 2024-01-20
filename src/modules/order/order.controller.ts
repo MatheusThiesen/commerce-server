@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseInterceptors,
@@ -11,6 +12,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetCurrentUserId } from 'src/common/decorators';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrderService } from './order.service';
 
 @Controller('orders')
@@ -20,6 +22,15 @@ export class OrderController {
   @Post()
   create(@Body() createOrderDto: CreateOrderDto) {
     return this.orderService.create(createOrderDto);
+  }
+
+  @Put(':codigo')
+  update(
+    @GetCurrentUserId() userId: string,
+    @Body() updateOrderDto: UpdateOrderDto,
+    @Param('codigo') codigo: string,
+  ) {
+    return this.orderService.update(+codigo, updateOrderDto, userId);
   }
 
   @Get()
@@ -46,6 +57,11 @@ export class OrderController {
   @Get(':codigo')
   findOne(@Param('codigo') codigo: string, @GetCurrentUserId() userId: string) {
     return this.orderService.findOne(+codigo, userId);
+  }
+
+  @Post('sketch/:codigo')
+  sketch(@Param('codigo') codigo: string, @GetCurrentUserId() userId: string) {
+    return this.orderService.sketch(+codigo, userId);
   }
 
   @Post('import')

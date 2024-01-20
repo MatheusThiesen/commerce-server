@@ -120,4 +120,25 @@ export abstract class WatchedList<T> {
     this.removed = removedItems;
     this.updated = updatedItems;
   }
+
+  public updateOne(item: T): void {
+    if (this.isRemovedItem(item)) {
+      this.removeFromRemoved(item);
+    }
+
+    if (!this.isNewItem(item) && !this.wasAddedInitially(item)) {
+      this.new.push(item);
+    }
+
+    if (!this.isCurrentItem(item)) {
+      this.currentItems.push(item);
+    }
+
+    const updatedItems = this.currentItems.map((currentItem) =>
+      this.compareItems(currentItem, item) ? item : currentItem,
+    );
+
+    this.updated.push(item);
+    this.currentItems = updatedItems;
+  }
 }

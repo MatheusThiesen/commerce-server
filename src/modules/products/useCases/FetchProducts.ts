@@ -266,11 +266,15 @@ export class FetchProducts {
             },
           });
 
-          query.push(
-            `"subGrupoId" in (${clientConceptSubgroupsId
-              .map((f) => `'${f.id}'`)
-              .join(',')})`,
-          );
+          if (clientConceptSubgroupsId.length > 0) {
+            query.push(
+              `"subGrupoId" in (${clientConceptSubgroupsId
+                .map((f) => `'${f.id}'`)
+                .join(',')})`,
+            );
+          } else {
+            query.push(`"subGrupoId" in ('not')`);
+          }
 
           if (findOneClient?.bloqueios?.marcas.length > 0) {
             query.push(`

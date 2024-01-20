@@ -5,6 +5,7 @@ export class Order {
   dataFaturamento: Date;
   valorTotal: number;
   eRascunho: boolean;
+  rascunhoCodigo?: number;
   marcaCodigo: number;
   clienteCodigo: number;
   localCobrancaCodigo: number;

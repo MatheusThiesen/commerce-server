@@ -42,7 +42,7 @@ export class ClientsService {
     },
   ];
 
-  readonly daysAgo = 7;
+  readonly daysAgo = 15;
 
   constructor(
     private prisma: PrismaService,

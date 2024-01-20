@@ -72,4 +72,14 @@ describe('watched list', () => {
     expect(list.getUpdatedItems()).toEqual([1, 3]);
     expect(list.getUpdatedItems()).toHaveLength(2);
   });
+  it('should be able to add update from one updated', () => {
+    const list = new NumberWatchedList([1, 2, 3]);
+
+    list.updateOne(2);
+    list.updateOne(4);
+
+    expect(list.getUpdatedItems()).toEqual([2, 4]);
+    expect(list.getUpdatedItems()).toHaveLength(2);
+    expect(list.getItems()).toHaveLength(4);
+  });
 });

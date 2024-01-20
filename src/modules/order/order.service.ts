@@ -8,8 +8,10 @@ import { OrderBy } from 'src/utils/OrderBy.utils';
 import { ParseCsv } from 'src/utils/ParseCsv.utils';
 import { FieldsProps, SearchFilter } from 'src/utils/SearchFilter.utils';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
 import { RequestOrderApiErp } from './useCases/RequestOrderApiErp';
+import { SketchOrderValid } from './useCases/SketchOrderValid';
 import { TransformOrderToSendApiErp } from './useCases/TransformOrderToSendApiErp';
 
 type listAllProps = {
@@ -51,6 +53,7 @@ export class OrderService {
     private readonly sendOrderErpApiProducerService: SendOrderErpApiProducerService,
     private readonly requestOrderApiErp: RequestOrderApiErp,
     private readonly transformOrderToSendApiErp: TransformOrderToSendApiErp,
+    private readonly sketchOrderValid: SketchOrderValid,
     private parseCsv: ParseCsv,
   ) {}
 
@@ -384,12 +387,119 @@ export class OrderService {
       },
     });
 
-    if (created.eRascunho === false)
+    if (created.eRascunho === false) {
       await this.sendOrderErpApiProducerService.execute({
         orderCode: created.codigo,
       });
+    }
 
     return created;
+  }
+
+  async update(codigo: number, updateOrderDto: UpdateOrderDto, userId: string) {
+    const order = await this.findOne(codigo, userId);
+
+    const orderNormalized = await this.verifyRelationship(updateOrderDto);
+
+    if (isNaN(Number(order.codigoErp))) {
+      throw new BadRequestException('Not possible edit order sended');
+    }
+
+    for (const item of order.itens) {
+      await this.prisma.itemPedido.delete({
+        where: {
+          codigo: item.codigo,
+        },
+      });
+    }
+
+    const updated = await this.prisma.pedido.update({
+      select: {
+        codigo: true,
+        codigoErp: true,
+        dataFaturamento: true,
+        valorTotal: true,
+        eRascunho: true,
+        vendedores: {
+          select: {
+            tipo: true,
+            vendedor: {
+              select: {
+                codigo: true,
+                nome: true,
+              },
+            },
+          },
+        },
+        periodoEstoque: {
+          select: {
+            periodo: true,
+            descricao: true,
+          },
+        },
+        tabelaPreco: {
+          select: {
+            codigo: true,
+            descricao: true,
+          },
+        },
+        condicaoPagamento: {
+          select: {
+            codigo: true,
+            descricao: true,
+          },
+        },
+        cliente: {
+          select: {
+            codigo: true,
+            cnpj: true,
+            razaoSocial: true,
+          },
+        },
+        itens: {
+          select: {
+            codigo: true,
+            quantidade: true,
+            valorUnitario: true,
+            sequencia: true,
+          },
+        },
+      },
+      data: {
+        dataFaturamento: orderNormalized.dataFaturamento,
+        valorTotal: orderNormalized.valorTotal,
+        eRascunho: orderNormalized.eRascunho,
+        clienteCodigo: orderNormalized.clienteCodigo,
+        marcaCodigo: orderNormalized.marcaCodigo,
+        periodo: orderNormalized.periodoEstoque,
+        condicaoPagamentoCodigo: orderNormalized.condicaoPagamentoCodigo,
+        tabelaPrecoCodigo: orderNormalized.tabelaPrecoCodigo,
+        localCobrancaCodigo: orderNormalized.localCobrancaCodigo,
+        situacaoPedidoCodigo: orderNormalized.eRascunho ? undefined : 1,
+
+        itens: {
+          createMany: {
+            data: orderNormalized.itens.map((item, index) => ({
+              produtoCodigo: item.produtoCodigo,
+              quantidade: item.quantidade,
+              valorUnitario: item.valorUnitario,
+              sequencia: index + 1,
+            })),
+          },
+        },
+      },
+      where: {
+        codigo: order.codigo,
+      },
+    });
+
+    if (updated.eRascunho === false) {
+      await this.sendOrderErpApiProducerService.execute({
+        orderCode: updated.codigo,
+      });
+    }
+
+    return updated;
   }
 
   async findAll({
@@ -613,6 +723,35 @@ export class OrderService {
     }
 
     return order;
+  }
+
+  async sketch(codigo: number, userId: string) {
+    if (!codigo) {
+      throw new BadRequestException('codigo not specified');
+    }
+
+    const user = await this.prisma.usuario.findUnique({
+      select: {
+        vendedorCodigo: true,
+        eVendedor: true,
+      },
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user.eVendedor) {
+      throw new BadRequestException('only sellers having orders');
+    }
+
+    const sketch = await this.sketchOrderValid.execute({
+      orderCode: codigo,
+      sellerCod: user.vendedorCodigo,
+    });
+
+    console.log(sketch.itens);
+
+    return sketch;
   }
 
   async getFiltersForFindAll(userId: string) {
