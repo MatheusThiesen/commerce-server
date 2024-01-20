@@ -1,13 +1,11 @@
-FROM node:latest
+FROM node:alpine
 
+RUN mkdir -p /usr/src/commerce-server
 WORKDIR /usr/src/commerce-server
-COPY package*.json ./
-RUN yarn 
-#install --production
-# RUN npm install 
-# --only=prod --omit=dev
 
-# Bundle app source
+COPY package*.json ./
+RUN npm install
+
 COPY . .
 
 RUN npx prisma generate
