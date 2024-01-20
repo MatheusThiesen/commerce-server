@@ -2,7 +2,7 @@ FROM node:20.3.1
 
 WORKDIR /usr/src/commerce-server
 COPY package*.json ./
-RUN yarn 
+RUN npm install 
 #install --production
 # RUN npm install 
 # --only=prod --omit=dev
