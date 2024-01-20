@@ -1,4 +1,4 @@
-FROM node:20.3.1
+FROM node:latest
 
 WORKDIR /usr/src/commerce-server
 COPY package*.json ./
