@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:20-bullseye-slim
 
 WORKDIR /usr/src/commerce-server
 COPY package*.json ./
