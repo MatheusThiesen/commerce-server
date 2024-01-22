@@ -1,6 +1,6 @@
 
 # Base image
-FROM node:18
+FROM node:latest
 # FROM node:alpine
 
 # Create app directory
