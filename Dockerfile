@@ -1,4 +1,4 @@
-FROM node:20-bullseye-slim
+FROM node:20-alpine
 
 WORKDIR /usr/src/commerce-server
 COPY package*.json ./
@@ -15,4 +15,5 @@ RUN npm run build
 
 EXPOSE 4444
 
-CMD ["npm","run", "start:prod"]
+
+CMD ["node","/usr/src/commerce-server/dist/src/main"]
