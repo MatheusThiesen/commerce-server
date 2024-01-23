@@ -160,7 +160,7 @@ export class StockLocationsService {
       .set('s', 59)
       .set('m', 59)
       .set('h', 23)
-      .add(-1, 'day')
+      .add(-2, 'day')
       .toDate();
 
     await this.prisma.localEstoque.deleteMany({
