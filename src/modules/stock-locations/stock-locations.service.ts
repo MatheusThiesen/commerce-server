@@ -55,7 +55,7 @@ export class StockLocationsService {
     }
 
     const createdStockLocation = await this.prisma.localEstoque.create({
-      data: stockLocation,
+      data: { ...stockLocation, updatedAt: new Date() },
     });
 
     return createdStockLocation;
@@ -81,12 +81,11 @@ export class StockLocationsService {
 
     if (!existProduct) {
       console.log(`Produto nao existe ${stockLocation.produtoCodigo}`);
-      return;
-      // throw new BadRequestException('Product does not exist');
+      throw new BadRequestException('Product does not exist');
     }
 
     const updatedStockLocation = await this.prisma.localEstoque.update({
-      data: stockLocation,
+      data: { ...stockLocation, updatedAt: new Date() },
       where: { id },
     });
 
@@ -119,8 +118,7 @@ export class StockLocationsService {
 
       const stockLocation = new StockLocation();
 
-      const dateCurrentTime = new Date().getTime();
-      const dateTime = new Date(data).getTime();
+      const dateCurrentTime = dayjs().add(-1, 'month');
 
       Object.assign(stockLocation, {
         periodo: periodo,
@@ -129,7 +127,9 @@ export class StockLocationsService {
         quantidade: Number(quantidade),
         data: data,
         eAtivo:
-          periodo === 'pronta-entrega' ? true : dateTime >= dateCurrentTime,
+          periodo === 'pronta-entrega'
+            ? true
+            : dayjs(data).isAfter(dateCurrentTime),
       });
 
       try {
