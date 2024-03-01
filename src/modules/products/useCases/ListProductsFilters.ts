@@ -159,12 +159,15 @@ export class ListProductsFilters {
 
     filterList.push(
       {
-        label: 'Referência',
-        name: 'referencia',
-        data: references.map((reference) => ({
-          name: reference.referencia,
-          value: reference.referencia,
-        })),
+        label: 'Locais Estoque',
+        name: 'locaisEstoque',
+        data: stockLocations
+          .filter((f) => f.periodo)
+          .map((stockLocation) => ({
+            name: stockLocation.descricao,
+            value: stockLocation.periodo,
+          }))
+          .sort((a) => (a.value === 'pronta-entrega' ? -1 : 1)),
       },
       {
         label: 'Marca',
@@ -175,18 +178,33 @@ export class ListProductsFilters {
         })),
       },
       {
-        label: 'Preço de venda',
-        name: 'salePrices',
-        data: [
-          {
-            name: 'min',
-            value: salePrices._min.precoVenda,
-          },
-          {
-            name: 'max',
-            value: salePrices._max.precoVenda,
-          },
-        ],
+        label: 'Grupo',
+        name: 'grupoCodigo',
+        data: groups.map((group) => ({
+          name: group.grupo.descricao,
+          value: group.grupo.codigo,
+        })),
+      },
+      {
+        label: 'Subgrupo',
+        name: 'subGrupoId',
+        data: subgroups
+          .filter((f) => f.subGrupo)
+          .map((subgroup) => ({
+            name: subgroup.subGrupo.descricao,
+            value: subgroup.subGrupo.id,
+          })),
+      },
+
+      {
+        label: 'Gênero',
+        name: 'generoCodigo',
+        data: genders
+          .filter((f) => f.genero)
+          .map((gender) => ({
+            name: gender.genero.descricao,
+            value: gender.genero.codigo,
+          })),
       },
       {
         label: 'Linha',
@@ -209,50 +227,19 @@ export class ListProductsFilters {
           })),
       },
       {
-        label: 'Grupo',
-        name: 'grupoCodigo',
-        data: groups.map((group) => ({
-          name: group.grupo.descricao,
-          value: group.grupo.codigo,
-        })),
-      },
-      {
-        label: 'Subgrupo',
-        name: 'subGrupoId',
-        data: subgroups
-          .filter((f) => f.subGrupo)
-          .map((subgroup) => ({
-            name: subgroup.subGrupo.descricao,
-            value: subgroup.subGrupo.id,
-          })),
-      },
-      {
-        label: 'Gênero',
-        name: 'generoCodigo',
-        data: genders
-          .filter((f) => f.genero)
-          .map((gender) => ({
-            name: gender.genero.descricao,
-            value: gender.genero.codigo,
-          })),
-      },
-
-      {
-        label: 'Locais Estoque',
-        name: 'locaisEstoque',
-        data: stockLocations
-          .filter((f) => f.periodo)
-          .map((stockLocation) => ({
-            name: stockLocation.descricao,
-            value: stockLocation.periodo,
-          })),
-      },
-      {
         label: 'Conceito',
         name: 'concept',
         data: concepts.map((concept) => ({
           name: concept.descricao,
           value: concept.codigo,
+        })),
+      },
+      {
+        label: 'Referência',
+        name: 'referencia',
+        data: references.map((reference) => ({
+          name: reference.referencia,
+          value: reference.referencia,
         })),
       },
       {
@@ -269,8 +256,30 @@ export class ListProductsFilters {
           },
         ],
       },
+      {
+        label: 'Preço de venda',
+        name: 'salePrices',
+        data: [
+          {
+            name: 'min',
+            value: salePrices._min.precoVenda,
+          },
+          {
+            name: 'max',
+            value: salePrices._max.precoVenda,
+          },
+        ],
+      },
     );
 
-    return filterList;
+    return filterList
+      .filter((item) =>
+        item.name === 'marcaCodigo'
+          ? item.data.length <= 1
+            ? undefined
+            : item
+          : item,
+      )
+      .filter((boolean) => boolean);
   }
 }

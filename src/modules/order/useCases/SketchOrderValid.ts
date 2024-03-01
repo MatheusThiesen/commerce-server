@@ -51,6 +51,7 @@ export class SketchOrderValid {
   }: SketchOrderValidRequest): Promise<SketchOrderValidResponse> {
     const getOrder = await this.prisma.pedido.findFirst({
       select: {
+        eDiferenciado: true,
         periodo: true,
         cliente: {
           select: {
@@ -78,14 +79,12 @@ export class SketchOrderValid {
             },
           },
         },
-
         tabelaPreco: {
           select: {
             codigo: true,
             descricao: true,
           },
         },
-
         periodoEstoque: {
           select: {
             descricao: true,
@@ -204,6 +203,21 @@ export class SketchOrderValid {
                   },
                   orderBy: {
                     codigo: 'asc',
+                  },
+                },
+
+                locaisEstoque: {
+                  orderBy: {
+                    data: 'asc',
+                  },
+                  select: {
+                    id: true,
+                    periodo: true,
+                    descricao: true,
+                    quantidade: true,
+                  },
+                  where: {
+                    ...this.listingRule.execute().locaisEstoque.some,
                   },
                 },
               },

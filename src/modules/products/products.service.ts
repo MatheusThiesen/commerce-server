@@ -438,6 +438,7 @@ export class ProductsService {
         ncm: true,
         obs: true,
         qtdEmbalagem: true,
+        imagemPreview: true,
         unidade: {
           select: {
             unidade: true,

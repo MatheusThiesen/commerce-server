@@ -15,5 +15,12 @@ export class Order {
   condicaoPagamentoCodigo: number;
   periodoEstoque: string;
 
+  eDiferenciado: boolean;
+  descontoPercentual?: number;
+  descontoValor?: number;
+  descontoCalculado?: number;
+  tipoDesconto?: 'VALOR' | 'PERCENTUAL';
+  motivoDiferenciado?: string;
+
   itens: Item[];
 }

@@ -307,6 +307,7 @@ export class OrderService {
         dataFaturamento: true,
         valorTotal: true,
         eRascunho: true,
+        eDiferenciado: true,
         vendedores: {
           select: {
             tipo: true,
@@ -355,14 +356,38 @@ export class OrderService {
       data: {
         dataFaturamento: orderNormalized.dataFaturamento,
         valorTotal: orderNormalized.valorTotal,
-        eRascunho: orderNormalized.eRascunho,
         clienteCodigo: orderNormalized.clienteCodigo,
         marcaCodigo: orderNormalized.marcaCodigo,
         periodo: orderNormalized.periodoEstoque,
         condicaoPagamentoCodigo: orderNormalized.condicaoPagamentoCodigo,
         tabelaPrecoCodigo: orderNormalized.tabelaPrecoCodigo,
         localCobrancaCodigo: orderNormalized.localCobrancaCodigo,
-        situacaoPedidoCodigo: orderNormalized.eRascunho ? undefined : 1,
+        eRascunho: orderNormalized.eRascunho,
+
+        eDiferenciado: orderNormalized.eDiferenciado,
+        tipoDesconto: orderNormalized?.tipoDesconto,
+        descontoPercentual: orderNormalized.descontoPercentual,
+        descontoValor: orderNormalized.descontoValor,
+        descontoCalculado: orderNormalized.descontoCalculado,
+
+        diferenciados:
+          orderNormalized.eDiferenciado && !!orderNormalized?.tipoDesconto
+            ? {
+                create: {
+                  tipoDesconto: orderNormalized.tipoDesconto,
+                  descontoPercentual: orderNormalized.descontoPercentual,
+                  descontoValor: orderNormalized.descontoValor,
+                  motivoDiferenciado: orderNormalized.motivoDiferenciado,
+                  vendedorCodigo: orderNormalized.vendedorCodigo,
+                  descontoCalculado: orderNormalized.descontoCalculado,
+                },
+              }
+            : undefined,
+        situacaoPedidoCodigo: orderNormalized.eRascunho
+          ? 7
+          : orderNormalized.eDiferenciado
+          ? 6
+          : 1,
         itens: {
           createMany: {
             data: orderNormalized.itens.map((item, index) => ({
@@ -387,7 +412,7 @@ export class OrderService {
       },
     });
 
-    if (created.eRascunho === false) {
+    if (created.eRascunho === false && created.eDiferenciado === false) {
       await this.sendOrderErpApiProducerService.execute({
         orderCode: created.codigo,
       });
@@ -469,6 +494,7 @@ export class OrderService {
         dataFaturamento: orderNormalized.dataFaturamento,
         valorTotal: orderNormalized.valorTotal,
         eRascunho: orderNormalized.eRascunho,
+        eDiferenciado: orderNormalized.eDiferenciado,
         clienteCodigo: orderNormalized.clienteCodigo,
         marcaCodigo: orderNormalized.marcaCodigo,
         periodo: orderNormalized.periodoEstoque,
@@ -632,6 +658,31 @@ export class OrderService {
         valorTotal: true,
         eRascunho: true,
         createdAt: true,
+
+        eDiferenciado: true,
+        tipoDesconto: true,
+        descontoCalculado: true,
+        descontoPercentual: true,
+        descontoValor: true,
+        vendedorPendenteDiferenciadoCodigo: true,
+
+        diferenciados: {
+          select: {
+            tipoDesconto: true,
+            descontoCalculado: true,
+            descontoPercentual: true,
+            descontoValor: true,
+            motivoDiferenciado: true,
+            tipoUsuario: true,
+            vendedor: {
+              select: {
+                codigo: true,
+                nome: true,
+                nomeGuerra: true,
+              },
+            },
+          },
+        },
         situacaoPedido: {
           select: {
             codigo: true,
@@ -749,8 +800,6 @@ export class OrderService {
       sellerCod: user.vendedorCodigo,
     });
 
-    console.log(sketch.itens);
-
     return sketch;
   }
 
@@ -865,20 +914,6 @@ export class OrderService {
           name: list.tabelaPreco.descricao,
           value: list.tabelaPreco.codigo,
         })),
-      },
-      {
-        label: 'Rascunho',
-        name: 'eRascunho',
-        data: [
-          {
-            name: 'SIM',
-            value: 1,
-          },
-          {
-            name: 'NÃO',
-            value: 0,
-          },
-        ],
       },
     );
 

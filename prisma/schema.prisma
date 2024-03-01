@@ -30,6 +30,24 @@ model Usuario {
   @@map("usuarios")
 }
 
+// TODO: Criar tabelas de sessão, verificação de token 
+
+// model Session {
+//   id           String   @id @default(cuid())
+//   sessionToken String   @unique
+//   userId       String
+//   expires      DateTime
+//   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
+
+// model VerificationToken {
+//   identifier String
+//   token      String   @unique
+//   expires    DateTime
+
+//   @@unique([identifier, token])
+// }
+
 model Vendedor {
   codigo        Int      @id @unique
   nome          String
@@ -51,6 +69,7 @@ model Vendedor {
   vendedorPedido               VendedorPedido[]
   titulo                       Titulo[]
   diferenciado                 Diferenciado[]
+  Pedido                       Pedido[]
 
   @@map("vendedores")
 }
@@ -426,6 +445,26 @@ model ProdutoNaoImportado {
   @@map("produtosNaoImportado")
 }
 
+enum TipoUsuario {
+  DIRETOR
+  GERENTE
+  VENDEDOR
+}
+
+model AlcadaDesconto {
+  id String @id @unique @default(uuid())
+
+  tipoUsuario           TipoUsuario @unique
+  percentualAprovacao   Decimal
+  percentualSolicitacao Decimal
+  hierarquia            Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("alcadasDesconto")
+}
+
 enum TipoDescontoDiferenciado {
   VALOR
   PERCENTUAL
@@ -436,8 +475,15 @@ model Diferenciado {
 
   motivoDiferenciado String?
   tipoDesconto       TipoDescontoDiferenciado
-  percentualDesconto Int?
-  valorDesconto      Int?
+  descontoPercentual Float?
+  descontoValor      Float?
+  descontoCalculado  Float?
+
+  passo          Int         @default(1)
+  dataFinalizado DateTime?
+  eFinalizado    Boolean     @default(false)
+  eAprovado      Boolean?
+  tipoUsuario    TipoUsuario @default(VENDEDOR)
 
   vendedorCodigo Int
   vendedor       Vendedor @relation(fields: [vendedorCodigo], references: [codigo])
@@ -446,6 +492,8 @@ model Diferenciado {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("diferenciados")
 }
 
 model Pedido {
@@ -455,10 +503,14 @@ model Pedido {
   eRascunho       Boolean  @default(false)
   codigoErp       Int?     @unique
 
-  eDiferenciado      Boolean                   @default(false)
-  tipoDesconto       TipoDescontoDiferenciado?
-  percentualDesconto Int?
-  valorDesconto      Float?
+  eDiferenciado                      Boolean                   @default(false)
+  eDiferenciadoFinalizado            Boolean                   @default(false)
+  vendedorPendenteDiferenciadoCodigo Int?
+  vendedorPendenteDiferenciado       Vendedor?                 @relation(fields: [vendedorPendenteDiferenciadoCodigo], references: [codigo])
+  tipoDesconto                       TipoDescontoDiferenciado?
+  descontoPercentual                 Float?
+  descontoValor                      Float?
+  descontoCalculado                  Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -478,10 +530,10 @@ model Pedido {
   localCobranca           LocalCobranca     @relation(fields: [localCobrancaCodigo], references: [codigo])
   localCobrancaCodigo     Int
 
-  itens        ItemPedido[]
-  registros    Registro[]
-  vendedores   VendedorPedido[]
-  diferenciado Diferenciado[]
+  itens         ItemPedido[]
+  registros     Registro[]
+  vendedores    VendedorPedido[]
+  diferenciados Diferenciado[]
 
   @@map("pedidos")
 }

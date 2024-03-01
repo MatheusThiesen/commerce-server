@@ -54,6 +54,15 @@ export class SellersService {
     });
 
     const findUser = await this.prisma.usuario.findUnique({
+      select: {
+        id: true,
+        vendedorCodigo: true,
+        vendedor: {
+          select: {
+            eAtivo: true,
+          },
+        },
+      },
       where: {
         email: seller.email,
       },
@@ -66,6 +75,21 @@ export class SellersService {
           senha: `-`,
           vendedorCodigo: seller.codigo,
           eVendedor: true,
+        },
+      });
+    }
+
+    if (
+      findUser.vendedor.eAtivo === false &&
+      seller.eAtivo &&
+      findUser.vendedorCodigo !== seller.codigo
+    ) {
+      await this.prisma.usuario.update({
+        data: {
+          vendedorCodigo: seller.codigo,
+        },
+        where: {
+          id: findUser.id,
         },
       });
     }
@@ -109,6 +133,36 @@ export class SellersService {
       data: { ...seller, marcas: conectBrands },
       where: { codigo },
     });
+
+    const findUser = await this.prisma.usuario.findUnique({
+      select: {
+        id: true,
+        vendedorCodigo: true,
+        vendedor: {
+          select: {
+            eAtivo: true,
+          },
+        },
+      },
+      where: {
+        email: seller.email,
+      },
+    });
+
+    if (
+      findUser.vendedor.eAtivo === false &&
+      seller.eAtivo &&
+      findUser.vendedorCodigo !== seller.codigo
+    ) {
+      await this.prisma.usuario.update({
+        data: {
+          vendedorCodigo: seller.codigo,
+        },
+        where: {
+          id: findUser.id,
+        },
+      });
+    }
 
     return updatedSeller;
   }
