@@ -58,10 +58,12 @@ export class ProductImagensService {
       where: {
         produtoCodigo: productImage.produtoCodigo,
       },
-      orderBy: {
-        sequencia: 'asc',
-        nome: 'asc',
-      },
+      orderBy: [
+        { sequencia: 'asc' },
+        {
+          nome: 'asc',
+        },
+      ],
     });
 
     await this.prisma.produto.update({
@@ -135,10 +137,12 @@ export class ProductImagensService {
       where: {
         produtoCodigo: productImage.produtoCodigo,
       },
-      orderBy: {
-        sequencia: 'asc',
-        nome: 'asc',
-      },
+      orderBy: [
+        { sequencia: 'asc' },
+        {
+          nome: 'asc',
+        },
+      ],
     });
 
     await this.prisma.produto.update({
