@@ -34,6 +34,7 @@ export class ProductImagensService {
       select: {
         codigo: true,
         referencia: true,
+        imagemPreview: true,
       },
       where: {
         codigo: productImage.produtoCodigo,
@@ -50,9 +51,26 @@ export class ProductImagensService {
       throw new BadRequestException(`References don't match`);
     }
 
+    const findFirstImage = await this.prisma.produtoImagem.findFirst({
+      select: {
+        nome: true,
+      },
+      where: {
+        produtoCodigo: productImage.produtoCodigo,
+      },
+      orderBy: {
+        sequencia: 'asc',
+        nome: 'asc',
+      },
+    });
+
     await this.prisma.produto.update({
       data: {
         possuiFoto: true,
+        imagemPreview:
+          existProduct.imagemPreview !== findFirstImage.nome
+            ? findFirstImage.nome
+            : undefined,
       },
       where: {
         codigo: existProduct.codigo,
