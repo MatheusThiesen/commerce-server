@@ -17,6 +17,15 @@ export class TransformOrderToSendApiErp {
         dataFaturamento: true,
         condicaoPagamentoCodigo: true,
         localCobrancaCodigo: true,
+
+        eDiferenciado: true,
+        descontoCalculado: true,
+
+        periodoEstoque: {
+          select: {
+            descricao: true,
+          },
+        },
         itens: {
           select: {
             produtoCodigo: true,
@@ -61,6 +70,10 @@ export class TransformOrderToSendApiErp {
       2,
     );
 
+    const discountForItem = findOrder.eDiferenciado
+      ? findOrder.descontoCalculado / findOrder.itens.length
+      : undefined;
+
     return {
       customer: findOrder.clienteCodigo,
       payment: findOrder.condicaoPagamentoCodigo,
@@ -69,11 +82,18 @@ export class TransformOrderToSendApiErp {
       deliveryDate: `${deliveryDateYear}-${deliveryDateMonth}-${deliveryDateDay}`,
       paymentLocal: findOrder.localCobrancaCodigo,
 
+      additionalOrderData1: findOrder.eDiferenciado
+        ? {
+            observationExternalOrder: `${findOrder.periodoEstoque.descricao} - PEDIDO DIFERENCIADO (APP)`,
+          }
+        : undefined,
+
       items: findOrder.itens.map((item) => ({
         price: item.valorUnitario,
         product: item.produtoCodigo,
         quantity: item.quantidade,
         stockLocation: 20,
+        discountAmount: discountForItem,
       })),
     };
   }

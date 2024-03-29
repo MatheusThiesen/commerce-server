@@ -3,24 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
 
 export type OrderApiErp = {
-  customer: number;
-  deliveryDate: string;
-  payment: number;
-  representative: number;
-  agent: number;
-  paymentLocal: number;
-
-  items: {
-    price: number;
-    product: number;
-    quantity: number;
-    stockLocation: number;
-    discountAmount?: number;
-  }[];
-
-  additionalOrderData1?: {
-    observationExternalOrder?: string;
-  };
+  orderCode: number;
 };
 
 export type ResponseApiErp = {
@@ -36,18 +19,28 @@ export type ResponseApiErp = {
 };
 
 @Injectable()
-export class RequestOrderApiErp {
+export class AddTagDifferentiatedRequestOrderApiErp {
   constructor(private readonly httpService: HttpService) {}
 
   async execute(order: OrderApiErp) {
     const url =
-      process.env.ERP_URL + '/api/v1/insert' + '?entity=order&organization=018';
+      process.env.ERP_URL + '/api/v1/alter' + '?entity=order&organization=018';
 
     const response = await firstValueFrom(
       this.httpService
         .post<ResponseApiErp>(
           url,
-          { payload: order },
+          {
+            payload: {
+              code: order.orderCode,
+              destacadores: [
+                {
+                  active: true,
+                  tag: 'BLQALT',
+                },
+              ],
+            },
+          },
           {
             headers: { Authorization: `Bearer ${process.env.ERP_TOKEN}` },
           },

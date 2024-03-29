@@ -590,8 +590,8 @@ model Registro {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  pedido       Pedido? @relation(fields: [pedidoCodigo], references: [codigo])
-  pedidoCodigo Int?
+  pedido       Pedido @relation(fields: [pedidoCodigo], references: [codigo])
+  pedidoCodigo Int
 
   @@map("registros")
 }
@@ -765,10 +765,11 @@ model CondicaoPagamentoParcela {
 }
 
 model RegraCondicaoPagamento {
-  id               String  @id @unique @default(uuid())
-  valorMinimo      Float   @default(9999999)
-  listaPrecoCodigo Int
-  eAtivo           Boolean @default(false)
+  id                  String  @id @unique @default(uuid())
+  valorMinimo         Float   @default(9999999)
+  listaPrecoCodigo    Int
+  eAtivo              Boolean @default(false)
+  eApenasDiferenciado Boolean @default(false)
 
   marcaCodigo             Int
   marca                   Marca             @relation(fields: [marcaCodigo], references: [codigo])

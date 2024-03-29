@@ -6,6 +6,7 @@ export class PaymentConditionsRule {
   listaPrecoCodigo: number;
   valorMinimo?: number;
   eAtivo?: boolean;
+  eApenasDiferenciado?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

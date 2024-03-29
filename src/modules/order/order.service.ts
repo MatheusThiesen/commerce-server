@@ -7,9 +7,11 @@ import { GroupByObj } from 'src/utils/GroupByObj.utils';
 import { OrderBy } from 'src/utils/OrderBy.utils';
 import { ParseCsv } from 'src/utils/ParseCsv.utils';
 import { FieldsProps, SearchFilter } from 'src/utils/SearchFilter.utils';
+import { GetPendencyBySellerCod } from '../differentiated/useCases/GetPendencyBySellerCod';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
+import { AddTagDifferentiatedRequestOrderApiErp } from './useCases/AddTagDifferentiatedRequestOrderApiErp';
 import { RequestOrderApiErp } from './useCases/RequestOrderApiErp';
 import { SketchOrderValid } from './useCases/SketchOrderValid';
 import { TransformOrderToSendApiErp } from './useCases/TransformOrderToSendApiErp';
@@ -51,10 +53,12 @@ export class OrderService {
     private readonly groupByObj: GroupByObj,
     private readonly searchFilter: SearchFilter,
     private readonly sendOrderErpApiProducerService: SendOrderErpApiProducerService,
+    private readonly addTagDifferentiatedRequestOrderApiErp: AddTagDifferentiatedRequestOrderApiErp,
     private readonly requestOrderApiErp: RequestOrderApiErp,
     private readonly transformOrderToSendApiErp: TransformOrderToSendApiErp,
     private readonly sketchOrderValid: SketchOrderValid,
     private parseCsv: ParseCsv,
+    private getPendencyBySellerCod: GetPendencyBySellerCod,
   ) {}
 
   normalizedFiltersAll(filters?: ItemFilter[]) {
@@ -231,6 +235,7 @@ export class OrderService {
   async sendApiErp(orderCode: number) {
     const alreadyExistsOrder = await this.prisma.pedido.findUnique({
       select: {
+        eDiferenciado: true,
         eRascunho: true,
         codigoErp: true,
         registros: { select: { id: true } },
@@ -244,6 +249,11 @@ export class OrderService {
     if (!!alreadyExistsOrder.codigoErp)
       throw new BadRequestException('order ERP already exist');
 
+    if (!!alreadyExistsOrder.eRascunho)
+      throw new BadRequestException(
+        'O pedido está em modo rascunho e não pode ser processado.',
+      );
+
     const orderTransformed = await this.transformOrderToSendApiErp.execute(
       orderCode,
     );
@@ -253,6 +263,41 @@ export class OrderService {
 
       const situacaoCodigo = response.status;
       const orderCodeErp = response.data.content[0].code;
+
+      if (alreadyExistsOrder.eDiferenciado === true) {
+        try {
+          await this.addTagDifferentiatedRequestOrderApiErp.execute({
+            orderCode: orderCodeErp,
+          });
+        } catch (error) {
+          if (error instanceof AxiosError) {
+            await this.prisma.pedido.update({
+              data: {
+                registros: {
+                  create: {
+                    requsicao: JSON.stringify({
+                      payload: {
+                        code: orderCodeErp,
+                        destacadores: [
+                          {
+                            active: true,
+                            tag: 'BLOQALT',
+                          },
+                        ],
+                      },
+                    }),
+                    situacaoCodigo: error.response.status,
+                    resposta: JSON.stringify(error.response.data),
+                  },
+                },
+              },
+              where: {
+                codigo: orderCode,
+              },
+            });
+          }
+        }
+      }
 
       await this.prisma.pedido.update({
         data: {
@@ -369,6 +414,12 @@ export class OrderService {
         descontoPercentual: orderNormalized.descontoPercentual,
         descontoValor: orderNormalized.descontoValor,
         descontoCalculado: orderNormalized.descontoCalculado,
+        vendedorPendenteDiferenciadoCodigo: orderNormalized.eDiferenciado
+          ? await this.getPendencyBySellerCod.execute({
+              sellerCode: orderNormalized.vendedorCodigo,
+              brandCode: orderNormalized.marcaCodigo,
+            })
+          : undefined,
 
         diferenciados:
           orderNormalized.eDiferenciado && !!orderNormalized?.tipoDesconto
@@ -493,15 +544,44 @@ export class OrderService {
       data: {
         dataFaturamento: orderNormalized.dataFaturamento,
         valorTotal: orderNormalized.valorTotal,
-        eRascunho: orderNormalized.eRascunho,
-        eDiferenciado: orderNormalized.eDiferenciado,
         clienteCodigo: orderNormalized.clienteCodigo,
         marcaCodigo: orderNormalized.marcaCodigo,
         periodo: orderNormalized.periodoEstoque,
         condicaoPagamentoCodigo: orderNormalized.condicaoPagamentoCodigo,
         tabelaPrecoCodigo: orderNormalized.tabelaPrecoCodigo,
         localCobrancaCodigo: orderNormalized.localCobrancaCodigo,
-        situacaoPedidoCodigo: orderNormalized.eRascunho ? undefined : 1,
+        eRascunho: orderNormalized.eRascunho,
+
+        eDiferenciado: orderNormalized.eDiferenciado,
+        tipoDesconto: orderNormalized?.tipoDesconto,
+        descontoPercentual: orderNormalized.descontoPercentual,
+        descontoValor: orderNormalized.descontoValor,
+        descontoCalculado: orderNormalized.descontoCalculado,
+        vendedorPendenteDiferenciadoCodigo: orderNormalized.eDiferenciado
+          ? await this.getPendencyBySellerCod.execute({
+              sellerCode: orderNormalized.vendedorCodigo,
+              brandCode: orderNormalized.marcaCodigo,
+            })
+          : undefined,
+
+        diferenciados:
+          orderNormalized.eDiferenciado && !!orderNormalized?.tipoDesconto
+            ? {
+                create: {
+                  tipoDesconto: orderNormalized.tipoDesconto,
+                  descontoPercentual: orderNormalized.descontoPercentual,
+                  descontoValor: orderNormalized.descontoValor,
+                  motivoDiferenciado: orderNormalized.motivoDiferenciado,
+                  vendedorCodigo: orderNormalized.vendedorCodigo,
+                  descontoCalculado: orderNormalized.descontoCalculado,
+                },
+              }
+            : undefined,
+        situacaoPedidoCodigo: orderNormalized.eRascunho
+          ? 7
+          : orderNormalized.eDiferenciado
+          ? 6
+          : 1,
 
         itens: {
           createMany: {
@@ -602,9 +682,23 @@ export class OrderService {
           filterNormalized,
           { OR: this.searchFilter.execute(search, this.fieldsSearch) },
           {
-            vendedores: {
-              some: { vendedorCodigo: user.vendedorCodigo },
-            },
+            OR: [
+              {
+                vendedores: {
+                  some: { vendedorCodigo: user.vendedorCodigo },
+                },
+              },
+              {
+                vendedorPendenteDiferenciadoCodigo: user.vendedorCodigo,
+              },
+              {
+                diferenciados: {
+                  some: {
+                    vendedorCodigo: user.vendedorCodigo,
+                  },
+                },
+              },
+            ],
           },
         ],
       },
@@ -615,9 +709,23 @@ export class OrderService {
           filterNormalized,
           { OR: this.searchFilter.execute(search, this.fieldsSearch) },
           {
-            vendedores: {
-              some: { vendedorCodigo: user.vendedorCodigo },
-            },
+            OR: [
+              {
+                vendedores: {
+                  some: { vendedorCodigo: user.vendedorCodigo },
+                },
+              },
+              {
+                vendedorPendenteDiferenciadoCodigo: user.vendedorCodigo,
+              },
+              {
+                diferenciados: {
+                  some: {
+                    vendedorCodigo: user.vendedorCodigo,
+                  },
+                },
+              },
+            ],
           },
         ],
       },
@@ -674,6 +782,10 @@ export class OrderService {
             descontoValor: true,
             motivoDiferenciado: true,
             tipoUsuario: true,
+            eAprovado: true,
+            dataFinalizado: true,
+            eFinalizado: true,
+
             vendedor: {
               select: {
                 codigo: true,
@@ -681,6 +793,9 @@ export class OrderService {
                 nomeGuerra: true,
               },
             },
+          },
+          orderBy: {
+            passo: 'asc',
           },
         },
         situacaoPedido: {
@@ -761,11 +876,24 @@ export class OrderService {
       },
       where: {
         codigo,
-        vendedores: {
-          some: {
-            vendedorCodigo: user.vendedorCodigo,
+
+        OR: [
+          {
+            vendedores: {
+              some: { vendedorCodigo: user.vendedorCodigo },
+            },
           },
-        },
+          {
+            vendedorPendenteDiferenciadoCodigo: user.vendedorCodigo,
+          },
+          {
+            diferenciados: {
+              some: {
+                vendedorCodigo: user.vendedorCodigo,
+              },
+            },
+          },
+        ],
       },
     });
 
@@ -820,11 +948,23 @@ export class OrderService {
 
     const filterNormalized = [
       {
-        vendedores: {
-          some: {
-            vendedorCodigo: user.vendedorCodigo,
+        OR: [
+          {
+            vendedores: {
+              some: { vendedorCodigo: user.vendedorCodigo },
+            },
           },
-        },
+          {
+            vendedorPendenteDiferenciadoCodigo: user.vendedorCodigo,
+          },
+          {
+            diferenciados: {
+              some: {
+                vendedorCodigo: user.vendedorCodigo,
+              },
+            },
+          },
+        ],
       },
     ];
 

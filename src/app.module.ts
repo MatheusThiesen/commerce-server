@@ -18,6 +18,7 @@ import { ClientsModule } from './modules/clients/clients.module';
 import { CollectionsModule } from './modules/collections/collections.module';
 import { ColorsModule } from './modules/colors/colors.module';
 import { ConceptModule } from './modules/concept/concept.module';
+import { DifferentiatedModule } from './modules/differentiated/differentiated.module';
 import { GridsModule } from './modules/grids/grids.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { HomeModule } from './modules/home/home.module';
@@ -94,6 +95,7 @@ import { UtilsModule } from './utils/utils.module';
     PriceTablesModule,
     BillingLocationsModule,
     BilletsModule,
+    DifferentiatedModule,
   ],
   providers: [
     {

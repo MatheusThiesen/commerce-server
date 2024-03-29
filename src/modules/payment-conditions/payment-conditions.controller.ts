@@ -21,7 +21,14 @@ export class PaymentConditionsController {
   @Post('list-to-order')
   show(
     @Body()
-    { clientCod, stockLocationPeriod, brandCod, priceListCod, totalAmount },
+    {
+      clientCod,
+      stockLocationPeriod,
+      brandCod,
+      priceListCod,
+      totalAmount,
+      isDifferentiated,
+    },
   ) {
     return this.showPaymentConditionToOrder.execute({
       clientCod,
@@ -29,6 +36,7 @@ export class PaymentConditionsController {
       brandCod,
       priceListCod,
       totalAmount,
+      isDifferentiated,
     });
   }
 

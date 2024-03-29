@@ -8,6 +8,7 @@ type ShowPaymentConditionToOrderProps = {
 
   clientCod: number;
   stockLocationPeriod: string;
+  isDifferentiated?: boolean;
 };
 
 @Injectable()
@@ -20,6 +21,7 @@ export class ShowPaymentConditionToOrder {
     priceListCod,
     clientCod,
     stockLocationPeriod,
+    isDifferentiated,
   }: ShowPaymentConditionToOrderProps) {
     const paymentConditionRole =
       await this.prisma.regraCondicaoPagamento.findMany({
@@ -38,6 +40,7 @@ export class ShowPaymentConditionToOrder {
           valorMinimo: {
             lte: totalAmount,
           },
+          eApenasDiferenciado: isDifferentiated ? undefined : false,
         },
       });
 

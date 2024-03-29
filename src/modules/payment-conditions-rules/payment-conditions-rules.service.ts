@@ -81,6 +81,7 @@ export class PaymentConditionsRulesService {
         LocalCobrancaCod,
         valorMinimo,
         ativo,
+        eApenasDiferenciado,
       ] = ruleArr;
 
       const rule = new PaymentConditionsRule();
@@ -93,6 +94,8 @@ export class PaymentConditionsRulesService {
           this.stringToNumberOrUndefined.execute(LocalCobrancaCod),
         valorMinimo: this.stringToNumberOrUndefined.execute(valorMinimo),
         eAtivo: String(ativo)?.toLocaleLowerCase() === 'sim',
+        eApenasDiferenciado:
+          String(eApenasDiferenciado)?.toLocaleLowerCase() === 'sim',
       });
 
       const ruleExists = await this.prisma.regraCondicaoPagamento.findUnique({
