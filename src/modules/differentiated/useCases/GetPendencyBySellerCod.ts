@@ -68,6 +68,9 @@ export class GetPendencyBySellerCod {
         }
 
       case 'GERENTE':
+        if (seller.codDiretor) {
+          return seller.codDiretor;
+        }
         return this.directorCode;
     }
 
