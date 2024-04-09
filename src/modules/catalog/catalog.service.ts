@@ -99,6 +99,7 @@ export class CatalogService {
         precoVenda: true,
         descricaoComplementar: true,
         precoVendaEmpresa: true,
+        precoTabela28: true,
         genero: {
           select: {
             codigo: true,
@@ -291,6 +292,12 @@ export class CatalogService {
             : product?.corPrimaria?.descricao ?? '-',
         price: Math.max(
           ...agroupProduct.map((p) => p.precoVenda),
+        )?.toLocaleString('pt-br', {
+          style: 'currency',
+          currency: 'BRL',
+        }),
+        priceList28: Math.max(
+          ...agroupProduct.map((p) => p.precoTabela28),
         )?.toLocaleString('pt-br', {
           style: 'currency',
           currency: 'BRL',

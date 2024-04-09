@@ -19,6 +19,7 @@ export interface PageData {
   alternativeCode: string;
   colors: string;
   price: string;
+  priceList28: string;
   brand: string;
   colection: string;
   genre: string;
