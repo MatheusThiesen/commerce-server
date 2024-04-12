@@ -19,6 +19,7 @@ export class ProductsController {
     });
   }
 
+  @Public()
   @Get(':codigo')
   findOne(@Param('codigo') codigo: string) {
     return this.productsService.findOne(+codigo);

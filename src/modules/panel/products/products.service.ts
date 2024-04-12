@@ -70,8 +70,6 @@ export class ProductsService {
   }
 
   async findOne(codigo: number) {
-    const filterNormalized = {};
-
     const product = await this.prisma.produto.findFirst({
       select: {
         codigo: true,
@@ -184,7 +182,7 @@ export class ProductsService {
         },
       },
       where: {
-        AND: [{ codigo }, { ...this.listingRule.execute() }, filterNormalized],
+        AND: [{ codigo }],
       },
     });
 

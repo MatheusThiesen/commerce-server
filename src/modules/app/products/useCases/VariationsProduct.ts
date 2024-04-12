@@ -19,6 +19,21 @@ export class VariationsProduct {
         referencia: true,
         codigoAlternativo: true,
         descricao: true,
+        imagemPreview: true,
+        corPrimaria: {
+          select: {
+            descricao: true,
+          },
+        },
+        corSecundaria: {
+          select: {
+            cor: {
+              select: {
+                descricao: true,
+              },
+            },
+          },
+        },
 
         imagens: {
           take: 1,
