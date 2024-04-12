@@ -1,3 +1,4 @@
+import { OrderService } from '@/modules/app/order/order.service';
 import {
   OnQueueActive,
   OnQueueCompleted,
@@ -6,7 +7,6 @@ import {
   Processor,
 } from '@nestjs/bull';
 import { Job } from 'bull';
-import { OrderService } from 'src/modules/order/order.service';
 
 @Processor('sendOrderErpApi-queue')
 class SendOrderErpApiConsumer {

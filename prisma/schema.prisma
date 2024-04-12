@@ -19,26 +19,30 @@ model Usuario {
   senhaResetToken  String?
   senhaResetExpira DateTime?
   eAtivo           Boolean   @default(true)
+  eVendedor        Boolean   @default(false)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  eVendedor        Boolean           @default(false)
-  vendedor         Vendedor?         @relation(fields: [vendedorCodigo], references: [codigo])
-  vendedorCodigo   Int?
+  vendedor       Vendedor? @relation(fields: [vendedorCodigo], references: [codigo])
+  vendedorCodigo Int?
+
   catalogosProduto CatalogoProduto[]
+  sessoes          Sessao[]
 
   @@map("usuarios")
 }
 
-// TODO: Criar tabelas de sessão, verificação de token 
+model Sessao {
+  id          String   @id @default(uuid())
+  pin         String   @unique
+  sessaoToken String?  @unique
+  expirar     DateTime
+  createdAt   DateTime @default(now())
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId   String
 
-// model Session {
-//   id           String   @id @default(cuid())
-//   sessionToken String   @unique
-//   userId       String
-//   expires      DateTime
-//   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-// }
+  @@map("sessoes")
+}
 
 // model VerificationToken {
 //   identifier String
