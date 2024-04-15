@@ -84,6 +84,7 @@ export class ProductsService {
         obs: true,
         qtdEmbalagem: true,
         imagemPreview: true,
+        eAtivo: true,
         unidade: {
           select: {
             unidade: true,
