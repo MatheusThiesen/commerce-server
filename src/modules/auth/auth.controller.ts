@@ -7,12 +7,25 @@ import {
   Public,
 } from '../../common/decorators';
 import { AuthService } from './auth.service';
+import { AuthGetPinDto, AuthSessionDto } from './dto/auth-session.dto';
 import { AuthDto } from './dto/auth.dto';
 import { PasswordDto } from './dto/password.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Public()
+  @Post('get-pin')
+  generatePin(@Body() dto: AuthGetPinDto) {
+    return this.authService.generatePin(dto);
+  }
+
+  @Public()
+  @Post('session')
+  session(@Body() dto: AuthSessionDto) {
+    return this.authService.session(dto);
+  }
 
   @Public()
   @Post('signin')

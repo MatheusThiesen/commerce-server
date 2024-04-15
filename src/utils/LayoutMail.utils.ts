@@ -3,7 +3,7 @@ interface ForgotProps {
 }
 
 export class LayoutMail {
-  readonly spaceLink = process.env.SPACE;
+  readonly spaceLink = 'https://alpar.sfo3.digitaloceanspaces.com';
 
   async forgot({ link }: ForgotProps) {
     const messageEmail = `
@@ -969,9 +969,6 @@ export class LayoutMail {
   }
 
   async codeSession(code: string) {
-    const firstPart = code.slice(0, 4);
-    const secondPart = code.slice(4);
-
     const messageEmail = `
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html
@@ -1406,8 +1403,7 @@ export class LayoutMail {
                                   margin-bottom: 0;
                                 "
                               >
-                                <strong>${firstPart}</strong>
-                                <strong>${secondPart}</strong>
+                                <strong>${code}</strong>
                               </h1>
                             </td>
                           </tr>

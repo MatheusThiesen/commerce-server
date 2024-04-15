@@ -34,7 +34,9 @@ import { SellersModule } from './modules/app/sellers/sellers.module';
 import { StockLocationsModule } from './modules/app/stock-locations/stock-locations.module';
 import { SubgroupsModule } from './modules/app/subgroups/subgroups.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { PanelClientsModule } from './modules/panel/clients/clients.module';
 import { PanelProductsModule } from './modules/panel/products/products.module';
+import { PanelSellersModule } from './modules/panel/sellers/sellers.module';
 import { UtilsModule } from './utils/utils.module';
 
 @Module({
@@ -97,7 +99,10 @@ import { UtilsModule } from './utils/utils.module';
     BillingLocationsModule,
     BilletsModule,
     DifferentiatedModule,
+
     PanelProductsModule,
+    PanelClientsModule,
+    PanelSellersModule,
   ],
   providers: [
     {

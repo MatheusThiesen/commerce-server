@@ -34,7 +34,7 @@ model Usuario {
 
 model Sessao {
   id          String   @id @default(uuid())
-  pin         String   @unique
+  pin         String?  @unique
   sessaoToken String?  @unique
   expirar     DateTime
   createdAt   DateTime @default(now())
