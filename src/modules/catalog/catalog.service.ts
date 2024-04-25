@@ -100,6 +100,7 @@ export class CatalogService {
         descricaoComplementar: true,
         precoVendaEmpresa: true,
         precoTabela28: true,
+        imagemPreview: true,
         genero: {
           select: {
             codigo: true,
@@ -277,8 +278,8 @@ export class CatalogService {
         variations: variations,
 
         imageMain: `${this.spaceLink}/Produtos/${
-          product?.imagens && product.imagens[0]
-            ? product.imagens[0].nome
+          product?.imagemPreview
+            ? product.imagemPreview
             : product.referencia + '_01'
         }` as string,
         alternativeCode: product?.codigoAlternativo ?? '-',

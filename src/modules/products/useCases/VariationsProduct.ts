@@ -19,6 +19,7 @@ export class VariationsProduct {
         referencia: true,
         codigoAlternativo: true,
         descricao: true,
+        imagemPreview: true,
 
         imagens: {
           take: 1,
