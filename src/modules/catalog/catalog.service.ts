@@ -266,8 +266,9 @@ export class CatalogService {
         variations = getVariationsProduct
           .filter((f) => f.referencia !== product.referencia)
           .map((v) => ({
-            imageMain:
-              `${this.spaceLink}/Produtos/${v.referencia}_01` as string,
+            imageMain: `${this.spaceLink}/Produtos/${
+              v.imagemPreview ? v.imagemPreview : v.referencia + '_01'
+            }` as string,
             reference: v.referencia,
           }));
       }
