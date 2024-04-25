@@ -1,13 +1,16 @@
 import { AgroupGridProduct } from '@/modules/app/products/useCases/AgroupGridProduct';
 import { ListingRule } from '@/modules/app/products/useCases/ListingRule';
 import { VariationsProduct } from '@/modules/app/products/useCases/VariationsProduct';
+import { OrderBy } from '@/utils/OrderBy.utils';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
-import { FieldsProps } from '../../../utils/SearchFilter.utils';
+import { FieldsProps, SearchFilter } from '../../../utils/SearchFilter.utils';
 
 type listAllProps = {
   page: number;
   pagesize: number;
+  orderby?: string;
+  search?: string;
 };
 
 @Injectable()
@@ -38,9 +41,13 @@ export class ProductsService {
     private variationsProduct: VariationsProduct,
     private agroupGridProduct: AgroupGridProduct,
     private readonly listingRule: ListingRule,
+    private readonly searchFilter: SearchFilter,
+    private readonly orderbyNormalized: OrderBy,
   ) {}
 
-  async findAll({ page, pagesize }: listAllProps) {
+  async findAll({ page, pagesize, search, orderby }: listAllProps) {
+    const orderByNormalized = this.orderbyNormalized.execute(orderby);
+
     const products = await this.prisma.produto.findMany({
       take: pagesize,
       skip: page * pagesize,
@@ -54,8 +61,13 @@ export class ProductsService {
         precoVenda: true,
         imagemPreview: true,
       },
-      orderBy: {
-        codigo: 'desc',
+      orderBy: [orderByNormalized] ?? [{ codigo: 'desc' }],
+      where: {
+        AND: [
+          {
+            OR: this.searchFilter.execute(search, this.fieldsSearch),
+          },
+        ],
       },
     });
 

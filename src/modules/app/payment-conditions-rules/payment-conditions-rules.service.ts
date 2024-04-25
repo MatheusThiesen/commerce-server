@@ -75,7 +75,7 @@ export class PaymentConditionsRulesService {
 
     for (const ruleArr of rules) {
       const [
-        concicaoPagamentoCod,
+        condicaoPagamentoCod,
         marcaCod,
         listaPrecoCod,
         LocalCobrancaCod,
@@ -87,7 +87,7 @@ export class PaymentConditionsRulesService {
       const rule = new PaymentConditionsRule();
       Object.assign(rule, {
         condicaoPagamentoCodigo:
-          this.stringToNumberOrUndefined.execute(concicaoPagamentoCod),
+          this.stringToNumberOrUndefined.execute(condicaoPagamentoCod),
         marcaCodigo: this.stringToNumberOrUndefined.execute(marcaCod),
         listaPrecoCodigo: this.stringToNumberOrUndefined.execute(listaPrecoCod),
         localCobrancaCodigo:

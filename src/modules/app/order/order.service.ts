@@ -237,6 +237,7 @@ export class OrderService {
       select: {
         eDiferenciado: true,
         eRascunho: true,
+        situacaoPedidoCodigo: true,
         codigoErp: true,
         registros: { select: { id: true } },
       },
@@ -249,10 +250,11 @@ export class OrderService {
     if (!!alreadyExistsOrder.codigoErp)
       throw new BadRequestException('order ERP already exist');
 
-    if (!!alreadyExistsOrder.eRascunho)
+    if (!!alreadyExistsOrder.eRascunho) {
       throw new BadRequestException(
         'O pedido está em modo rascunho e não pode ser processado.',
       );
+    }
 
     const orderTransformed = await this.transformOrderToSendApiErp.execute(
       orderCode,
@@ -861,6 +863,7 @@ export class OrderService {
                 descricao: true,
                 descricaoAdicional: true,
                 precoVenda: true,
+                imagemPreview: true,
 
                 imagens: {
                   take: 1,

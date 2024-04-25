@@ -1,19 +1,43 @@
 import { GetRoleBySeller } from '@/modules/app/differentiated/useCases/GetRoleBySeller';
+import { OrderBy } from '@/utils/OrderBy.utils';
+import { FieldsProps, SearchFilter } from '@/utils/SearchFilter.utils';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 
 type listAllProps = {
   page: number;
   pagesize: number;
+  orderby?: string;
+  search?: string;
 };
 
 @Injectable()
 export class PanelSellersService {
   readonly directorCode = 867;
+  readonly fieldsSearch: FieldsProps[] = [
+    {
+      name: 'codigo',
+      type: 'number',
+    },
+    {
+      name: 'nome',
+      type: 'string',
+    },
+    {
+      name: 'nomeGuerra',
+      type: 'string',
+    },
+    {
+      name: 'email',
+      type: 'string',
+    },
+  ];
 
   constructor(
     private prisma: PrismaService,
     private getRoleBySeller: GetRoleBySeller,
+    private readonly searchFilter: SearchFilter,
+    private readonly orderbyNormalized: OrderBy,
   ) {}
 
   async findOne(codigo: number) {
@@ -53,7 +77,9 @@ export class PanelSellersService {
     return normalized;
   }
 
-  async findAll({ page, pagesize }: listAllProps) {
+  async findAll({ page, pagesize, orderby, search }: listAllProps) {
+    const orderByNormalized = this.orderbyNormalized.execute(orderby);
+
     const sellers = await this.prisma.vendedor.findMany({
       take: pagesize,
       skip: page * pagesize,
@@ -67,8 +93,13 @@ export class PanelSellersService {
         eGerente: true,
         eSupervisor: true,
       },
-      orderBy: {
-        codigo: 'desc',
+      orderBy: [orderByNormalized] ?? [{ codigo: 'desc' }],
+      where: {
+        AND: [
+          {
+            OR: this.searchFilter.execute(search, this.fieldsSearch),
+          },
+        ],
       },
     });
 

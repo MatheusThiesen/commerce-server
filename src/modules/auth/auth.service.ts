@@ -57,10 +57,30 @@ export class AuthService {
         id: userId,
       },
     });
-    if (!user || !user.tokenRefresh)
-      throw new UnauthorizedException('Access Denied');
 
-    const rtMatches = await argon.verify(user.tokenRefresh, rt);
+    if (!user) {
+      throw new UnauthorizedException('Access Denied');
+    }
+
+    const findRefreshToken = await this.prisma.sessao.findFirst({
+      where: {
+        sessaoToken: rt,
+        usuarioId: user.id,
+      },
+    });
+
+    if (!user.tokenRefresh && !findRefreshToken) {
+      throw new UnauthorizedException('Access Denied');
+    }
+
+    const currentRefreshToken = findRefreshToken
+      ? findRefreshToken.sessaoToken
+      : user.tokenRefresh;
+
+    console.log(currentRefreshToken);
+    console.log(rt);
+
+    const rtMatches = await argon.verify(currentRefreshToken, rt);
     if (!rtMatches) throw new UnauthorizedException('Access Denied');
 
     const tokens = await this.getTokens(user.id, user.email);
@@ -428,7 +448,7 @@ export class AuthService {
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
         secret: this.config.get<string>('AT_SECRET'),
-        expiresIn: '1d',
+        expiresIn: '1m',
       }),
       this.jwtService.signAsync(jwtPayload, {
         secret: this.config.get<string>('RT_SECRET'),

@@ -10,11 +10,13 @@ export class PanelSellersController {
   @Get()
   findAll(
     @Query()
-    { page = '0', pagesize = '10' },
+    { page = '0', pagesize = '10', orderby, search },
   ) {
     return this.sellerService.findAll({
       page: Number(page),
       pagesize: Number(pagesize),
+      orderby,
+      search,
     });
   }
 

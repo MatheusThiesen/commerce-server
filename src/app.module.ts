@@ -34,9 +34,13 @@ import { SellersModule } from './modules/app/sellers/sellers.module';
 import { StockLocationsModule } from './modules/app/stock-locations/stock-locations.module';
 import { SubgroupsModule } from './modules/app/subgroups/subgroups.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { PanelBrandsModule } from './modules/panel/brands/brands.module';
 import { PanelClientsModule } from './modules/panel/clients/clients.module';
+import { PanelOrdersModule } from './modules/panel/orders/orders.module';
 import { PanelProductsModule } from './modules/panel/products/products.module';
+import { PanelRulesModule } from './modules/panel/rules/rules.module';
 import { PanelSellersModule } from './modules/panel/sellers/sellers.module';
+import { PanelStatesModule } from './modules/panel/states/states.module';
 import { UtilsModule } from './utils/utils.module';
 
 @Module({
@@ -103,6 +107,10 @@ import { UtilsModule } from './utils/utils.module';
     PanelProductsModule,
     PanelClientsModule,
     PanelSellersModule,
+    PanelOrdersModule,
+    PanelBrandsModule,
+    PanelStatesModule,
+    PanelRulesModule,
   ],
   providers: [
     {

@@ -99,6 +99,8 @@ export class ProductConceptRulesService {
   async import(file: Express.Multer.File) {
     const rules = await this.parseCsv.execute(file);
 
+    await this.prisma.regraProdutoConceito.deleteMany({});
+
     for (const ruleArr of rules) {
       const [conceitoCod, grupoCod, subgrupoCod] = ruleArr;
 
@@ -121,24 +123,23 @@ export class ProductConceptRulesService {
         },
       });
 
-      if (!subgrupoExists) {
-        // throw Error('Not Exists Subgroup');
-        console.log(rule);
-      }
-
-      const conceptExists = await this.prisma.regraProdutoConceito.findUnique({
-        where: {
-          subGrupoId_conceitoCodigo: {
-            subGrupoId: subgrupoExists.id,
-            conceitoCodigo: rule.conceitoCodigo,
+      if (subgrupoExists) {
+        const conceptExists = await this.prisma.regraProdutoConceito.findUnique(
+          {
+            where: {
+              subGrupoId_conceitoCodigo: {
+                subGrupoId: subgrupoExists.id,
+                conceitoCodigo: rule.conceitoCodigo,
+              },
+            },
           },
-        },
-      });
+        );
 
-      if (conceptExists) {
-        await this.update(conceptExists.id, rule);
-      } else {
-        await this.create(rule);
+        if (conceptExists) {
+          await this.update(conceptExists.id, rule);
+        } else {
+          await this.create(rule);
+        }
       }
     }
 

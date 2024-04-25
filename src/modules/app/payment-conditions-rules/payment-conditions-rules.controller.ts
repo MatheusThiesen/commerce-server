@@ -1,3 +1,4 @@
+import { Public } from '@/common/decorators';
 import {
   Controller,
   Post,
@@ -13,6 +14,7 @@ export class PaymentConditionsRulesController {
     private readonly paymentConditionsRulesService: PaymentConditionsRulesService,
   ) {}
 
+  @Public()
   @Post('import')
   @UseInterceptors(FileInterceptor('file'))
   import(@UploadedFile() file: Express.Multer.File) {
