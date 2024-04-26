@@ -49,7 +49,12 @@ export class AuthService {
 
     delete user.tokenRefresh;
 
-    return user;
+    const [firstMail] = user.email.split('@');
+
+    return {
+      ...user,
+      name: firstMail.split('.').join(' '),
+    };
   }
   async refreshTokens(userId: string, rt: string): Promise<Tokens> {
     const user = await this.prisma.usuario.findUnique({
@@ -73,18 +78,28 @@ export class AuthService {
       throw new UnauthorizedException('Access Denied');
     }
 
-    const currentRefreshToken = findRefreshToken
-      ? findRefreshToken.sessaoToken
-      : user.tokenRefresh;
-
-    console.log(currentRefreshToken);
-    console.log(rt);
-
-    const rtMatches = await argon.verify(currentRefreshToken, rt);
-    if (!rtMatches) throw new UnauthorizedException('Access Denied');
-
     const tokens = await this.getTokens(user.id, user.email);
-    await this.updateRtPassword(user.id, tokens.refresh_token);
+
+    if (findRefreshToken) {
+      if (!findRefreshToken.expirar) {
+        throw new UnauthorizedException('Access Denied');
+      }
+
+      if (new Date() > findRefreshToken.expirar) {
+        throw new UnauthorizedException('Access Denied');
+      }
+
+      await this.updateRtPassword(
+        user.id,
+        tokens.refresh_token,
+        findRefreshToken.id,
+      );
+    } else {
+      const rtMatches = await argon.verify(user.tokenRefresh, rt);
+      if (!rtMatches) throw new UnauthorizedException('Access Denied');
+
+      await this.updateRtPassword(user.id, tokens.refresh_token);
+    }
 
     return tokens;
   }
@@ -237,13 +252,21 @@ export class AuthService {
 
   async generatePin(dto: AuthGetPinDto) {
     const user = await this.prisma.usuario.findUnique({
-      select: { senha: true, id: true, email: true, eAtivo: true },
+      select: {
+        senha: true,
+        id: true,
+        email: true,
+        eAtivo: true,
+        eAdmin: true,
+      },
       where: {
         email: dto.email,
       },
     });
 
-    if (!user || !user.eAtivo) throw new UnauthorizedException('Access Denied');
+    if (!user || !user.eAtivo || !user.eAdmin) {
+      throw new BadRequestException('Access Denied');
+    }
 
     const code = Math.floor(10000000 + Math.random() * 90000000)
       .toString()
@@ -290,6 +313,7 @@ export class AuthService {
             id: true,
             email: true,
             eAtivo: true,
+            eAdmin: true,
           },
         },
       },
@@ -301,27 +325,22 @@ export class AuthService {
       },
     });
 
-    if (!session || !session.usuario.eAtivo)
-      throw new UnauthorizedException('Access Denied');
+    if (!session || !session.usuario.eAtivo || !session.usuario.eAdmin)
+      throw new BadRequestException('Access Denied');
 
     if (new Date(session.expirar) <= new Date())
-      throw new UnauthorizedException('Expired');
+      throw new BadRequestException('Expired');
 
     const tokens = await this.getTokens(
       session.usuario.id,
       session.usuario.email,
     );
 
-    await this.prisma.sessao.update({
-      where: {
-        id: session.id,
-      },
-      data: {
-        expirar: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000),
-        sessaoToken: tokens.refresh_token,
-        pin: null,
-      },
-    });
+    await this.updateRtPassword(
+      session.usuario.id,
+      tokens.refresh_token,
+      session.id,
+    );
 
     return tokens;
   }
@@ -428,16 +447,34 @@ export class AuthService {
     return tokens;
   }
 
-  async updateRtPassword(userId: string, rt: string): Promise<void> {
+  async updateRtPassword(
+    userId: string,
+    rt: string,
+    sessionId?: string,
+  ): Promise<void> {
     const tokenRefresh = await argon.hash(rt);
-    await this.prisma.usuario.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        tokenRefresh: tokenRefresh,
-      },
-    });
+
+    if (sessionId) {
+      await this.prisma.sessao.update({
+        data: {
+          sessaoToken: rt,
+          expirar: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000), // 7 dias
+          pin: null,
+        },
+        where: {
+          id: sessionId,
+        },
+      });
+    } else {
+      await this.prisma.usuario.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          tokenRefresh: tokenRefresh,
+        },
+      });
+    }
   }
   async getTokens(userId: string, email: string): Promise<Tokens> {
     const jwtPayload: JwtPayload = {
@@ -448,7 +485,7 @@ export class AuthService {
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
         secret: this.config.get<string>('AT_SECRET'),
-        expiresIn: '1m',
+        expiresIn: '1d',
       }),
       this.jwtService.signAsync(jwtPayload, {
         secret: this.config.get<string>('RT_SECRET'),

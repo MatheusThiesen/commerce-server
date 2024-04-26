@@ -20,6 +20,7 @@ model Usuario {
   senhaResetExpira DateTime?
   eAtivo           Boolean   @default(true)
   eVendedor        Boolean   @default(false)
+  eAdmin           Boolean   @default(false)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 

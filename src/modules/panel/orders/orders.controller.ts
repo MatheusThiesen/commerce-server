@@ -1,4 +1,3 @@
-import { Public } from '@/common/decorators';
 import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { PanelOrdersService } from './orders.service';
 
@@ -6,7 +5,6 @@ import { PanelOrdersService } from './orders.service';
 export class PanelOrdersController {
   constructor(private readonly ordersService: PanelOrdersService) {}
 
-  @Public()
   @Get()
   findAll(
     @Query()
@@ -20,13 +18,11 @@ export class PanelOrdersController {
     });
   }
 
-  @Public()
   @Post('resend/:codigo')
   resend(@Param('codigo') codigo: string) {
     return this.ordersService.resend(+codigo);
   }
 
-  @Public()
   @Get(':codigo')
   findOne(@Param('codigo') codigo: string) {
     return this.ordersService.findOne(+codigo);

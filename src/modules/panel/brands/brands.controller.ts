@@ -1,4 +1,3 @@
-import { Public } from '@/common/decorators';
 import { BrandsService } from '@/modules/app/brands/brands.service';
 import { UpdateBrandDto } from '@/modules/app/brands/dto/update-brand.dto';
 import {
@@ -20,13 +19,11 @@ export class PanelBrandsController {
     private readonly brandsService: BrandsService,
   ) {}
 
-  @Public()
   @Put(':codigo')
   update(@Param('codigo') codigo: string, @Body() dto: UpdateBrandDto) {
     return this.brandsService.update(+codigo, dto);
   }
 
-  @Public()
   @Get()
   findAll(
     @Query()
@@ -40,25 +37,21 @@ export class PanelBrandsController {
     });
   }
 
-  @Public()
   @Get(':codigo')
   findOne(@Param('codigo') codigo: string) {
     return this.panelBrandsService.findOne(+codigo);
   }
 
-  @Public()
   @Get('/blocks/:codigo')
   blocks(@Param('codigo') codigo: string) {
     return this.panelBrandsService.blocks(+codigo);
   }
 
-  @Public()
   @Post('/blocks/:codigo')
   createBlock(@Param('codigo') codigo: string, @Body() { uf }) {
     return this.panelBrandsService.blockCreate(+codigo, uf);
   }
 
-  @Public()
   @Delete('/blocks/:codigo')
   delete(@Param('codigo') codigo: string) {
     return this.panelBrandsService.blockRemove(codigo);

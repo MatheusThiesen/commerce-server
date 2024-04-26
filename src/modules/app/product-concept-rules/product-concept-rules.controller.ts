@@ -1,4 +1,3 @@
-import { Public } from '@/common/decorators';
 import {
   Controller,
   Post,
@@ -14,7 +13,6 @@ export class ProductConceptRulesController {
     private readonly productConceptRulesService: ProductConceptRulesService,
   ) {}
 
-  @Public()
   @Post('import')
   @UseInterceptors(FileInterceptor('file'))
   import(@UploadedFile() file: Express.Multer.File) {

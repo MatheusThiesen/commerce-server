@@ -1,4 +1,3 @@
-import { Public } from '@/common/decorators';
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { PanelSellersService } from './sellers.service';
 
@@ -6,7 +5,6 @@ import { PanelSellersService } from './sellers.service';
 export class PanelSellersController {
   constructor(private readonly sellerService: PanelSellersService) {}
 
-  @Public()
   @Get()
   findAll(
     @Query()
@@ -20,7 +18,6 @@ export class PanelSellersController {
     });
   }
 
-  @Public()
   @Get(':codigo')
   findOne(@Param('codigo') codigo: string) {
     return this.sellerService.findOne(+codigo);

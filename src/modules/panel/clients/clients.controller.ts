@@ -1,4 +1,3 @@
-import { Public } from '@/common/decorators';
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { PanelClientsService } from './clients.service';
 
@@ -6,7 +5,6 @@ import { PanelClientsService } from './clients.service';
 export class PanelClientsController {
   constructor(private readonly clientsService: PanelClientsService) {}
 
-  @Public()
   @Get()
   findAll(
     @Query()
@@ -20,19 +18,16 @@ export class PanelClientsController {
     });
   }
 
-  @Public()
   @Get(':codigo')
   findOne(@Param('codigo') codigo: string) {
     return this.clientsService.findOne(+codigo);
   }
 
-  @Public()
   @Get('/blocks/:codigo')
   blocks(@Param('codigo') codigo: string) {
     return this.clientsService.blocks(+codigo);
   }
 
-  @Public()
   @Post('/blocks/:codigo')
   blockSet(
     @Param('codigo') codigo: string,

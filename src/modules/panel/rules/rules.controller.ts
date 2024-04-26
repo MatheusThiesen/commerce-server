@@ -1,4 +1,3 @@
-import { Public } from '@/common/decorators';
 import { Controller, Get, Query } from '@nestjs/common';
 import { PanelRulesService } from './rules.service';
 
@@ -6,7 +5,6 @@ import { PanelRulesService } from './rules.service';
 export class PanelRulesController {
   constructor(private readonly panelRulesService: PanelRulesService) {}
 
-  @Public()
   @Get('/concept')
   findConceptAll(
     @Query()
@@ -20,7 +18,6 @@ export class PanelRulesController {
     });
   }
 
-  @Public()
   @Get('payment-condition')
   findPaymentConditionAll(
     @Query()
