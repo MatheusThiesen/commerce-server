@@ -22,6 +22,8 @@ export class GetRoleBySeller {
       ? 'DIRETOR'
       : seller.eGerente
       ? 'GERENTE'
+      : seller.eSupervisor
+      ? 'SUPERVISOR'
       : 'VENDEDOR';
 
     return sellerRole;

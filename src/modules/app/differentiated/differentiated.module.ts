@@ -5,6 +5,7 @@ import { DifferentiatedController } from './differentiated.controller';
 import { ApprovalDifferentiated } from './useCases/ApprovalDifferentiated';
 import { GetDiscountScopeByUserId } from './useCases/GetDiscountScopeByUserId';
 import { GetPendencyBySellerCod } from './useCases/GetPendencyBySellerCod';
+import { GetRoleBySeller } from './useCases/GetRoleBySeller';
 import { ReprovalDifferentiated } from './useCases/ReprovalDifferentiated';
 
 @Module({
@@ -16,6 +17,7 @@ import { ReprovalDifferentiated } from './useCases/ReprovalDifferentiated';
     ReprovalDifferentiated,
     GetPendencyBySellerCod,
     GetDiscountScopeByUserId,
+    GetRoleBySeller,
   ],
 })
 export class DifferentiatedModule {}

@@ -171,20 +171,20 @@ export class FilterOrderNormalized {
               },
             };
           }
-          // if (findOneClient?.bloqueios?.periodosEstoque.length > 0) {
-          //   newFilter = {
-          //     ...newFilter,
-          //     locaisEstoque: {
-          //       some: {
-          //         periodo: {
-          //           notIn: findOneClient?.bloqueios.periodosEstoque.map(
-          //             (period) => period.periodo,
-          //           ),
-          //         },
-          //       },
-          //     },
-          //   };
-          // }
+          if (findOneClient?.bloqueios?.periodosEstoque.length > 0) {
+            newFilter = {
+              ...newFilter,
+              locaisEstoque: {
+                some: {
+                  periodo: {
+                    notIn: findOneClient?.bloqueios.periodosEstoque.map(
+                      (period) => period.periodo,
+                    ),
+                  },
+                },
+              },
+            };
+          }
 
           if (findOneClient?.estado?.bloqueiosMarca.length > 0) {
             newFilter = {
@@ -194,6 +194,64 @@ export class FilterOrderNormalized {
                   notIn: findOneClient?.estado?.bloqueiosMarca.map(
                     (brand) => brand.marcaCodigo,
                   ),
+                },
+              },
+            };
+          }
+        }
+
+        if (filterGroup.value === 'vendedorCodigo') {
+          const findOneSeller = await this.prisma.vendedor.findUnique({
+            select: {
+              bloqueios: {
+                select: {
+                  grupos: {
+                    select: {
+                      codigo: true,
+                    },
+                  },
+                  periodosEstoque: {
+                    select: {
+                      periodo: true,
+                    },
+                  },
+                },
+              },
+              marcas: {
+                select: {
+                  codigo: true,
+                },
+              },
+            },
+            where: {
+              codigo: filterGroup.data[0]?.value
+                ? Number(filterGroup.data[0].value)
+                : 0,
+            },
+          });
+
+          newFilter = {};
+
+          if (findOneSeller?.bloqueios?.grupos.length > 0) {
+            newFilter = {
+              ...newFilter,
+              grupoCodigo: {
+                notIn: findOneSeller?.bloqueios.grupos.map(
+                  (group) => group.codigo,
+                ),
+              },
+            };
+          }
+          if (findOneSeller?.bloqueios?.periodosEstoque.length > 0) {
+            newFilter = {
+              ...newFilter,
+              locaisEstoque: {
+                some: {
+                  periodo: {
+                    notIn: findOneSeller?.bloqueios.periodosEstoque.map(
+                      (period) => period.periodo,
+                    ),
+                  },
                 },
               },
             };

@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { SendOrderErpApiConsumer } from 'src/jobs/SendOrderErpApi/sendOrderErpApi-consumer';
 import { SendOrderErpApiProducerService } from 'src/jobs/SendOrderErpApi/sendOrderErpApi-producer-service';
 import { GetPendencyBySellerCod } from '../differentiated/useCases/GetPendencyBySellerCod';
+import { GetRoleBySeller } from '../differentiated/useCases/GetRoleBySeller';
 import { ProductsService } from '../products/products.service';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
@@ -32,6 +33,7 @@ import { TransformOrderToSendApiErp } from './useCases/TransformOrderToSendApiEr
     SketchOrderValid,
     ProductsService,
     GetPendencyBySellerCod,
+    GetRoleBySeller,
   ],
   exports: [
     OrderService,
@@ -44,6 +46,7 @@ import { TransformOrderToSendApiErp } from './useCases/TransformOrderToSendApiEr
     SketchOrderValid,
     ProductsService,
     GetPendencyBySellerCod,
+    GetRoleBySeller,
   ],
 })
 export class OrderModule {}

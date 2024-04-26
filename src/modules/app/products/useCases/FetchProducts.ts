@@ -295,7 +295,7 @@ export class FetchProducts {
           if (findOneClient?.bloqueios?.periodosEstoque.length > 0) {
             query.push(`
               le.periodo not in (${findOneClient?.bloqueios.periodosEstoque.map(
-                (period) => period.periodo,
+                (period) => `'${period.periodo}'`,
               )})
             `);
           }
@@ -333,6 +333,20 @@ export class FetchProducts {
         eVendedor: true,
         vendedor: {
           select: {
+            bloqueios: {
+              select: {
+                grupos: {
+                  select: {
+                    codigo: true,
+                  },
+                },
+                periodosEstoque: {
+                  select: {
+                    periodo: true,
+                  },
+                },
+              },
+            },
             marcas: {
               select: {
                 codigo: true,
@@ -348,8 +362,30 @@ export class FetchProducts {
 
     if (!user.eVendedor) return '';
 
-    return `and p."marcaCodigo" in (${user.vendedor.marcas
-      .map((item) => item.codigo)
-      .join(',')})`;
+    const query: string[] = [];
+
+    if (user.vendedor?.bloqueios?.grupos.length > 0) {
+      query.push(`
+        p."grupoCodigo" not in (${user.vendedor?.bloqueios.grupos.map(
+          (group) => group.codigo,
+        )})
+      `);
+    }
+
+    if (user.vendedor?.bloqueios?.periodosEstoque.length > 0) {
+      query.push(`
+        le.periodo not in (${user.vendedor?.bloqueios.periodosEstoque.map(
+          (period) => `'${period.periodo}'`,
+        )})
+      `);
+    }
+
+    query.push(
+      `p."marcaCodigo" in (${user.vendedor.marcas
+        .map((item) => item.codigo)
+        .join(',')})`,
+    );
+
+    return `and ${query.join(' and ')}`;
   }
 }

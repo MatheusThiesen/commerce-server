@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { PanelSellersService } from './sellers.service';
 
 @Controller('/panel/sellers')
@@ -21,5 +21,26 @@ export class PanelSellersController {
   @Get(':codigo')
   findOne(@Param('codigo') codigo: string) {
     return this.sellerService.findOne(+codigo);
+  }
+
+  @Get('/blocks/:codigo')
+  blocks(@Param('codigo') codigo: string) {
+    return this.sellerService.blocks(+codigo);
+  }
+
+  @Post('/blocks/:codigo')
+  blockSet(
+    @Param('codigo') codigo: string,
+
+    @Body()
+    { stocksLocation = [], groups = [] },
+  ) {
+    return this.sellerService.blockSet({
+      sellerCode: +codigo,
+      blocks: {
+        stocksLocation,
+        groups,
+      },
+    });
   }
 }

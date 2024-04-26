@@ -11,6 +11,15 @@ type listAllProps = {
   search?: string;
 };
 
+type SellerSetBlocks = {
+  sellerCode: number;
+
+  blocks: {
+    groups: string[] | [];
+    stocksLocation: string[] | [];
+  };
+};
+
 @Injectable()
 export class PanelSellersService {
   readonly directorCode = 867;
@@ -111,5 +120,119 @@ export class PanelSellersService {
       pagesize,
       total: sellersTotal,
     };
+  }
+
+  async blocks(codigo: number) {
+    const seller = await this.prisma.vendedor.findFirst({
+      select: {
+        codigo: true,
+      },
+      where: { codigo },
+    });
+
+    if (!seller) {
+      throw new Error('seller does not exist');
+    }
+
+    const blocks = await this.prisma.bloqueiosVendedor.findFirst({
+      select: {
+        id: true,
+        periodosEstoque: {
+          select: {
+            periodo: true,
+            descricao: true,
+          },
+        },
+
+        grupos: {
+          select: {
+            codigo: true,
+            descricao: true,
+          },
+        },
+      },
+      where: { vendedorCodigo: seller.codigo },
+    });
+
+    const stockPeriod = await this.prisma.periodoEstoque.findMany({
+      select: {
+        periodo: true,
+        descricao: true,
+      },
+      orderBy: {
+        data: 'asc',
+      },
+    });
+    const groups = await this.prisma.grupo.findMany({
+      select: {
+        codigo: true,
+        descricao: true,
+      },
+      orderBy: {
+        descricao: 'asc',
+      },
+    });
+
+    return {
+      blocks: blocks,
+      options: {
+        periodosEstoque: stockPeriod.sort((a) =>
+          a.periodo === 'pronta-entrega' ? -1 : 1,
+        ),
+        grupos: groups,
+      },
+    };
+  }
+
+  async blockSet({ sellerCode, blocks }: SellerSetBlocks) {
+    const seller = await this.prisma.cliente.findFirst({
+      select: {
+        codigo: true,
+      },
+      where: { codigo: sellerCode },
+    });
+
+    if (!seller) {
+      throw new Error('seller does not exist');
+    }
+
+    const findBlock = await this.prisma.bloqueiosVendedor.findFirst({
+      select: {
+        id: true,
+      },
+      where: { vendedorCodigo: sellerCode },
+    });
+
+    if (findBlock) {
+      await this.prisma.bloqueiosVendedor.update({
+        data: {
+          periodosEstoque: {
+            set: blocks.stocksLocation.map((item) => ({ periodo: item })),
+          },
+
+          grupos: {
+            set: blocks.groups.map((item) => ({ codigo: +item })),
+          },
+        },
+        where: {
+          id: findBlock.id,
+        },
+      });
+    } else {
+      await this.prisma.bloqueiosVendedor.create({
+        data: {
+          periodosEstoque: {
+            connect: blocks.stocksLocation.map((item) => ({ periodo: item })),
+          },
+
+          grupos: {
+            connect: blocks.groups.map((item) => ({ codigo: +item })),
+          },
+          vendedorCodigo: sellerCode,
+        },
+      });
+    }
+
+    return;
   }
 }

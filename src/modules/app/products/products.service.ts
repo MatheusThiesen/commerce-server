@@ -355,6 +355,7 @@ export class ProductsService {
     const user = await this.prisma.usuario.findUnique({
       select: {
         eVendedor: true,
+        vendedorCodigo: true,
         vendedor: {
           select: {
             marcas: {
@@ -372,6 +373,11 @@ export class ProductsService {
 
     if (user.eVendedor) {
       if (user.vendedor.marcas.length === 0) return [];
+
+      filters.push({
+        value: user.vendedorCodigo,
+        name: 'marcaCodigo',
+      });
 
       user.vendedor.marcas.forEach((brand) => {
         filters.push({

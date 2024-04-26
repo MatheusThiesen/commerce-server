@@ -1,5 +1,6 @@
 import { PrismaService } from '@/database/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { GetRoleBySeller } from './GetRoleBySeller';
 
 interface GetPendencyBySellerCodProps {
   sellerCode: number;
@@ -10,7 +11,10 @@ interface GetPendencyBySellerCodProps {
 export class GetPendencyBySellerCod {
   readonly directorCode = 867;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private getRoleBySeller: GetRoleBySeller,
+  ) {}
 
   async execute({
     sellerCode,
@@ -36,14 +40,14 @@ export class GetPendencyBySellerCod {
       throw new Error('Marca não encontrado.');
     }
 
-    const sellerRole = seller.eDiretor
-      ? 'DIRETOR'
-      : seller.eGerente
-      ? 'GERENTE'
-      : 'VENDEDOR';
+    const sellerRole = await this.getRoleBySeller.execute(seller.codigo);
 
     switch (sellerRole) {
       case 'VENDEDOR':
+        if (seller.codSupervisor) {
+          return seller.codSupervisor;
+        }
+
         if (seller.codGerente) {
           return seller.codGerente;
         }

@@ -1,5 +1,6 @@
 import { PrismaService } from '@/database/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { GetRoleBySeller } from './GetRoleBySeller';
 
 interface GetDiscountScopeByUserIdProps {
   userId: string;
@@ -9,16 +10,21 @@ interface GetDiscountScopeByUserIdProps {
 export class GetDiscountScopeByUserId {
   readonly directorCode = 867;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private getRoleBySeller: GetRoleBySeller,
+  ) {}
 
   async execute({ userId }: GetDiscountScopeByUserIdProps) {
     const user = await this.prisma.usuario.findUnique({
       select: {
         eVendedor: true,
+        vendedorCodigo: true,
         vendedor: {
           select: {
             eDiretor: true,
             eGerente: true,
+            eSupervisor: true,
           },
         },
       },
@@ -31,13 +37,7 @@ export class GetDiscountScopeByUserId {
       throw new Error('Vendedor não encontrado.');
     }
 
-    const seller = user.vendedor;
-
-    const sellerRole = seller.eDiretor
-      ? 'DIRETOR'
-      : seller.eGerente
-      ? 'GERENTE'
-      : 'VENDEDOR';
+    const sellerRole = await this.getRoleBySeller.execute(user.vendedorCodigo);
 
     const discountScope = await this.prisma.alcadaDesconto.findFirst({
       select: {

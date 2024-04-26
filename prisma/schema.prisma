@@ -76,7 +76,23 @@ model Vendedor {
   diferenciado                 Diferenciado[]
   Pedido                       Pedido[]
 
+  bloqueios BloqueiosVendedor?
+
   @@map("vendedores")
+}
+
+model BloqueiosVendedor {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  grupos          Grupo[]
+  periodosEstoque PeriodoEstoque[]
+
+  vendedor       Vendedor @relation(fields: [vendedorCodigo], references: [codigo])
+  vendedorCodigo Int      @unique
+
+  @@map("bloqueiosVendedor")
 }
 
 model Linha {
@@ -112,9 +128,11 @@ model Grupo {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  subGrupos        SubGrupo[]
-  produtos         Produto[]
-  bloqueiosCliente BloqueiosCliente[]
+  subGrupos           SubGrupo[]
+  produtos            Produto[]
+  bloqueiosCliente    BloqueiosCliente[]
+  BloqueiosVendedor   BloqueiosVendedor? @relation(fields: [bloqueiosVendedorId], references: [id])
+  bloqueiosVendedorId String?
 
   @@map("grupos")
 }
@@ -362,9 +380,11 @@ model PeriodoEstoque {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  pedido           Pedido[]
-  LocalEstoque     LocalEstoque[]
-  bloqueiosCliente BloqueiosCliente[]
+  pedido              Pedido[]
+  LocalEstoque        LocalEstoque[]
+  bloqueiosCliente    BloqueiosCliente[]
+  BloqueiosVendedor   BloqueiosVendedor? @relation(fields: [bloqueiosVendedorId], references: [id])
+  bloqueiosVendedorId String?
 
   @@map("periodosEstoque")
 }
@@ -453,6 +473,7 @@ model ProdutoNaoImportado {
 enum TipoUsuario {
   DIRETOR
   GERENTE
+  SUPERVISOR
   VENDEDOR
 }
 
