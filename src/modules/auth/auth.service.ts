@@ -11,6 +11,7 @@ import * as crypto from 'crypto';
 import { sendMailProducerService } from 'src/jobs/SendMail/sendMail-producer-service';
 import { LayoutMail } from 'src/utils/LayoutMail.utils';
 import { PrismaService } from '../../database/prisma.service';
+import { AuthGetPinDto, AuthSessionDto } from './dto/auth-session.dto';
 import { AuthDto } from './dto/auth.dto';
 import { PasswordDto } from './dto/password.dto';
 import { User } from './entities/user.entity';
@@ -48,7 +49,12 @@ export class AuthService {
 
     delete user.tokenRefresh;
 
-    return user;
+    const [firstMail] = user.email.split('@');
+
+    return {
+      ...user,
+      name: firstMail.split('.').join(' '),
+    };
   }
   async refreshTokens(userId: string, rt: string): Promise<Tokens> {
     const user = await this.prisma.usuario.findUnique({
@@ -56,14 +62,44 @@ export class AuthService {
         id: userId,
       },
     });
-    if (!user || !user.tokenRefresh)
-      throw new UnauthorizedException('Access Denied');
 
-    const rtMatches = await argon.verify(user.tokenRefresh, rt);
-    if (!rtMatches) throw new UnauthorizedException('Access Denied');
+    if (!user) {
+      throw new UnauthorizedException('Access Denied');
+    }
+
+    const findRefreshToken = await this.prisma.sessao.findFirst({
+      where: {
+        sessaoToken: rt,
+        usuarioId: user.id,
+      },
+    });
+
+    if (!user.tokenRefresh && !findRefreshToken) {
+      throw new UnauthorizedException('Access Denied');
+    }
 
     const tokens = await this.getTokens(user.id, user.email);
-    await this.updateRtPassword(user.id, tokens.refresh_token);
+
+    if (findRefreshToken) {
+      if (!findRefreshToken.expirar) {
+        throw new UnauthorizedException('Access Denied');
+      }
+
+      if (new Date() > findRefreshToken.expirar) {
+        throw new UnauthorizedException('Access Denied');
+      }
+
+      await this.updateRtPassword(
+        user.id,
+        tokens.refresh_token,
+        findRefreshToken.id,
+      );
+    } else {
+      const rtMatches = await argon.verify(user.tokenRefresh, rt);
+      if (!rtMatches) throw new UnauthorizedException('Access Denied');
+
+      await this.updateRtPassword(user.id, tokens.refresh_token);
+    }
 
     return tokens;
   }
@@ -214,6 +250,101 @@ export class AuthService {
     return tokens;
   }
 
+  async generatePin(dto: AuthGetPinDto) {
+    const user = await this.prisma.usuario.findUnique({
+      select: {
+        senha: true,
+        id: true,
+        email: true,
+        eAtivo: true,
+        eAdmin: true,
+      },
+      where: {
+        email: dto.email,
+      },
+    });
+
+    if (!user || !user.eAtivo || !user.eAdmin) {
+      throw new BadRequestException('Access Denied');
+    }
+
+    const code = Math.floor(10000000 + Math.random() * 90000000)
+      .toString()
+      .substring(0, 8);
+
+    await this.prisma.usuario.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        sessoes: {
+          create: {
+            pin: code,
+            expirar: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
+          },
+        },
+      },
+    });
+
+    const htmlMail = await this.layoutMail.codeSession(code);
+
+    await this.sendMail.execute({
+      to: [
+        {
+          email: user.email,
+          name: '',
+        },
+      ],
+      message: {
+        subject: 'Código de acesso painel - App Alpar do Brasil',
+        html: htmlMail,
+      },
+    });
+
+    return;
+  }
+  async session(dto: AuthSessionDto) {
+    const session = await this.prisma.sessao.findFirst({
+      select: {
+        id: true,
+        expirar: true,
+        usuario: {
+          select: {
+            id: true,
+            email: true,
+            eAtivo: true,
+            eAdmin: true,
+          },
+        },
+      },
+      where: {
+        usuario: {
+          email: dto.email,
+        },
+        pin: dto.pin,
+      },
+    });
+
+    if (!session || !session.usuario.eAtivo || !session.usuario.eAdmin)
+      throw new BadRequestException('Access Denied');
+
+    if (new Date(session.expirar) <= new Date())
+      throw new BadRequestException('Expired');
+
+    const tokens = await this.getTokens(
+      session.usuario.id,
+      session.usuario.email,
+    );
+
+    await this.updateRtPassword(
+      session.usuario.id,
+      tokens.refresh_token,
+      session.id,
+    );
+
+    return tokens;
+  }
+
   async changePassword(userId: string, dto: PasswordDto) {
     const user = await this.prisma.usuario.findUnique({
       select: {
@@ -316,16 +447,34 @@ export class AuthService {
     return tokens;
   }
 
-  async updateRtPassword(userId: string, rt: string): Promise<void> {
+  async updateRtPassword(
+    userId: string,
+    rt: string,
+    sessionId?: string,
+  ): Promise<void> {
     const tokenRefresh = await argon.hash(rt);
-    await this.prisma.usuario.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        tokenRefresh: tokenRefresh,
-      },
-    });
+
+    if (sessionId) {
+      await this.prisma.sessao.update({
+        data: {
+          sessaoToken: rt,
+          expirar: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000), // 7 dias
+          pin: null,
+        },
+        where: {
+          id: sessionId,
+        },
+      });
+    } else {
+      await this.prisma.usuario.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          tokenRefresh: tokenRefresh,
+        },
+      });
+    }
   }
   async getTokens(userId: string, email: string): Promise<Tokens> {
     const jwtPayload: JwtPayload = {

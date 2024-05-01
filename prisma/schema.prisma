@@ -19,26 +19,31 @@ model Usuario {
   senhaResetToken  String?
   senhaResetExpira DateTime?
   eAtivo           Boolean   @default(true)
+  eVendedor        Boolean   @default(false)
+  eAdmin           Boolean   @default(false)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  eVendedor        Boolean           @default(false)
-  vendedor         Vendedor?         @relation(fields: [vendedorCodigo], references: [codigo])
-  vendedorCodigo   Int?
+  vendedor       Vendedor? @relation(fields: [vendedorCodigo], references: [codigo])
+  vendedorCodigo Int?
+
   catalogosProduto CatalogoProduto[]
+  sessoes          Sessao[]
 
   @@map("usuarios")
 }
 
-// TODO: Criar tabelas de sessão, verificação de token 
+model Sessao {
+  id          String   @id @default(uuid())
+  pin         String?  @unique
+  sessaoToken String?  @unique
+  expirar     DateTime
+  createdAt   DateTime @default(now())
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId   String
 
-// model Session {
-//   id           String   @id @default(cuid())
-//   sessionToken String   @unique
-//   userId       String
-//   expires      DateTime
-//   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-// }
+  @@map("sessoes")
+}
 
 // model VerificationToken {
 //   identifier String
@@ -71,7 +76,23 @@ model Vendedor {
   diferenciado                 Diferenciado[]
   Pedido                       Pedido[]
 
+  bloqueios BloqueiosVendedor?
+
   @@map("vendedores")
+}
+
+model BloqueiosVendedor {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  grupos          Grupo[]
+  periodosEstoque PeriodoEstoque[]
+
+  vendedor       Vendedor @relation(fields: [vendedorCodigo], references: [codigo])
+  vendedorCodigo Int      @unique
+
+  @@map("bloqueiosVendedor")
 }
 
 model Linha {
@@ -82,6 +103,7 @@ model Linha {
   updatedAt DateTime @updatedAt
 
   produtos Produto[]
+  banners  Banner[]
 
   @@map("linhas")
 }
@@ -94,6 +116,7 @@ model Colecao {
   updatedAt DateTime @updatedAt
 
   produtos Produto[]
+  banners  Banner[]
 
   @@map("colecoes")
 }
@@ -107,9 +130,12 @@ model Grupo {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  subGrupos        SubGrupo[]
-  produtos         Produto[]
-  bloqueiosCliente BloqueiosCliente[]
+  subGrupos           SubGrupo[]
+  produtos            Produto[]
+  bloqueiosCliente    BloqueiosCliente[]
+  BloqueiosVendedor   BloqueiosVendedor? @relation(fields: [bloqueiosVendedorId], references: [id])
+  bloqueiosVendedorId String?
+  banners             Banner[]
 
   @@map("grupos")
 }
@@ -149,6 +175,7 @@ model Marca {
   pedido                 Pedido[]
   bloqueiosCliente       BloqueiosCliente[]
   bloqueiosMarca         BloqueiosMarca[]
+  banners                Banner[]
 
   @@map("marcas")
 }
@@ -360,6 +387,10 @@ model PeriodoEstoque {
   pedido           Pedido[]
   LocalEstoque     LocalEstoque[]
   bloqueiosCliente BloqueiosCliente[]
+  banners          Banner[]
+
+  BloqueiosVendedor   BloqueiosVendedor? @relation(fields: [bloqueiosVendedorId], references: [id])
+  bloqueiosVendedorId String?
 
   @@map("periodosEstoque")
 }
@@ -373,6 +404,7 @@ model Genero {
   updatedAt DateTime @updatedAt
 
   produtos Produto[]
+  banners  Banner[]
 
   @@map("generos")
 }
@@ -448,6 +480,7 @@ model ProdutoNaoImportado {
 enum TipoUsuario {
   DIRETOR
   GERENTE
+  SUPERVISOR
   VENDEDOR
 }
 
@@ -804,4 +837,49 @@ model Titulo {
 
   @@unique([numeroDocumento, desdobramento, clienteCodigo])
   @@map("titulos")
+}
+
+model Banner {
+  id String @id @default(uuid())
+
+  titulo    String
+  qtdClicks Int     @default(0)
+  urlSearch String?
+  eAtivo    Boolean @default(true)
+
+  locaisEstoque PeriodoEstoque[]
+  marcas        Marca[]
+  grupos        Grupo[]
+  generos       Genero[]
+  linhas        Linha[]
+  colecoes      Colecao[]
+
+  imagemDesktop   Arquivo @relation(fields: [imagemDesktopId], references: [id], name: "imagemDesktop")
+  imagemDesktopId String
+
+  imagemMobile   Arquivo @relation(fields: [imagemMobileId], references: [id], name: "imagemMobile")
+  imagemMobileId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("banners")
+}
+
+model Arquivo {
+  id String @id @default(uuid())
+
+  nome        String
+  chave       String?
+  tamanho     Float
+  url         String
+  tipoArquivo String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bannersMobile  Banner[] @relation(name: "imagemMobile")
+  bannersDesktop Banner[] @relation(name: "imagemDesktop")
+
+  @@map("arquivos")
 }

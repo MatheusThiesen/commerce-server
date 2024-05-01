@@ -6,11 +6,12 @@ import {
   Processor,
 } from '@nestjs/bull';
 import { Job } from 'bull';
-import { Product } from 'src/modules/products/entities/product.entity';
+
+import { Product } from '@/modules/app/products/entities/product.entity';
+import { ProductsService } from '@/modules/app/products/products.service';
 import { ParseCsv } from 'src/utils/ParseCsv.utils';
 import { StringToNumberOrUndefined } from 'src/utils/StringToNumberOrUndefined.utils';
 import { PrismaService } from '../../database/prisma.service';
-import { ProductsService } from '../../modules/products/products.service';
 
 @Processor('createManyProducts-queue')
 class CreateManyProductsConsumer {
@@ -77,6 +78,7 @@ class CreateManyProductsConsumer {
         ncm: ncm,
         unidadeMedida: unidadeMedida,
         unidadeMedidaDescricao: unidadeMedidaDescricao,
+        possuiFoto: !!imagemPreview,
         imagemPreview: imagemPreview,
       });
 

@@ -1,3 +1,5 @@
+import { ListingRule } from '@/modules/app/products/useCases/ListingRule';
+import { ListProductsFilters } from '@/modules/app/products/useCases/ListProductsFilters';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import {
   // OnQueueActive,
@@ -8,8 +10,6 @@ import {
 } from '@nestjs/bull';
 import { Job } from 'bull';
 import Redis from 'ioredis';
-import { ListProductsFilters } from 'src/modules/products/useCases/ListProductsFilters';
-import { ListingRule } from 'src/modules/products/useCases/ListingRule';
 
 @Processor('updateCacheProductsFilters-queue')
 class UpdateCacheProductsFiltersConsumer {

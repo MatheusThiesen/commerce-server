@@ -7,33 +7,44 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AtGuard } from './common/guards';
 import { PrismaModule } from './database/prisma.module';
+import { BannersModule } from './modules/app/banners/banners.module';
+import { BilletsModule } from './modules/app/billets/billets.module';
+import { BillingLocationsModule } from './modules/app/billing-locations/billing-locations.module';
+import { BranchActivityModule } from './modules/app/branch-activists/branch-activists.module';
+import { BrandsModule } from './modules/app/brands/brands.module';
+import { CatalogModule } from './modules/app/catalog/catalog.module';
+import { ClientsToSellersModule } from './modules/app/clients-to-sellers/clients-to-sellers.module';
+import { ClientsModule } from './modules/app/clients/clients.module';
+import { CollectionsModule } from './modules/app/collections/collections.module';
+import { ColorsModule } from './modules/app/colors/colors.module';
+import { ConceptModule } from './modules/app/concept/concept.module';
+import { DifferentiatedModule } from './modules/app/differentiated/differentiated.module';
+import { GridsModule } from './modules/app/grids/grids.module';
+import { GroupsModule } from './modules/app/groups/groups.module';
+import { HomeModule } from './modules/app/home/home.module';
+import { LinesModule } from './modules/app/lines/lines.module';
+import { OrderModule } from './modules/app/order/order.module';
+import { PaymentConditionsRulesModule } from './modules/app/payment-conditions-rules/payment-conditions-rules.module';
+import { PaymentConditionsModule } from './modules/app/payment-conditions/payment-conditions.module';
+import { PriceListsModule } from './modules/app/price-lists/price-lists.module';
+import { PriceTablesModule } from './modules/app/price-tables/price-tables.module';
+import { ProductConceptRulesModule } from './modules/app/product-concept-rules/product-concept-rules.module';
+import { ProductImagensModule } from './modules/app/product-imagens/product-imagens.module';
+import { ProductsModule } from './modules/app/products/products.module';
+import { SellersModule } from './modules/app/sellers/sellers.module';
+import { StockLocationsModule } from './modules/app/stock-locations/stock-locations.module';
+import { SubgroupsModule } from './modules/app/subgroups/subgroups.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { BilletsModule } from './modules/billets/billets.module';
-import { BillingLocationsModule } from './modules/billing-locations/billing-locations.module';
-import { BranchActivityModule } from './modules/branch-activists/branch-activists.module';
-import { BrandsModule } from './modules/brands/brands.module';
-import { CatalogModule } from './modules/catalog/catalog.module';
-import { ClientsToSellersModule } from './modules/clients-to-sellers/clients-to-sellers.module';
-import { ClientsModule } from './modules/clients/clients.module';
-import { CollectionsModule } from './modules/collections/collections.module';
-import { ColorsModule } from './modules/colors/colors.module';
-import { ConceptModule } from './modules/concept/concept.module';
-import { DifferentiatedModule } from './modules/differentiated/differentiated.module';
-import { GridsModule } from './modules/grids/grids.module';
-import { GroupsModule } from './modules/groups/groups.module';
-import { HomeModule } from './modules/home/home.module';
-import { LinesModule } from './modules/lines/lines.module';
-import { OrderModule } from './modules/order/order.module';
-import { PaymentConditionsRulesModule } from './modules/payment-conditions-rules/payment-conditions-rules.module';
-import { PaymentConditionsModule } from './modules/payment-conditions/payment-conditions.module';
-import { PriceListsModule } from './modules/price-lists/price-lists.module';
-import { PriceTablesModule } from './modules/price-tables/price-tables.module';
-import { ProductConceptRulesModule } from './modules/product-concept-rules/product-concept-rules.module';
-import { ProductImagensModule } from './modules/product-imagens/product-imagens.module';
-import { ProductsModule } from './modules/products/products.module';
-import { SellersModule } from './modules/sellers/sellers.module';
-import { StockLocationsModule } from './modules/stock-locations/stock-locations.module';
-import { SubgroupsModule } from './modules/subgroups/subgroups.module';
+import { FileModule } from './modules/files/files.module';
+import { PanelBannersModule } from './modules/panel/banners/banners.module';
+import { PanelBrandsModule } from './modules/panel/brands/brands.module';
+import { PanelClientsModule } from './modules/panel/clients/clients.module';
+import { PanelDifferentiatedHierarchiesModule } from './modules/panel/differentiated-hierarchies/differentiated-hierarchies.module';
+import { PanelOrdersModule } from './modules/panel/orders/orders.module';
+import { PanelProductsModule } from './modules/panel/products/products.module';
+import { PanelRulesModule } from './modules/panel/rules/rules.module';
+import { PanelSellersModule } from './modules/panel/sellers/sellers.module';
+import { PanelStatesModule } from './modules/panel/states/states.module';
 import { UtilsModule } from './utils/utils.module';
 
 @Module({
@@ -96,6 +107,19 @@ import { UtilsModule } from './utils/utils.module';
     BillingLocationsModule,
     BilletsModule,
     DifferentiatedModule,
+    BannersModule,
+
+    PanelProductsModule,
+    PanelClientsModule,
+    PanelSellersModule,
+    PanelOrdersModule,
+    PanelBrandsModule,
+    PanelStatesModule,
+    PanelRulesModule,
+    PanelBannersModule,
+    PanelDifferentiatedHierarchiesModule,
+
+    FileModule,
   ],
   providers: [
     {

@@ -6,7 +6,7 @@ export class ParseCsv {
   execute(file: Express.Multer.File): Promise<any> {
     return new Promise((resolve, reject) => {
       const parser = parse(file.buffer, {
-        delimiter: ['|'],
+        delimiter: ['|', ';'],
       });
       const data = [];
 
