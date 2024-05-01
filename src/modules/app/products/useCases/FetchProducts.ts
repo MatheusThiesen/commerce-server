@@ -309,6 +309,64 @@ export class FetchProducts {
           }
 
           break;
+        case 'banners':
+          const findOneBanner = await this.prisma.banner.findUnique({
+            select: {
+              marcas: { select: { codigo: true } },
+              colecoes: { select: { codigo: true } },
+              linhas: { select: { codigo: true } },
+              grupos: { select: { codigo: true } },
+              generos: { select: { codigo: true } },
+              locaisEstoque: { select: { periodo: true } },
+            },
+            where: {
+              id: filter.data[0]?.value ? String(filter.data[0].value) : '0',
+            },
+          });
+
+          if (findOneBanner.marcas.length > 0) {
+            query.push(`
+            p."marcaCodigo" in (${findOneBanner?.marcas.map(
+              (item) => item.codigo,
+            )})
+          `);
+          }
+          if (findOneBanner.colecoes.length > 0) {
+            query.push(`
+            p."colecaoCodigo" in (${findOneBanner?.colecoes.map(
+              (item) => item.codigo,
+            )})
+          `);
+          }
+          if (findOneBanner.linhas.length > 0) {
+            query.push(`
+            p."linhaCodigo" in (${findOneBanner?.linhas.map(
+              (item) => item.codigo,
+            )})
+          `);
+          }
+          if (findOneBanner.grupos.length > 0) {
+            query.push(`
+            p."grupoCodigo" in (${findOneBanner?.grupos.map(
+              (item) => item.codigo,
+            )})
+          `);
+          }
+          if (findOneBanner.generos.length > 0) {
+            query.push(`
+            p."generoCodigo" in (${findOneBanner?.generos.map(
+              (item) => item.codigo,
+            )})
+          `);
+          }
+          if (findOneBanner.locaisEstoque.length > 0) {
+            query.push(`
+            le.periodo in (${findOneBanner.locaisEstoque.map(
+              (period) => `'${period.periodo}'`,
+            )})
+          `);
+          }
+          break;
 
         default:
           query.push(

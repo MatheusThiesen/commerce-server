@@ -1,4 +1,5 @@
 import { SendOrderErpApiProducerService } from '@/jobs/SendOrderErpApi/sendOrderErpApi-producer-service';
+import { GetRoleBySeller } from '@/modules/app/differentiated/useCases/GetRoleBySeller';
 import { OrderBy } from '@/utils/OrderBy.utils';
 import { FieldsProps, SearchFilter } from '@/utils/SearchFilter.utils';
 import { BadRequestException, Injectable } from '@nestjs/common';
@@ -18,6 +19,7 @@ export class PanelOrdersService {
     private readonly searchFilter: SearchFilter,
     private readonly orderbyNormalized: OrderBy,
     private readonly sendOrderErpApiProducerService: SendOrderErpApiProducerService,
+    private readonly getRoleBySeller: GetRoleBySeller,
   ) {}
 
   readonly fieldsSearch: FieldsProps[] = [
@@ -51,6 +53,14 @@ export class PanelOrdersService {
         descontoPercentual: true,
         descontoValor: true,
         vendedorPendenteDiferenciadoCodigo: true,
+
+        vendedorPendenteDiferenciado: {
+          select: {
+            codigo: true,
+            nome: true,
+            nomeGuerra: true,
+          },
+        },
         situacaoPedido: {
           select: {
             codigo: true,
@@ -173,7 +183,32 @@ export class PanelOrdersService {
       throw new Error('order does not exist');
     }
 
-    return order;
+    const differentiatedNormalized = order.diferenciados.map(
+      async (differentiated) => ({
+        ...differentiated,
+        vendedor: {
+          ...differentiated.vendedor,
+          tipoVendedor: await this.getRoleBySeller.execute(
+            differentiated.vendedor.codigo,
+          ),
+        },
+      }),
+    );
+
+    const normalized = {
+      ...order,
+      diferenciados: await Promise.all(differentiatedNormalized),
+      vendedorPendenteDiferenciado: order.vendedorPendenteDiferenciado
+        ? {
+            ...order.vendedorPendenteDiferenciado,
+            tipoVendedor: await this.getRoleBySeller.execute(
+              order.vendedorPendenteDiferenciado.codigo,
+            ),
+          }
+        : undefined,
+    };
+
+    return normalized;
   }
 
   async findAll({ page, pagesize, orderby, search }: listAllProps) {

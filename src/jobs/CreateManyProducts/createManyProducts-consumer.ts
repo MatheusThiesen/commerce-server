@@ -78,6 +78,7 @@ class CreateManyProductsConsumer {
         ncm: ncm,
         unidadeMedida: unidadeMedida,
         unidadeMedidaDescricao: unidadeMedidaDescricao,
+        possuiFoto: !!imagemPreview,
         imagemPreview: imagemPreview,
       });
 

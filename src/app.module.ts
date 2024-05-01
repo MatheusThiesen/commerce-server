@@ -7,6 +7,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AtGuard } from './common/guards';
 import { PrismaModule } from './database/prisma.module';
+import { BannersModule } from './modules/app/banners/banners.module';
 import { BilletsModule } from './modules/app/billets/billets.module';
 import { BillingLocationsModule } from './modules/app/billing-locations/billing-locations.module';
 import { BranchActivityModule } from './modules/app/branch-activists/branch-activists.module';
@@ -34,8 +35,11 @@ import { SellersModule } from './modules/app/sellers/sellers.module';
 import { StockLocationsModule } from './modules/app/stock-locations/stock-locations.module';
 import { SubgroupsModule } from './modules/app/subgroups/subgroups.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { FileModule } from './modules/files/files.module';
+import { PanelBannersModule } from './modules/panel/banners/banners.module';
 import { PanelBrandsModule } from './modules/panel/brands/brands.module';
 import { PanelClientsModule } from './modules/panel/clients/clients.module';
+import { PanelDifferentiatedHierarchiesModule } from './modules/panel/differentiated-hierarchies/differentiated-hierarchies.module';
 import { PanelOrdersModule } from './modules/panel/orders/orders.module';
 import { PanelProductsModule } from './modules/panel/products/products.module';
 import { PanelRulesModule } from './modules/panel/rules/rules.module';
@@ -103,6 +107,7 @@ import { UtilsModule } from './utils/utils.module';
     BillingLocationsModule,
     BilletsModule,
     DifferentiatedModule,
+    BannersModule,
 
     PanelProductsModule,
     PanelClientsModule,
@@ -111,6 +116,10 @@ import { UtilsModule } from './utils/utils.module';
     PanelBrandsModule,
     PanelStatesModule,
     PanelRulesModule,
+    PanelBannersModule,
+    PanelDifferentiatedHierarchiesModule,
+
+    FileModule,
   ],
   providers: [
     {

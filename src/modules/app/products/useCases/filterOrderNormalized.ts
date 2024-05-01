@@ -200,6 +200,79 @@ export class FilterOrderNormalized {
           }
         }
 
+        if (filterGroup.value === 'banners') {
+          const findOneBanner = await this.prisma.banner.findUnique({
+            select: {
+              marcas: { select: { codigo: true } },
+              colecoes: { select: { codigo: true } },
+              linhas: { select: { codigo: true } },
+              grupos: { select: { codigo: true } },
+              generos: { select: { codigo: true } },
+              locaisEstoque: { select: { periodo: true } },
+            },
+            where: {
+              id: filterGroup.data[0]?.value
+                ? String(filterGroup.data[0].value)
+                : '0',
+            },
+          });
+
+          newFilter = {};
+
+          if (findOneBanner.marcas.length > 0) {
+            newFilter = {
+              ...newFilter,
+              marcaCodigo: {
+                in: findOneBanner?.marcas.map((item) => item.codigo),
+              },
+            };
+          }
+          if (findOneBanner.colecoes.length > 0) {
+            newFilter = {
+              ...newFilter,
+              colecaoCodigo: {
+                in: findOneBanner?.colecoes.map((item) => item.codigo),
+              },
+            };
+          }
+          if (findOneBanner.linhas.length > 0) {
+            newFilter = {
+              ...newFilter,
+              linhaCodigo: {
+                in: findOneBanner?.linhas.map((item) => item.codigo),
+              },
+            };
+          }
+          if (findOneBanner.grupos.length > 0) {
+            newFilter = {
+              ...newFilter,
+              grupoCodigo: {
+                in: findOneBanner?.grupos.map((item) => item.codigo),
+              },
+            };
+          }
+          if (findOneBanner.generos.length > 0) {
+            newFilter = {
+              ...newFilter,
+              generoCodigo: {
+                in: findOneBanner?.generos.map((item) => item.codigo),
+              },
+            };
+          }
+          if (findOneBanner.locaisEstoque.length > 0) {
+            newFilter = {
+              ...newFilter,
+              locaisEstoque: {
+                some: {
+                  periodo: {
+                    in: findOneBanner.locaisEstoque.map((item) => item.periodo),
+                  },
+                },
+              },
+            };
+          }
+        }
+
         if (filterGroup.value === 'vendedorCodigo') {
           const findOneSeller = await this.prisma.vendedor.findUnique({
             select: {

@@ -157,6 +157,59 @@ export class ListProductsFilters {
       },
     });
 
+    const banners = await this.prisma.banner.findMany({
+      select: {
+        id: true,
+        titulo: true,
+      },
+      where: {
+        eAtivo: true,
+
+        marcas: {
+          some: {
+            codigo: {
+              in: brands.map((item) => item.marca.codigo),
+            },
+          },
+        },
+        // locaisEstoque: {
+        //   some: {
+        //     periodo: {
+        //       in: stockLocations.map((item) => item.periodo),
+        //     },
+        //   },
+        // },
+        // linhas: {
+        //   some: {
+        //     codigo: {
+        //       in: lines.map((item) => item.linha.codigo),
+        //     },
+        //   },
+        // },
+        // grupos: {
+        //   some: {
+        //     codigo: {
+        //       in: groups.map((item) => item.grupo.codigo),
+        //     },
+        //   },
+        // },
+        // generos: {
+        //   some: {
+        //     codigo: {
+        //       in: genders.map((item) => item.genero.codigo),
+        //     },
+        //   },
+        // },
+        // colecoes: {
+        //   some: {
+        //     codigo: {
+        //       in: collections.map((item) => item.colecao.codigo),
+        //     },
+        //   },
+        // },
+      },
+    });
+
     filterList.push(
       {
         label: 'Locais Estoque',
@@ -243,6 +296,14 @@ export class ListProductsFilters {
         })),
       },
       {
+        label: 'Banners',
+        name: 'banners',
+        data: banners.map((banner) => ({
+          name: banner.titulo,
+          value: banner.id,
+        })),
+      },
+      {
         label: 'Possui foto',
         name: 'possuiFoto',
         data: [
@@ -280,6 +341,7 @@ export class ListProductsFilters {
             : item
           : item,
       )
+      .filter((item) => item.data.length >= 1)
       .filter((boolean) => boolean);
   }
 }
