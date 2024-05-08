@@ -9,6 +9,11 @@ type listAllProps = {
   pagesize: number;
   orderby?: string;
   search?: string;
+  filters?: SellerFilters;
+};
+
+export type SellerFilters = {
+  eAtivo?: string;
 };
 
 type SellerSetBlocks = {
@@ -86,7 +91,11 @@ export class PanelSellersService {
     return normalized;
   }
 
-  async findAll({ page, pagesize, orderby, search }: listAllProps) {
+  async findAll({ page, pagesize, orderby, search, filters }: listAllProps) {
+    const filterNormalized = filters
+      ? { ...filters, eAtivo: filters.eAtivo === 'true' }
+      : undefined;
+
     const orderByNormalized = this.orderbyNormalized.execute(orderby);
 
     const sellers = await this.prisma.vendedor.findMany({
@@ -108,6 +117,7 @@ export class PanelSellersService {
           {
             OR: this.searchFilter.execute(search, this.fieldsSearch),
           },
+          filterNormalized,
         ],
       },
     });
