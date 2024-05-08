@@ -31,7 +31,7 @@ export class PanelClientsService {
   ) {}
 
   async findOne(codigo: number) {
-    const client = await this.prisma.cliente.findFirst({
+    const client = await this.prisma.cliente.findUnique({
       select: {
         codigo: true,
         razaoSocial: true,
@@ -72,6 +72,12 @@ export class PanelClientsService {
           select: {
             codigo: true,
             descricao: true,
+          },
+        },
+        carteiraClienteRepresentante: {
+          select: {
+            id: true,
+            vendedorCodigo: true,
           },
         },
       },
