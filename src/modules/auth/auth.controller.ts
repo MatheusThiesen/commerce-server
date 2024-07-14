@@ -1,6 +1,6 @@
+import { GetCurrentUserSso } from '@/common/decorators/get-current-user-id-sso.decorator';
+import { RtGuard, SsoGuard } from '@/common/guards';
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { GetCurrentUserSso } from 'src/common/decorators/get-current-user-id-sso.decorator';
-import { RtGuard, SsoGuard } from 'src/common/guards';
 import {
   GetCurrentUser,
   GetCurrentUserId,

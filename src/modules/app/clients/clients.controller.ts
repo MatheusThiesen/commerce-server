@@ -1,3 +1,5 @@
+import { GetCurrentUserId } from '@/common/decorators';
+import { TimeoutInterceptor } from '@/interceptors/timeout.interceptors';
 import {
   Controller,
   Get,
@@ -8,8 +10,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { GetCurrentUserId } from 'src/common/decorators';
-import { TimeoutInterceptor } from 'src/interceptors/timeout.interceptors';
 import { ClientsService } from './clients.service';
 import { QueryClients } from './dto/query-client.type';
 

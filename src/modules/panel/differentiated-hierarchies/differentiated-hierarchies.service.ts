@@ -1,6 +1,6 @@
+import { PrismaService } from '@/database/prisma.service';
 import { SearchFilter } from '@/utils/SearchFilter.utils';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
 import { DifferentiatedHierarchy } from './entities/differentiated-hierarchies.entity';
 
 type listAllProps = {

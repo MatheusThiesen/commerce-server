@@ -1,11 +1,11 @@
+import { FilterListProps } from '@/@types/FilterList';
+import { PrismaService } from '@/database/prisma.service';
+import { GroupByObj } from '@/utils/GroupByObj.utils';
+import { OrderBy } from '@/utils/OrderBy.utils';
+import { ParseCsv } from '@/utils/ParseCsv.utils';
+import { FieldsProps, SearchFilter } from '@/utils/SearchFilter.utils';
+import { StringToNumberOrUndefined } from '@/utils/StringToNumberOrUndefined.utils';
 import { Injectable } from '@nestjs/common';
-import { FilterListProps } from 'src/@types/FilterList';
-import { PrismaService } from 'src/database/prisma.service';
-import { GroupByObj } from 'src/utils/GroupByObj.utils';
-import { OrderBy } from 'src/utils/OrderBy.utils';
-import { ParseCsv } from 'src/utils/ParseCsv.utils';
-import { FieldsProps, SearchFilter } from 'src/utils/SearchFilter.utils';
-import { StringToNumberOrUndefined } from 'src/utils/StringToNumberOrUndefined.utils';
 import { ItemFilter } from '../products/dto/query-products.type';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';

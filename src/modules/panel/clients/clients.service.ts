@@ -1,8 +1,8 @@
+import { PrismaService } from '@/database/prisma.service';
 import { ClientsService } from '@/modules/app/clients/clients.service';
 import { OrderBy } from '@/utils/OrderBy.utils';
 import { SearchFilter } from '@/utils/SearchFilter.utils';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
 
 type listAllProps = {
   page: number;

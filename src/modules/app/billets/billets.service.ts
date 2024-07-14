@@ -1,6 +1,6 @@
+import { PrismaService } from '@/database/prisma.service';
+import { ParseCsv } from '@/utils/ParseCsv.utils';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
-import { ParseCsv } from 'src/utils/ParseCsv.utils';
 import { CreateBilletDto } from './dto/create-billet.dto';
 import { UpdateBilletDto } from './dto/update-billet.dto';
 import { Billet } from './entities/billet.entity';

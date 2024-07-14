@@ -1,8 +1,8 @@
+import { PrismaService } from '@/database/prisma.service';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import Redis from 'ioredis';
-import { PrismaService } from 'src/database/prisma.service';
 import { ListProductsFilters } from './ListProductsFilters';
 import { ListingRule } from './ListingRule';
 import { FilterOrderNormalized } from './filterOrderNormalized';

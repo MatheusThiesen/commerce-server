@@ -1,8 +1,8 @@
+import { CreateManyProductsProducerService } from '@/jobs/CreateManyProducts/createManyProducts-producer-service';
+import { UpdateCacheProductsFiltersProducerService } from '@/jobs/UpdateCacheProductsFilters/updateCacheProductsFilters-producer-service';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
-import { CreateManyProductsProducerService } from 'src/jobs/CreateManyProducts/createManyProducts-producer-service';
-import { UpdateCacheProductsFiltersProducerService } from 'src/jobs/UpdateCacheProductsFilters/updateCacheProductsFilters-producer-service';
 import { PrismaService } from '../../../database/prisma.service';
 import { OrderBy } from '../../../utils/OrderBy.utils';
 import { ParseCsv } from '../../../utils/ParseCsv.utils';

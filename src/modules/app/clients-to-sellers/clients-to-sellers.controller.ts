@@ -1,3 +1,4 @@
+import { TimeoutInterceptor } from '@/interceptors/timeout.interceptors';
 import {
   Controller,
   Param,
@@ -6,7 +7,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { TimeoutInterceptor } from 'src/interceptors/timeout.interceptors';
 import { ClientsToSellersService } from './clients-to-sellers.service';
 
 @Controller('clients-to-sellers')

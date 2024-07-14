@@ -1,7 +1,7 @@
+import { PrismaService } from '@/database/prisma.service';
+import { OrderBy } from '@/utils/OrderBy.utils';
+import { FieldsProps, SearchFilter } from '@/utils/SearchFilter.utils';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
-import { OrderBy } from 'src/utils/OrderBy.utils';
-import { FieldsProps, SearchFilter } from 'src/utils/SearchFilter.utils';
 import { AgroupGridProduct } from '../products/useCases/AgroupGridProduct';
 import { ListingRule } from '../products/useCases/ListingRule';
 import { VariationsProduct } from '../products/useCases/VariationsProduct';

@@ -1,3 +1,4 @@
+import { GetCurrentUserId } from '@/common/decorators';
 import {
   Controller,
   Get,
@@ -7,7 +8,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { GetCurrentUserId } from 'src/common/decorators';
 import { BrandsService } from './brands.service';
 
 @Controller('brands')

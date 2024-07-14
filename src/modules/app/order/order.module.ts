@@ -1,8 +1,8 @@
+import { SendOrderErpApiConsumer } from '@/jobs/SendOrderErpApi/sendOrderErpApi-consumer';
+import { SendOrderErpApiProducerService } from '@/jobs/SendOrderErpApi/sendOrderErpApi-producer-service';
 import { HttpModule } from '@nestjs/axios';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
-import { SendOrderErpApiConsumer } from 'src/jobs/SendOrderErpApi/sendOrderErpApi-consumer';
-import { SendOrderErpApiProducerService } from 'src/jobs/SendOrderErpApi/sendOrderErpApi-producer-service';
 import { GetPendencyBySellerCod } from '../differentiated/useCases/GetPendencyBySellerCod';
 import { GetRoleBySeller } from '../differentiated/useCases/GetRoleBySeller';
 import { ProductsService } from '../products/products.service';

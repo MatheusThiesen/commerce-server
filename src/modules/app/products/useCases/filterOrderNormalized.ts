@@ -1,6 +1,6 @@
+import { PrismaService } from '@/database/prisma.service';
+import { GroupByObj } from '@/utils/GroupByObj.utils';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
-import { GroupByObj } from 'src/utils/GroupByObj.utils';
 import { ItemFilter } from '../dto/query-products.type';
 import { ListingRule } from './ListingRule';
 

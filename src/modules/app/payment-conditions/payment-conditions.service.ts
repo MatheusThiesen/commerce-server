@@ -3,7 +3,7 @@ import { CreatePaymentConditionDto } from './dto/create-payment-condition.dto';
 import { UpdatePaymentConditionDto } from './dto/update-payment-condition.dto';
 import { PaymentCondition } from './entities/payment-condition.entity';
 
-import { StringToNumberOrUndefined } from 'src/utils/StringToNumberOrUndefined.utils';
+import { StringToNumberOrUndefined } from '@/utils/StringToNumberOrUndefined.utils';
 import { PrismaService } from '../../../database/prisma.service';
 import { ParseCsv } from '../../../utils/ParseCsv.utils';
 

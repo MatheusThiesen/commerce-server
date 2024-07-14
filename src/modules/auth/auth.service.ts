@@ -1,3 +1,5 @@
+import { sendMailProducerService } from '@/jobs/SendMail/sendMail-producer-service';
+import { LayoutMail } from '@/utils/LayoutMail.utils';
 import {
   BadRequestException,
   Injectable,
@@ -8,8 +10,6 @@ import { JwtService } from '@nestjs/jwt';
 import * as argon from 'argon2';
 import { hash } from 'argon2';
 import * as crypto from 'crypto';
-import { sendMailProducerService } from 'src/jobs/SendMail/sendMail-producer-service';
-import { LayoutMail } from 'src/utils/LayoutMail.utils';
 import { PrismaService } from '../../database/prisma.service';
 import { AuthGetPinDto, AuthSessionDto } from './dto/auth-session.dto';
 import { AuthDto } from './dto/auth.dto';

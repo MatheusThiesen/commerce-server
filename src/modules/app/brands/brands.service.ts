@@ -1,6 +1,6 @@
+import { ItemFilter } from '@/@types/FilterList';
+import { GroupByObj } from '@/utils/GroupByObj.utils';
 import { Injectable } from '@nestjs/common';
-import { ItemFilter } from 'src/@types/FilterList';
-import { GroupByObj } from 'src/utils/GroupByObj.utils';
 import { PrismaService } from '../../../database/prisma.service';
 import { ParseCsv } from '../../../utils/ParseCsv.utils';
 import { CreateBrandDto } from './dto/create-brand.dto';

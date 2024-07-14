@@ -1,5 +1,5 @@
+import { ParseCsv } from '@/utils/ParseCsv.utils';
 import { Injectable } from '@nestjs/common';
-import { ParseCsv } from 'src/utils/ParseCsv.utils';
 import { PrismaService } from '../../../database/prisma.service';
 import { CreateConceptDto } from './dto/create-concept.dto';
 import { UpdateConceptDto } from './dto/update-concept.dto';

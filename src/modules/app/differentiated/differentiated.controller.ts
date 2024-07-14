@@ -1,5 +1,5 @@
+import { GetCurrentUserId } from '@/common/decorators/get-current-user-id.decorator';
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { GetCurrentUserId } from 'src/common/decorators/get-current-user-id.decorator';
 import { Differentiated } from './entities/differentiated.entity';
 import { ApprovalDifferentiated } from './useCases/ApprovalDifferentiated';
 import { GetDiscountScopeByUserId } from './useCases/GetDiscountScopeByUserId';

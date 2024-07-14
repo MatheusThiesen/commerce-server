@@ -1,6 +1,6 @@
+import { PrismaService } from '@/database/prisma.service';
+import { ParseCsv } from '@/utils/ParseCsv.utils';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
-import { ParseCsv } from 'src/utils/ParseCsv.utils';
 import { CreateProductImageDto } from './dto/create-product-image.dto';
 import { UpdateProductImageDto } from './dto/update-product-image.dto';
 import { ProductImage } from './entities/product-imagen.entity';

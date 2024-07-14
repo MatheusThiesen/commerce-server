@@ -9,8 +9,8 @@ import { Job } from 'bull';
 
 import { Product } from '@/modules/app/products/entities/product.entity';
 import { ProductsService } from '@/modules/app/products/products.service';
-import { ParseCsv } from 'src/utils/ParseCsv.utils';
-import { StringToNumberOrUndefined } from 'src/utils/StringToNumberOrUndefined.utils';
+import { ParseCsv } from '@/utils/ParseCsv.utils';
+import { StringToNumberOrUndefined } from '@/utils/StringToNumberOrUndefined.utils';
 import { PrismaService } from '../../database/prisma.service';
 
 @Processor('createManyProducts-queue')

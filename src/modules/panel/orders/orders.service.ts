@@ -1,9 +1,9 @@
+import { PrismaService } from '@/database/prisma.service';
 import { SendOrderErpApiProducerService } from '@/jobs/SendOrderErpApi/sendOrderErpApi-producer-service';
 import { GetRoleBySeller } from '@/modules/app/differentiated/useCases/GetRoleBySeller';
 import { OrderBy } from '@/utils/OrderBy.utils';
 import { FieldsProps, SearchFilter } from '@/utils/SearchFilter.utils';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
 
 type listAllProps = {
   page: number;
