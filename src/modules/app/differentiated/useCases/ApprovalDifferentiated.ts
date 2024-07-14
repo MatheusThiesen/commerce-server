@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../database/prisma.service';
 import { Differentiated } from '../entities/differentiated.entity';
 import { GetPendencyBySellerCod } from './GetPendencyBySellerCod';
+import { GetRoleBySeller } from './GetRoleBySeller';
 
 interface ApprovalDifferentiatedProps {
   differentiated?: Differentiated;
@@ -14,6 +15,7 @@ interface ApprovalDifferentiatedProps {
 export class ApprovalDifferentiated {
   constructor(
     private prisma: PrismaService,
+    private getRoleBySeller: GetRoleBySeller,
     private getPendencyBySellerCod: GetPendencyBySellerCod,
     private readonly sendOrderErpApiProducerService: SendOrderErpApiProducerService,
   ) {}
@@ -41,16 +43,7 @@ export class ApprovalDifferentiated {
     const user = await this.prisma.usuario.findUnique({
       select: {
         eVendedor: true,
-
-        vendedor: {
-          select: {
-            codGerente: true,
-            codigo: true,
-            eDiretor: true,
-            eGerente: true,
-            eSupervisor: true,
-          },
-        },
+        vendedorCodigo: true,
       },
       where: {
         id: userId,
@@ -61,11 +54,7 @@ export class ApprovalDifferentiated {
       throw new Error('User not found');
     }
 
-    const sellerRole = user.vendedor.eDiretor
-      ? 'DIRETOR'
-      : user.vendedor.eGerente
-      ? 'GERENTE'
-      : 'VENDEDOR';
+    const sellerRole = await this.getRoleBySeller.execute(user.vendedorCodigo);
 
     const authority = await this.prisma.alcadaDesconto.findFirst({
       where: {
@@ -83,7 +72,7 @@ export class ApprovalDifferentiated {
 
     const vendedorPendenteDiferenciadoCodigo =
       await this.getPendencyBySellerCod.execute({
-        sellerCode: user.vendedor.codigo,
+        sellerCode: user.vendedorCodigo,
         brandCode: order.marcaCodigo,
       });
 
@@ -101,7 +90,7 @@ export class ApprovalDifferentiated {
           descontoValor: differentiated.descontoValor,
           motivoDiferenciado: differentiated.motivoDiferenciado,
           tipoUsuario: sellerRole,
-          vendedorCodigo: user.vendedor.codigo,
+          vendedorCodigo: user.vendedorCodigo,
           passo: lastDifferentiated.passo + 1,
           descontoCalculado: descontoCalculado,
         },
@@ -138,7 +127,7 @@ export class ApprovalDifferentiated {
             descontoValor: differentiated.descontoValor,
             motivoDiferenciado: differentiated.motivoDiferenciado,
             tipoUsuario: sellerRole,
-            vendedorCodigo: user.vendedor.codigo,
+            vendedorCodigo: user.vendedorCodigo,
             passo: lastDifferentiated.passo + 1,
             descontoCalculado: descontoCalculado,
           },
