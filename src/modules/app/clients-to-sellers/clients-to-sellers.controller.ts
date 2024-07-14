@@ -1,5 +1,6 @@
 import {
   Controller,
+  Param,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -14,10 +15,13 @@ export class ClientsToSellersController {
     private readonly clientsToSellersService: ClientsToSellersService,
   ) {}
 
-  @Post('import')
+  @Post('import/:vendedorCod')
   @UseInterceptors(TimeoutInterceptor)
   @UseInterceptors(FileInterceptor('file'))
-  import(@UploadedFile() file: Express.Multer.File) {
-    return this.clientsToSellersService.import(file);
+  import(
+    @Param('vendedorCod') vendedorCod: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.clientsToSellersService.import(file, Number(vendedorCod));
   }
 }

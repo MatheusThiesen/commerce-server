@@ -9,6 +9,7 @@ export type OrderApiErp = {
   representative: number;
   agent: number;
   paymentLocal: number;
+  orderCategory: 4 | 9;
 
   items: {
     price: number;
@@ -41,7 +42,7 @@ export class RequestOrderApiErp {
 
   async execute(order: OrderApiErp) {
     const url =
-      process.env.ERP_URL + '/api/v1/insert' + '?entity=order&organization=018';
+      process.env.ERP_URL + '/api/v1/insert' + '?entity=order&organization=045';
 
     const response = await firstValueFrom(
       this.httpService

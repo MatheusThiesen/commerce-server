@@ -21,6 +21,8 @@ export class TransformOrderToSendApiErp {
         eDiferenciado: true,
         descontoCalculado: true,
 
+        periodo: true,
+
         periodoEstoque: {
           select: {
             descricao: true,
@@ -81,6 +83,7 @@ export class TransformOrderToSendApiErp {
       agent: agent ?? representative,
       deliveryDate: `${deliveryDateYear}-${deliveryDateMonth}-${deliveryDateDay}`,
       paymentLocal: findOrder.localCobrancaCodigo,
+      orderCategory: findOrder.periodo === 'pronta-entrega' ? 4 : 9,
 
       additionalOrderData1: findOrder.eDiferenciado
         ? {

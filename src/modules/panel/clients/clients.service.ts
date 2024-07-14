@@ -74,10 +74,9 @@ export class PanelClientsService {
             descricao: true,
           },
         },
-        carteiraClienteRepresentante: {
+        vendedores: {
           select: {
-            id: true,
-            vendedorCodigo: true,
+            codigo: true,
           },
         },
       },

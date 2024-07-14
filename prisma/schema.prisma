@@ -68,13 +68,13 @@ model Vendedor {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  marcas                       Marca[]
-  Usuario                      Usuario[]
-  carteiraClienteRepresentante CarteiraClienteRepresentante[]
-  vendedorPedido               VendedorPedido[]
-  titulo                       Titulo[]
-  diferenciado                 Diferenciado[]
-  Pedido                       Pedido[]
+  marcas         Marca[]
+  Usuario        Usuario[]
+  vendedorPedido VendedorPedido[]
+  titulo         Titulo[]
+  diferenciado   Diferenciado[]
+  Pedido         Pedido[]
+  clientes       Cliente[]
 
   bloqueios BloqueiosVendedor?
 
@@ -267,30 +267,32 @@ model Produto {
   listaPreco    ListaPreco[]
   ordemCompra   OrdemCompra[]
 
-  corPrimaria         Cor?              @relation(fields: [corPrimariaCodigo], references: [codigo])
+  corPrimaria         Cor?           @relation(fields: [corPrimariaCodigo], references: [codigo])
   corPrimariaCodigo   Int?
   corSecundaria       RelCorProduto?
   corSecundariaCodigo Int?
-  marca               Marca             @relation(fields: [marcaCodigo], references: [codigo])
+  marca               Marca          @relation(fields: [marcaCodigo], references: [codigo])
   marcaCodigo         Int
-  colecao             Colecao?          @relation(fields: [colecaoCodigo], references: [codigo])
+  colecao             Colecao?       @relation(fields: [colecaoCodigo], references: [codigo])
   colecaoCodigo       Int?
-  linha               Linha?            @relation(fields: [linhaCodigo], references: [codigo])
+  linha               Linha?         @relation(fields: [linhaCodigo], references: [codigo])
   linhaCodigo         Int?
-  grupo               Grupo?            @relation(fields: [grupoCodigo], references: [codigo])
+  grupo               Grupo?         @relation(fields: [grupoCodigo], references: [codigo])
   grupoCodigo         Int?
-  genero              Genero?           @relation(fields: [generoCodigo], references: [codigo])
+  genero              Genero?        @relation(fields: [generoCodigo], references: [codigo])
   generoCodigo        Int?
-  subGrupo            SubGrupo?         @relation(fields: [subGrupoId], references: [id])
+  subGrupo            SubGrupo?      @relation(fields: [subGrupoId], references: [id])
   subGrupoId          String?
-  Grade               Grade?            @relation(fields: [gradeCodigo], references: [codigo])
+  Grade               Grade?         @relation(fields: [gradeCodigo], references: [codigo])
   gradeCodigo         Int?
-  origemProduto       OrigemProduto?    @relation(fields: [origemProdutoCodigo], references: [codigo])
+  origemProduto       OrigemProduto? @relation(fields: [origemProdutoCodigo], references: [codigo])
   origemProdutoCodigo Int?
-  unidade             UnidadeMedida?    @relation(fields: [unidadeMedida], references: [unidade])
+  unidade             UnidadeMedida? @relation(fields: [unidadeMedida], references: [unidade])
   unidadeMedida       String?
-  CatalogoProduto     CatalogoProduto[]
-  imagens             ProdutoImagem[]
+
+  CatalogoProduto CatalogoProduto[]
+  imagens         ProdutoImagem[]
+  banner          Banner[]
 
   @@index([marcaCodigo, grupoCodigo, subGrupoId, eAtivo, linhaCodigo, colecaoCodigo, generoCodigo, possuiFoto])
   @@index([marcaCodigo])
@@ -688,10 +690,10 @@ model Cliente {
   estado              Estado         @relation(fields: [uf], references: [uf])
   uf                  String
 
-  carteiraClienteRepresentante CarteiraClienteRepresentante[]
-  pedido                       Pedido[]
-  bloqueios                    BloqueiosCliente?
-  titulo                       Titulo[]
+  pedido     Pedido[]
+  bloqueios  BloqueiosCliente?
+  titulo     Titulo[]
+  vendedores Vendedor[]
 
   @@map("clientes")
 }
@@ -721,21 +723,6 @@ model Estado {
   cliente        Cliente[]
 
   @@map("estados")
-}
-
-model CarteiraClienteRepresentante {
-  id        String   @id @unique @default(uuid())
-  tipo      Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  vendedor       Vendedor @relation(fields: [vendedorCodigo], references: [codigo])
-  vendedorCodigo Int
-  cliente        Cliente  @relation(fields: [clienteCodigo], references: [codigo])
-  clienteCodigo  Int
-
-  @@unique([vendedorCodigo, clienteCodigo])
-  @@map("cateirasClieteRepresentante")
 }
 
 model TabelaPreco {
@@ -853,6 +840,7 @@ model Banner {
   generos       Genero[]
   linhas        Linha[]
   colecoes      Colecao[]
+  produtos      Produto[]
 
   imagemDesktop   Arquivo @relation(fields: [imagemDesktopId], references: [id], name: "imagemDesktop")
   imagemDesktopId String

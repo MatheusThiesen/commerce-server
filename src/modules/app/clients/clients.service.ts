@@ -178,9 +178,9 @@ export class ClientsService {
 
     if (user.eVendedor) {
       filterNormalized.push({
-        carteiraClienteRepresentante: {
+        vendedores: {
           some: {
-            vendedorCodigo: user.vendedorCodigo,
+            codigo: user.vendedorCodigo,
           },
         },
       });
@@ -263,9 +263,9 @@ export class ClientsService {
 
     if (user.eVendedor) {
       filterNormalized.push({
-        carteiraClienteRepresentante: {
+        vendedores: {
           some: {
-            vendedorCodigo: user.vendedorCodigo,
+            codigo: user.vendedorCodigo,
           },
         },
       });
@@ -374,9 +374,9 @@ export class ClientsService {
 
     if (user.eVendedor) {
       filterNormalized.push({
-        carteiraClienteRepresentante: {
+        vendedores: {
           some: {
-            vendedorCodigo: user.vendedorCodigo,
+            codigo: user.vendedorCodigo,
           },
         },
       });

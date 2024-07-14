@@ -6,60 +6,65 @@ import { ParseCsv } from 'src/utils/ParseCsv.utils';
 export class ClientsToSellersService {
   constructor(private prisma: PrismaService, private parseCsv: ParseCsv) {}
 
-  async import(file: Express.Multer.File) {
+  async import(file: Express.Multer.File, sellerCod: number) {
     const sellersToClients = await this.parseCsv.execute(file);
 
-    for (const sellerToClientArr of sellersToClients) {
-      const [clienteCod, sellerCod, tipo] = sellerToClientArr;
+    const alreadyExistSeller = await this.prisma.vendedor.findUnique({
+      select: { codigo: true },
+      where: { codigo: Number(sellerCod) },
+    });
 
-      try {
-        const walletExist =
-          await this.prisma.carteiraClienteRepresentante.findUnique({
-            select: { id: true },
-            where: {
-              vendedorCodigo_clienteCodigo: {
-                clienteCodigo: +clienteCod,
-                vendedorCodigo: +sellerCod,
+    if (alreadyExistSeller) {
+      const clients: { codigo: number }[] = (
+        await Promise.all(
+          sellersToClients.map(async ([clienteCod]) => {
+            const alreadyExistClient = await this.prisma.cliente.findUnique({
+              select: { codigo: true },
+              where: { codigo: Number(clienteCod) },
+            });
+
+            if (alreadyExistClient) return { codigo: +clienteCod };
+          }),
+        )
+      ).filter((filter) => filter);
+
+      if (clients.length > 10000) {
+        await this.prisma.vendedor.update({
+          data: {
+            clientes: {
+              set: [],
+            },
+          },
+          where: {
+            codigo: alreadyExistSeller.codigo,
+          },
+        });
+
+        for (const client of clients) {
+          await this.prisma.vendedor.update({
+            data: {
+              clientes: {
+                connect: {
+                  codigo: client.codigo,
+                },
               },
             },
+            where: {
+              codigo: alreadyExistSeller.codigo,
+            },
           });
-
-        const alreadyExistClient = await this.prisma.cliente.findUnique({
-          select: { codigo: true },
-          where: { codigo: Number(clienteCod) },
-        });
-        const alreadyExistSeller = await this.prisma.vendedor.findUnique({
-          select: { codigo: true },
-          where: { codigo: Number(sellerCod) },
-        });
-
-        if (alreadyExistClient && alreadyExistSeller) {
-          if (walletExist) {
-            await this.prisma.carteiraClienteRepresentante.update({
-              data: {
-                tipo: Number(tipo),
-              },
-              where: {
-                id: walletExist.id,
-              },
-            });
-          } else {
-            await this.prisma.carteiraClienteRepresentante.create({
-              data: {
-                clienteCodigo: +clienteCod,
-                vendedorCodigo: +sellerCod,
-                tipo: +tipo,
-              },
-            });
-          }
-        } else {
-          if (!alreadyExistClient)
-            console.log(`Client not exist ${clienteCod}`);
-          if (!alreadyExistSeller) console.log(`Seller not exist ${sellerCod}`);
         }
-      } catch (error) {
-        console.log(error);
-        console.log(sellerToClientArr);
+      } else {
+        await this.prisma.vendedor.update({
+          data: {
+            clientes: {
+              set: clients,
+            },
+          },
+          where: {
+            codigo: alreadyExistSeller.codigo,
+          },
+        });
       }
     }
 
