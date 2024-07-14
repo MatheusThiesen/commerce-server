@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Client } from '@/modules/app/clients/entities/client.entity';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { PanelClientsService } from './clients.service';
 
 @Controller('/panel/clients')
@@ -21,6 +22,11 @@ export class PanelClientsController {
   @Get(':codigo')
   findOne(@Param('codigo') codigo: string) {
     return this.clientsService.findOne(+codigo);
+  }
+
+  @Put(':codigo')
+  update(@Param('codigo') codigo: string, @Body() dto: Client) {
+    return this.clientsService.update(+codigo, dto);
   }
 
   @Get('/blocks/:codigo')

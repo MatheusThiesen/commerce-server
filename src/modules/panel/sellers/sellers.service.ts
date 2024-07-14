@@ -68,6 +68,13 @@ export class PanelSellersService {
         codDiretor: true,
         codGerente: true,
         codSupervisor: true,
+        clientes: {
+          select: {
+            codigo: true,
+            razaoSocial: true,
+            cnpj: true,
+          },
+        },
         marcas: {
           select: {
             codigo: true,

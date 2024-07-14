@@ -3,6 +3,7 @@ import { ClientsService } from '@/modules/app/clients/clients.service';
 import { OrderBy } from '@/utils/OrderBy.utils';
 import { SearchFilter } from '@/utils/SearchFilter.utils';
 import { Injectable } from '@nestjs/common';
+import { Client } from './entities/client.entity';
 
 type listAllProps = {
   page: number;
@@ -29,6 +30,23 @@ export class PanelClientsService {
     private readonly searchFilter: SearchFilter,
     private readonly orderbyNormalized: OrderBy,
   ) {}
+
+  async update(clientCode: number, { vendedores }: Client) {
+    const client = await this.prisma.cliente.update({
+      data: {
+        vendedores: {
+          set: vendedores.map((item) => ({
+            codigo: +item,
+          })),
+        },
+      },
+      where: {
+        codigo: clientCode,
+      },
+    });
+
+    return client;
+  }
 
   async findOne(codigo: number) {
     const client = await this.prisma.cliente.findUnique({
