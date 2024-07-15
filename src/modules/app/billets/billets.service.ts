@@ -140,6 +140,14 @@ export class BilletsService {
       }
     }
 
+    await this.prisma.titulo.deleteMany({
+      where: {
+        updatedAt: {
+          lte: new Date(new Date().setDate(new Date().getDate() - 2)),
+        },
+      },
+    });
+
     return;
   }
 }

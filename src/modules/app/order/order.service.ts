@@ -322,7 +322,8 @@ export class OrderService {
         await this.prisma.pedido.update({
           data: {
             situacaoPedidoCodigo:
-              alreadyExistsOrder.registros.length >= 2 ? 5 : undefined,
+              // alreadyExistsOrder.registros.length >= 2 ? 5 : undefined,
+              5,
             registros: {
               create: {
                 requsicao: JSON.stringify(orderTransformed),
