@@ -499,6 +499,7 @@ export class OrderService {
         dataFaturamento: true,
         valorTotal: true,
         eRascunho: true,
+        eDiferenciado: true,
         vendedores: {
           select: {
             tipo: true,
@@ -602,7 +603,7 @@ export class OrderService {
       },
     });
 
-    if (updated.eRascunho === false) {
+    if (updated.eRascunho === false && updated.eDiferenciado === false) {
       await this.sendOrderErpApiProducerService.execute({
         orderCode: updated.codigo,
       });

@@ -306,6 +306,15 @@ export class PanelOrdersService {
       throw new BadRequestException('Situação não habilitada');
     }
 
+    await this.prisma.pedido.update({
+      data: {
+        situacaoPedidoCodigo: 1,
+      },
+      where: {
+        codigo: alreadyExistsOrder.codigo,
+      },
+    });
+
     await this.sendOrderErpApiProducerService.execute({
       orderCode: alreadyExistsOrder.codigo,
     });

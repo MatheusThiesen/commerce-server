@@ -14,13 +14,12 @@ export class RoutineSendAllOrdersApiErp {
     timeZone: 'America/Sao_Paulo',
   })
   async execute() {
-    const orders = await this.prisma.pedido.findMany({
-      select: { codigo: true },
-      where: { codigoErp: null, situacaoPedidoCodigo: 1, eRascunho: false },
-    });
-
-    for (const order of orders) {
-      await this.orderService.sendApiErp(order.codigo);
-    }
+    // const orders = await this.prisma.pedido.findMany({
+    //   select: { codigo: true },
+    //   where: { codigoErp: null, situacaoPedidoCodigo: 1, eRascunho: false },
+    // });
+    // for (const order of orders) {
+    //   await this.orderService.sendApiErp(order.codigo);
+    // }
   }
 }
