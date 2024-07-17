@@ -41,10 +41,10 @@ export class OrderService {
   readonly statusOrderErp = {
     ['bloqueado']: 2,
     ['bloqueado parcial']: 2,
+    ['liberado']: 2,
+    ['recusado']: 2,
     ['cancelado']: 4,
     ['faturado']: 3,
-    ['liberado']: 3,
-    ['recusado']: 2,
   };
 
   constructor(
