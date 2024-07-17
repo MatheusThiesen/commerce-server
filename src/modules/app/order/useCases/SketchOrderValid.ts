@@ -26,6 +26,13 @@ type SketchOrderValidResponse = {
       descricao: string;
       periodo: string;
     };
+    diferenciado?: {
+      descontoCalculado: number;
+      descontoPercentual: number;
+      descontoValor: number;
+      tipoDesconto: 'VALOR' | 'PERCENTUAL';
+      motivoDiferenciado: string;
+    };
   };
 
   itens: {
@@ -52,6 +59,12 @@ export class SketchOrderValid {
     const getOrder = await this.prisma.pedido.findFirst({
       select: {
         eDiferenciado: true,
+        tipoDesconto: true,
+        descontoCalculado: true,
+        descontoPercentual: true,
+        descontoValor: true,
+        motivoDiferenciado: true,
+
         periodo: true,
         cliente: {
           select: {
@@ -303,6 +316,15 @@ export class SketchOrderValid {
         marca: getOrder.marca,
         periodoEstoque: getOrder.periodoEstoque,
         tabelaPreco: getOrder.tabelaPreco,
+        diferenciado: getOrder.eDiferenciado
+          ? {
+              tipoDesconto: getOrder.tipoDesconto,
+              descontoCalculado: getOrder.descontoCalculado,
+              descontoPercentual: getOrder.descontoPercentual,
+              descontoValor: getOrder.descontoValor,
+              motivoDiferenciado: getOrder.motivoDiferenciado,
+            }
+          : undefined,
       },
       itens: {
         atuais: itemList.getItems(),

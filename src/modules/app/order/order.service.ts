@@ -417,15 +417,19 @@ export class OrderService {
         descontoPercentual: orderNormalized.descontoPercentual,
         descontoValor: orderNormalized.descontoValor,
         descontoCalculado: orderNormalized.descontoCalculado,
-        vendedorPendenteDiferenciadoCodigo: orderNormalized.eDiferenciado
-          ? await this.getPendencyBySellerCod.execute({
-              sellerCode: orderNormalized.vendedorCodigo,
-              brandCode: orderNormalized.marcaCodigo,
-            })
-          : undefined,
+        motivoDiferenciado: orderNormalized.motivoDiferenciado,
+        vendedorPendenteDiferenciadoCodigo:
+          orderNormalized.eDiferenciado && !orderNormalized.eRascunho
+            ? await this.getPendencyBySellerCod.execute({
+                sellerCode: orderNormalized.vendedorCodigo,
+                brandCode: orderNormalized.marcaCodigo,
+              })
+            : undefined,
 
         diferenciados:
-          orderNormalized.eDiferenciado && !!orderNormalized?.tipoDesconto
+          orderNormalized.eDiferenciado &&
+          !!orderNormalized?.tipoDesconto &&
+          !orderNormalized.eRascunho
             ? {
                 create: {
                   tipoDesconto: orderNormalized.tipoDesconto,
@@ -561,15 +565,19 @@ export class OrderService {
         descontoPercentual: orderNormalized.descontoPercentual,
         descontoValor: orderNormalized.descontoValor,
         descontoCalculado: orderNormalized.descontoCalculado,
-        vendedorPendenteDiferenciadoCodigo: orderNormalized.eDiferenciado
-          ? await this.getPendencyBySellerCod.execute({
-              sellerCode: orderNormalized.vendedorCodigo,
-              brandCode: orderNormalized.marcaCodigo,
-            })
-          : undefined,
+        motivoDiferenciado: orderNormalized.motivoDiferenciado,
+        vendedorPendenteDiferenciadoCodigo:
+          orderNormalized.eDiferenciado && !orderNormalized.eRascunho
+            ? await this.getPendencyBySellerCod.execute({
+                sellerCode: orderNormalized.vendedorCodigo,
+                brandCode: orderNormalized.marcaCodigo,
+              })
+            : undefined,
 
         diferenciados:
-          orderNormalized.eDiferenciado && !!orderNormalized?.tipoDesconto
+          orderNormalized.eDiferenciado &&
+          !!orderNormalized?.tipoDesconto &&
+          !orderNormalized.eRascunho
             ? {
                 create: {
                   tipoDesconto: orderNormalized.tipoDesconto,

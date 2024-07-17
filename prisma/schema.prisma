@@ -546,6 +546,7 @@ model Pedido {
   descontoPercentual                 Float?
   descontoValor                      Float?
   descontoCalculado                  Float?
+  motivoDiferenciado                 String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
