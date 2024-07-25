@@ -149,6 +149,17 @@ export class SellersService {
       },
     });
 
+    if (!findUser && seller.email) {
+      await this.prisma.usuario.create({
+        data: {
+          email: seller.email,
+          senha: `-`,
+          vendedorCodigo: seller.codigo,
+          eVendedor: true,
+        },
+      });
+    }
+
     if (
       findUser.vendedor.eAtivo === false &&
       seller.eAtivo &&
