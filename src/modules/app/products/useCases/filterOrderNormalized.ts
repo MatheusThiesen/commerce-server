@@ -55,7 +55,9 @@ export class FilterOrderNormalized {
           newFilter = {
             listaPreco: {
               some: {
-                codigo: { in: filterGroup.data.map((item) => item.value) },
+                codigo: {
+                  in: filterGroup.data.map((item) => Number(item.value)),
+                },
               },
             },
           };

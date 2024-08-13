@@ -5,6 +5,14 @@ import { PanelOrdersService } from './orders.service';
 export class PanelOrdersController {
   constructor(private readonly ordersService: PanelOrdersService) {}
 
+  @Get('analytic')
+  analytic(
+    @Query()
+    { periodo },
+  ) {
+    return this.ordersService.analytic(periodo);
+  }
+
   @Get()
   findAll(
     @Query()

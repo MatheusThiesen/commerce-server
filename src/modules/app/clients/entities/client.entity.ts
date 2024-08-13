@@ -10,6 +10,8 @@ export class Client {
   celular?: string;
   telefone?: string;
   telefone2?: string;
+  email?: string;
+  email2?: string;
   eAtivo?: boolean;
   uf: string;
   cidadeIbgeCod?: number;

@@ -27,7 +27,7 @@ export class ClientsController {
       page: Number(page),
       pagesize: Number(pagesize),
       orderBy: orderby,
-      filters: filters?.map((f) => JSON.parse(f as string)),
+      filters: filters,
       userId: userId,
       search: search,
     });

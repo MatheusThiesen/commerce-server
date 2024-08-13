@@ -88,6 +88,8 @@ export class ClientsService {
       data: client,
     });
 
+    await this.userCreateOrUpdate(client);
+
     return created;
   }
 
@@ -105,6 +107,8 @@ export class ClientsService {
         codigo,
       },
     });
+
+    await this.userCreateOrUpdate(client);
 
     return updeted;
   }
@@ -564,5 +568,53 @@ export class ClientsService {
         },
       });
     }
+  }
+
+  async userCreateOrUpdate(client: Client) {
+    return;
+
+    const findUser = await this.prisma.usuario.findFirst({
+      select: {
+        id: true,
+        clienteCodigo: true,
+        eCliente: true,
+        cliente: {
+          select: {
+            eAtivo: true,
+          },
+        },
+      },
+      where: {
+        email: client.email,
+      },
+    });
+
+    if (!findUser && client.email) {
+      await this.prisma.usuario.create({
+        data: {
+          email: client.email,
+          senha: `-`,
+          clienteCodigo: client.codigo,
+          eCliente: true,
+        },
+      });
+    }
+
+    if (
+      findUser.eCliente &&
+      findUser.cliente.eAtivo === false &&
+      findUser.clienteCodigo !== client.codigo
+    ) {
+      await this.prisma.usuario.update({
+        data: {
+          clienteCodigo: client.codigo,
+        },
+        where: {
+          id: findUser.id,
+        },
+      });
+    }
+
+    return;
   }
 }

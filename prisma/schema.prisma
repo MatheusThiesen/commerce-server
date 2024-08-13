@@ -18,19 +18,29 @@ model Usuario {
   tokenRefresh     String?
   senhaResetToken  String?
   senhaResetExpira DateTime?
-  eAtivo           Boolean   @default(true)
-  eVendedor        Boolean   @default(false)
-  eAdmin           Boolean   @default(false)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+
+  eAtivo    Boolean @default(true)
+  eCliente  Boolean @default(false)
+  eVendedor Boolean @default(false)
+  eAdmin    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   vendedor       Vendedor? @relation(fields: [vendedorCodigo], references: [codigo])
   vendedorCodigo Int?
+  cliente        Cliente?  @relation(fields: [clienteCodigo], references: [codigo])
+  clienteCodigo  Int?
 
   catalogosProduto CatalogoProduto[]
   sessoes          Sessao[]
 
   @@map("usuarios")
+}
+
+enum AcessoSiteSessao {
+  painel
+  app
 }
 
 model Sessao {
@@ -39,19 +49,36 @@ model Sessao {
   sessaoToken String?  @unique
   expirar     DateTime
   createdAt   DateTime @default(now())
-  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
-  usuarioId   String
+
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId String
+
+  registroNovaSessao RegistroSessao[]
+  acessoSite         AcessoSiteSessao @default(app)
 
   @@map("sessoes")
 }
 
-// model VerificationToken {
-//   identifier String
-//   token      String   @unique
-//   expires    DateTime
+enum TipoRegistroSessao {
+  singup
+  signin
+  refresh
+  resetPassword
+  sso
+}
 
-//   @@unique([identifier, token])
-// }
+model RegistroSessao {
+  id   String              @id @default(uuid())
+  ip   String?
+  tipo TipoRegistroSessao?
+
+  createdAt DateTime @default(now())
+
+  sessao   Sessao @relation(fields: [sessaoId], references: [id])
+  sessaoId String
+
+  @@map("registrosSessao")
+}
 
 model Vendedor {
   codigo        Int      @id @unique
@@ -536,6 +563,7 @@ model Pedido {
   dataFaturamento DateTime
   valorTotal      Float
   eRascunho       Boolean  @default(false)
+  eExluido        Boolean  @default(false)
   codigoErp       Int?     @unique
 
   eDiferenciado                      Boolean                   @default(false)
@@ -695,6 +723,7 @@ model Cliente {
   bloqueios  BloqueiosCliente?
   titulo     Titulo[]
   vendedores Vendedor[]
+  usuarios   Usuario[]
 
   @@map("clientes")
 }

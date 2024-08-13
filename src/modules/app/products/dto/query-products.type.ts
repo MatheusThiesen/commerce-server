@@ -3,7 +3,7 @@ export interface QueryProducts {
   pagesize?: string;
   orderby?: string;
   distinct?: string;
-  filters?: ItemFilter[] | string[];
+  filters?: any[]; //ItemFilter[] | string[];
   isReport?: number;
   search?: string;
 }

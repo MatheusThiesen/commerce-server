@@ -2,7 +2,7 @@ export interface QueryClients {
   page?: string;
   pagesize?: string;
   orderby?: string;
-  filters?: ItemFilter[] | string[];
+  filters?: any[]; //ItemFilter[] | string[];
   search?: string;
 }
 

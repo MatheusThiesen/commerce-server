@@ -1,11 +1,15 @@
 import { GetCurrentUserSso } from '@/common/decorators/get-current-user-id-sso.decorator';
-import { RtGuard, SsoGuard } from '@/common/guards';
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { SsoGuard } from '@/common/guards';
 import {
-  GetCurrentUser,
-  GetCurrentUserId,
-  Public,
-} from '../../common/decorators';
+  Body,
+  Controller,
+  Get,
+  Ip,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { GetCurrentUserId, Public } from '../../common/decorators';
 import { AuthService } from './auth.service';
 import { AuthGetPinDto, AuthSessionDto } from './dto/auth-session.dto';
 import { AuthDto } from './dto/auth.dto';
@@ -15,6 +19,14 @@ import { PasswordDto } from './dto/password.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Get('analytic')
+  analytic(
+    @Query()
+    { periodo },
+  ) {
+    return this.authService.analytic(periodo);
+  }
+
   @Public()
   @Post('get-pin')
   generatePin(@Body() dto: AuthGetPinDto) {
@@ -23,20 +35,20 @@ export class AuthController {
 
   @Public()
   @Post('session')
-  session(@Body() dto: AuthSessionDto) {
-    return this.authService.session(dto);
+  session(@Body() dto: AuthSessionDto, @Ip() ip) {
+    return this.authService.session(dto, ip);
   }
 
   @Public()
   @Post('signin')
-  signin(@Body() dto: AuthDto) {
-    return this.authService.signin(dto);
+  signin(@Body() dto: AuthDto, @Ip() ip) {
+    return this.authService.signin(dto, ip);
   }
 
   @Public()
   @Post('signup')
-  signup(@Body() dto: AuthDto) {
-    return this.authService.signup(dto);
+  signup(@Body() dto: AuthDto, @Ip() ip) {
+    return this.authService.signup(dto, ip);
   }
 
   @Post('logout')
@@ -57,18 +69,17 @@ export class AuthController {
 
   @Public()
   @Post('reset')
-  reset(@Body() dto: { token: string; senha: string }) {
-    return this.authService.reset({ password: dto.senha, token: dto.token });
+  reset(@Body() dto: { token: string; senha: string }, @Ip() ip) {
+    return this.authService.reset(
+      { password: dto.senha, token: dto.token },
+      ip,
+    );
   }
 
   @Public()
-  @UseGuards(RtGuard)
   @Post('refresh')
-  refreshTokens(
-    @GetCurrentUserId() userId: string,
-    @GetCurrentUser('refreshToken') refreshToken: string,
-  ) {
-    return this.authService.refreshTokens(userId, refreshToken);
+  refreshTokens(@Body() dto: { token: string }, @Ip() ip) {
+    return this.authService.refreshTokens(dto.token, ip);
   }
 
   @Get('me')
@@ -79,7 +90,7 @@ export class AuthController {
   @Public()
   @UseGuards(SsoGuard)
   @Post('sso')
-  sso(@GetCurrentUserSso() user) {
-    return this.authService.sso(user);
+  sso(@GetCurrentUserSso() user, @Ip() ip) {
+    return this.authService.sso(user, ip);
   }
 }

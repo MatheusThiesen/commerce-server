@@ -36,7 +36,7 @@ export class ProductsController {
       page: Number(page),
       pagesize: Number(pagesize),
       orderBy: orderby,
-      filters: filters?.map((f) => JSON.parse(f as string)),
+      filters: filters,
       distinct: distinct as 'codigoAlternativo' | 'referencia',
       userId: userId,
       isReport: isReport,
@@ -46,10 +46,7 @@ export class ProductsController {
 
   @Get('filters')
   getFilters(@GetCurrentUserId() userId: string, @Query() { filters = [] }) {
-    return this.productsService.getFiltersForFindAll(
-      userId,
-      filters?.map((f) => JSON.parse(f as string)),
-    );
+    return this.productsService.getFiltersForFindAll(userId, filters);
   }
 
   @Get(':codigo')

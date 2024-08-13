@@ -2,6 +2,7 @@ import { GetCurrentUserId } from '@/common/decorators';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -43,7 +44,7 @@ export class OrderController {
       page: Number(page),
       pagesize: Number(pagesize),
       orderBy: orderby,
-      filters: filters?.map((f) => JSON.parse(f as string)),
+      filters: filters,
       userId: String(userId),
       search: search,
     });
@@ -68,5 +69,10 @@ export class OrderController {
   @UseInterceptors(FileInterceptor('file'))
   import(@UploadedFile() file: Express.Multer.File) {
     return this.orderService.import(file);
+  }
+
+  @Delete(':codigo')
+  delete(@Param('codigo') codigo: string, @GetCurrentUserId() userId: string) {
+    return this.orderService.delete(+codigo, userId);
   }
 }

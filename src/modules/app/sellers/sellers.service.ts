@@ -56,6 +56,7 @@ export class SellersService {
     const findUser = await this.prisma.usuario.findUnique({
       select: {
         id: true,
+        eVendedor: true,
         vendedorCodigo: true,
         vendedor: {
           select: {
@@ -80,6 +81,7 @@ export class SellersService {
     }
 
     if (
+      findUser.eVendedor &&
       findUser.vendedor.eAtivo === false &&
       seller.eAtivo &&
       findUser.vendedorCodigo !== seller.codigo

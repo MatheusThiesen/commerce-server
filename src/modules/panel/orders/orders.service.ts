@@ -4,12 +4,38 @@ import { GetRoleBySeller } from '@/modules/app/differentiated/useCases/GetRoleBy
 import { OrderBy } from '@/utils/OrderBy.utils';
 import { FieldsProps, SearchFilter } from '@/utils/SearchFilter.utils';
 import { BadRequestException, Injectable } from '@nestjs/common';
+import * as dayjs from 'dayjs';
 
 type listAllProps = {
   page: number;
   pagesize: number;
   orderby?: string;
   search?: string;
+};
+
+type GetOrderAnalyticProps = {
+  situacao: string;
+  valorTotal: number;
+  quantidade: number;
+  periodo: Date;
+};
+
+type OrderAnalyticNormalized = {
+  analisePeriodo: OrderAnalyticPeriodNormalized[];
+  quantidadeTotal: number;
+  valorTotal: number;
+  ticketMedio: number;
+};
+
+type OrderAnalyticPeriodNormalized = {
+  periodo: Date;
+  itens: OrderAnalyticItemNormalized[];
+};
+
+type OrderAnalyticItemNormalized = {
+  valorTotal: number;
+  quantidade: number;
+  situacao: string;
 };
 
 @Injectable()
@@ -265,6 +291,7 @@ export class PanelOrdersService {
       orderBy: [orderByNormalized] ?? [{ codigo: 'desc' }],
 
       where: {
+        eExluido: false,
         AND: [
           {
             OR: this.searchFilter.execute(search, this.fieldsSearch),
@@ -273,7 +300,16 @@ export class PanelOrdersService {
       },
     });
 
-    const ordersTotal = await this.prisma.pedido.count({});
+    const ordersTotal = await this.prisma.pedido.count({
+      where: {
+        eExluido: false,
+        AND: [
+          {
+            OR: this.searchFilter.execute(search, this.fieldsSearch),
+          },
+        ],
+      },
+    });
 
     return {
       data: orders,
@@ -318,5 +354,147 @@ export class PanelOrdersService {
     await this.sendOrderErpApiProducerService.execute({
       orderCode: alreadyExistsOrder.codigo,
     });
+  }
+
+  async analytic(
+    period: '7-days' | '14-days' | '1-month' | '3-month' | '1-year' = '7-days',
+  ): Promise<OrderAnalyticNormalized> {
+    const normalizedPeriod: OrderAnalyticPeriodNormalized[] = [];
+
+    function normalizedAnalytic(contents: GetOrderAnalyticProps[]) {
+      for (const data of contents) {
+        const find = normalizedPeriod.find((f) =>
+          dayjs(data.periodo).add(12, 'h').isSame(f.periodo),
+        );
+
+        if (find) {
+          find.itens.push({
+            valorTotal: data.valorTotal,
+            quantidade: Number(data.quantidade),
+            situacao: data.situacao,
+          });
+        } else {
+          normalizedPeriod.push({
+            periodo: dayjs(data.periodo).add(12, 'h').toDate(),
+
+            itens: [
+              {
+                valorTotal: data.valorTotal,
+                quantidade: Number(data.quantidade),
+                situacao: data.situacao,
+              },
+            ],
+          });
+        }
+      }
+    }
+
+    switch (period) {
+      case '7-days':
+        const orders7Days = await this.prisma.$queryRaw<
+          GetOrderAnalyticProps[]
+        >`
+          SELECT 
+              s.descricao AS "situacao", 
+              SUM(p."valorTotal") AS "valorTotal", 
+              COUNT(*) AS "quantidade", 
+              DATE_TRUNC('day', p."createdAt") AS "periodo" 
+          FROM pedidos p
+          INNER JOIN "situacoesPedido" s ON s.codigo = p."situacaoPedidoCodigo" 
+          WHERE p."eExluido" = false and p."createdAt" >= (CURRENT_DATE - INTERVAL '7 days')
+          GROUP BY s.descricao, DATE_TRUNC('day', p."createdAt") 
+          ORDER BY DATE_TRUNC('day', p."createdAt") ;
+        `;
+
+        normalizedAnalytic(orders7Days);
+
+        break;
+      case '14-days':
+        const orders14Days = await this.prisma.$queryRaw<
+          GetOrderAnalyticProps[]
+        >`
+          SELECT 
+              s.descricao AS "situacao", 
+              SUM(p."valorTotal") AS "valorTotal", 
+              COUNT(*) AS "quantidade", 
+              DATE_TRUNC('day', p."createdAt") AS "periodo" 
+          FROM pedidos p
+          INNER JOIN "situacoesPedido" s ON s.codigo = p."situacaoPedidoCodigo" 
+          WHERE p."eExluido" = false and p."createdAt" >= (CURRENT_DATE - INTERVAL '14 days')
+          GROUP BY s.descricao, DATE_TRUNC('day', p."createdAt") 
+          ORDER BY DATE_TRUNC('day', p."createdAt") ;
+        `;
+        normalizedAnalytic(orders14Days);
+        break;
+      case '1-month':
+        const orders1Month = await this.prisma.$queryRaw<
+          GetOrderAnalyticProps[]
+        >`
+          SELECT 
+              s.descricao AS "situacao", 
+              SUM(p."valorTotal") AS "valorTotal", 
+              COUNT(*) AS "quantidade", 
+              DATE_TRUNC('day', p."createdAt") AS "periodo" 
+          FROM pedidos p
+          INNER JOIN "situacoesPedido" s ON s.codigo = p."situacaoPedidoCodigo" 
+          WHERE p."eExluido" = false and DATE_TRUNC('month', p."createdAt") = DATE_TRUNC('month', CURRENT_DATE)
+          GROUP BY s.descricao, DATE_TRUNC('day', p."createdAt") 
+          ORDER BY DATE_TRUNC('day', p."createdAt") ;
+        `;
+        normalizedAnalytic(orders1Month);
+        break;
+      case '3-month':
+        const orders3Months = await this.prisma.$queryRaw<
+          GetOrderAnalyticProps[]
+        >`
+          SELECT 
+              s.descricao AS "situacao", 
+              SUM(p."valorTotal") AS "valorTotal", 
+              COUNT(*) AS "quantidade", 
+              DATE_TRUNC('month', p."createdAt") AS "periodo"
+          FROM pedidos p
+          INNER JOIN "situacoesPedido" s ON s.codigo = p."situacaoPedidoCodigo" 
+          WHERE p."eExluido" = false and p."createdAt" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '2 months'
+          GROUP BY s.descricao, DATE_TRUNC('month', p."createdAt")
+          ORDER BY DATE_TRUNC('month', p."createdAt");
+        `;
+        normalizedAnalytic(orders3Months);
+        break;
+      case '1-year':
+        const orders1Year = await this.prisma.$queryRaw<
+          GetOrderAnalyticProps[]
+        >`
+        SELECT 
+            s.descricao AS "situacao", 
+            SUM(p."valorTotal") AS "valorTotal", 
+            COUNT(*) AS "quantidade", 
+            DATE_TRUNC('month', p."createdAt") AS "periodo"
+        FROM pedidos p
+        INNER JOIN "situacoesPedido" s ON s.codigo = p."situacaoPedidoCodigo" 
+        WHERE p."eExluido" = false and DATE_TRUNC('year', p."createdAt") = DATE_TRUNC('year', CURRENT_DATE)
+        GROUP BY s.descricao, DATE_TRUNC('month', p."createdAt")
+        ORDER BY DATE_TRUNC('month', p."createdAt");
+        `;
+
+        normalizedAnalytic(orders1Year);
+        break;
+    }
+
+    const analytic = await this.prisma.$queryRaw<
+      { valorTotal: number; quantidade: number }[]
+    >`
+      SELECT  
+	      SUM(p."valorTotal") AS "valorTotal", 
+	      COUNT(*) AS "quantidade"
+      FROM pedidos p; 
+    `;
+
+    return {
+      analisePeriodo: normalizedPeriod,
+      quantidadeTotal: Number(analytic[0].quantidade),
+      valorTotal: Number(analytic[0].valorTotal),
+      ticketMedio:
+        Number(analytic[0].valorTotal) / Number(analytic[0].quantidade),
+    };
   }
 }

@@ -620,6 +620,25 @@ export class OrderService {
     return updated;
   }
 
+  async delete(codigo: number, userId: string) {
+    const order = await this.findOne(codigo, userId);
+
+    if (isNaN(Number(order.codigoErp))) {
+      throw new BadRequestException('Not possible edit order sended');
+    }
+
+    await this.prisma.pedido.update({
+      data: {
+        eExluido: true,
+      },
+      where: {
+        codigo: order.codigo,
+      },
+    });
+
+    return;
+  }
+
   async findAll({
     filters,
     search,
@@ -631,20 +650,57 @@ export class OrderService {
     const user = await this.prisma.usuario.findUnique({
       select: {
         vendedorCodigo: true,
+        clienteCodigo: true,
         eVendedor: true,
+        eCliente: true,
       },
       where: {
         id: userId,
       },
     });
 
-    if (!user.eVendedor) {
+    if (!(user.eVendedor || user.eCliente)) {
       throw new BadRequestException('only sellers having orders');
     }
 
     const orderByNormalized = this.orderBy.execute(orderBy);
 
     const filterNormalized = await this.normalizedFiltersAll(filters);
+
+    const where = {
+      AND: [filterNormalized, { eExluido: false }],
+    };
+
+    if (user.eVendedor) {
+      where.AND.push(
+        { OR: this.searchFilter.execute(search, this.fieldsSearch) },
+        {
+          OR: [
+            {
+              vendedores: {
+                some: { vendedorCodigo: user.vendedorCodigo },
+              },
+            },
+            {
+              vendedorPendenteDiferenciadoCodigo: user.vendedorCodigo,
+            },
+            {
+              diferenciados: {
+                some: {
+                  vendedorCodigo: user.vendedorCodigo,
+                },
+              },
+            },
+          ],
+        },
+      );
+    }
+
+    if (user.eCliente) {
+      where.AND.push({
+        clienteCodigo: user.clienteCodigo,
+      });
+    }
 
     const orders = await this.prisma.pedido.findMany({
       take: pagesize,
@@ -689,58 +745,10 @@ export class OrderService {
         },
       },
       orderBy: [orderByNormalized] ?? [{ createdAt: 'desc' }],
-      where: {
-        AND: [
-          filterNormalized,
-          { OR: this.searchFilter.execute(search, this.fieldsSearch) },
-          {
-            OR: [
-              {
-                vendedores: {
-                  some: { vendedorCodigo: user.vendedorCodigo },
-                },
-              },
-              {
-                vendedorPendenteDiferenciadoCodigo: user.vendedorCodigo,
-              },
-              {
-                diferenciados: {
-                  some: {
-                    vendedorCodigo: user.vendedorCodigo,
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
+      where: where,
     });
     const ordersTotal = await this.prisma.pedido.count({
-      where: {
-        AND: [
-          filterNormalized,
-          { OR: this.searchFilter.execute(search, this.fieldsSearch) },
-          {
-            OR: [
-              {
-                vendedores: {
-                  some: { vendedorCodigo: user.vendedorCodigo },
-                },
-              },
-              {
-                vendedorPendenteDiferenciadoCodigo: user.vendedorCodigo,
-              },
-              {
-                diferenciados: {
-                  some: {
-                    vendedorCodigo: user.vendedorCodigo,
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
+      where: where,
     });
 
     return {
@@ -760,14 +768,48 @@ export class OrderService {
       select: {
         vendedorCodigo: true,
         eVendedor: true,
+        clienteCodigo: true,
+        eCliente: true,
       },
       where: {
         id: userId,
       },
     });
 
-    if (!user.eVendedor) {
+    if (!(user.eVendedor || user.eCliente)) {
       throw new BadRequestException('only sellers having orders');
+    }
+
+    let where: any = {
+      codigo,
+      eExluido: false,
+    };
+
+    if (user.eCliente) {
+      where = { ...where, clienteCodigo: user.clienteCodigo };
+    }
+
+    if (user.eVendedor) {
+      where = {
+        ...where,
+        OR: [
+          {
+            vendedores: {
+              some: { vendedorCodigo: user.vendedorCodigo },
+            },
+          },
+          {
+            vendedorPendenteDiferenciadoCodigo: user.vendedorCodigo,
+          },
+          {
+            diferenciados: {
+              some: {
+                vendedorCodigo: user.vendedorCodigo,
+              },
+            },
+          },
+        ],
+      };
     }
 
     const order = await this.prisma.pedido.findFirst({
@@ -873,7 +915,9 @@ export class OrderService {
                 descricao: true,
                 descricaoAdicional: true,
                 precoVenda: true,
+                precoVendaEmpresa: true,
                 imagemPreview: true,
+                qtdEmbalagem: true,
 
                 imagens: {
                   take: 1,
@@ -887,27 +931,7 @@ export class OrderService {
           },
         },
       },
-      where: {
-        codigo,
-
-        OR: [
-          {
-            vendedores: {
-              some: { vendedorCodigo: user.vendedorCodigo },
-            },
-          },
-          {
-            vendedorPendenteDiferenciadoCodigo: user.vendedorCodigo,
-          },
-          {
-            diferenciados: {
-              some: {
-                vendedorCodigo: user.vendedorCodigo,
-              },
-            },
-          },
-        ],
-      },
+      where: where,
     });
 
     if (!order) {
@@ -926,13 +950,15 @@ export class OrderService {
       select: {
         vendedorCodigo: true,
         eVendedor: true,
+        clienteCodigo: true,
+        eCliente: true,
       },
       where: {
         id: userId,
       },
     });
 
-    if (!user.eVendedor) {
+    if (!(user.eVendedor || user.eCliente)) {
       throw new BadRequestException('only sellers having orders');
     }
 
@@ -947,20 +973,24 @@ export class OrderService {
   async getFiltersForFindAll(userId: string) {
     const user = await this.prisma.usuario.findUnique({
       select: {
-        eVendedor: true,
         vendedorCodigo: true,
+        clienteCodigo: true,
+        eVendedor: true,
+        eCliente: true,
       },
       where: {
         id: userId,
       },
     });
 
-    if (!user.eVendedor) return [];
+    if (!(user.eVendedor || user.eCliente)) return [];
 
     const filterList: FilterListProps[] = [];
 
-    const filterNormalized = [
-      {
+    const filterNormalized = [];
+
+    if (user.eVendedor) {
+      filterNormalized.push({
         OR: [
           {
             vendedores: {
@@ -978,8 +1008,14 @@ export class OrderService {
             },
           },
         ],
-      },
-    ];
+      });
+    }
+
+    if (user.eCliente) {
+      filterNormalized.push({
+        clienteCodigo: user.clienteCodigo,
+      });
+    }
 
     const clients = await this.prisma.pedido.findMany({
       distinct: 'clienteCodigo',
@@ -1070,7 +1106,9 @@ export class OrderService {
       },
     );
 
-    return filterList;
+    return filterList.filter((filter) =>
+      clients.length <= 0 ? filter.name !== 'clienteCodigo' : true,
+    );
   }
 
   async import(file: Express.Multer.File) {

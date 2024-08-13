@@ -7,9 +7,12 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { AcessoSiteSessao, TipoRegistroSessao } from '@prisma/client';
 import * as argon from 'argon2';
 import { hash } from 'argon2';
 import * as crypto from 'crypto';
+import * as dayjs from 'dayjs';
+import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '../../database/prisma.service';
 import { AuthGetPinDto, AuthSessionDto } from './dto/auth-session.dto';
 import { AuthDto } from './dto/auth.dto';
@@ -18,6 +21,22 @@ import { User } from './entities/user.entity';
 import { JwtPayload } from './types/jwtPayload.type';
 import { JwtSsoPayload } from './types/jwtPayloadSso.type';
 import { Tokens } from './types/tokens.type';
+
+type GetAccessAnalyticProps = {
+  tipoUsuario: string;
+  quantidade: number;
+  periodo: Date;
+};
+
+type AccessAnalyticNormalized = {
+  periodo: Date;
+  itens: AccessAnalyticItemNormalized[];
+};
+
+type AccessAnalyticItemNormalized = {
+  quantidade: number;
+  tipoUsuario: string;
+};
 
 @Injectable()
 export class AuthService {
@@ -34,30 +53,29 @@ export class AuthService {
       select: {
         id: true,
         email: true,
+
+        eCliente: true,
         eVendedor: true,
+        eAdmin: true,
+
+        clienteCodigo: true,
+        cliente: {
+          select: {
+            codigo: true,
+            cnpj: true,
+            nomeFantasia: true,
+          },
+        },
+
         vendedorCodigo: true,
-        tokenRefresh: true,
+        vendedor: {
+          select: {
+            codigo: true,
+            nome: true,
+            nomeGuerra: true,
+          },
+        },
       },
-      where: {
-        id: userId,
-      },
-    });
-
-    if (!user || !user?.tokenRefresh) {
-      throw new UnauthorizedException('Access Denied');
-    }
-
-    delete user.tokenRefresh;
-
-    const [firstMail] = user.email.split('@');
-
-    return {
-      ...user,
-      name: firstMail.split('.').join(' '),
-    };
-  }
-  async refreshTokens(userId: string, rt: string): Promise<Tokens> {
-    const user = await this.prisma.usuario.findUnique({
       where: {
         id: userId,
       },
@@ -67,43 +85,64 @@ export class AuthService {
       throw new UnauthorizedException('Access Denied');
     }
 
+    const [firstMail] = user.email.split('@');
+
+    const name = user.eVendedor
+      ? user.vendedor.nomeGuerra
+      : user.eCliente
+      ? user.cliente.nomeFantasia
+      : firstMail.split('.').join(' ');
+
+    return {
+      ...user,
+      nome: name,
+    };
+  }
+  async refreshTokens(rt: string, ip?: string): Promise<Tokens> {
     const findRefreshToken = await this.prisma.sessao.findFirst({
+      select: {
+        id: true,
+        expirar: true,
+        usuario: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
       where: {
         sessaoToken: rt,
-        usuarioId: user.id,
       },
     });
 
-    if (!user.tokenRefresh && !findRefreshToken) {
+    if (!findRefreshToken) {
       throw new UnauthorizedException('Access Denied');
     }
 
-    const tokens = await this.getTokens(user.id, user.email);
+    const tokens = await this.getTokens(
+      findRefreshToken.usuario.id,
+      findRefreshToken.usuario.email,
+    );
 
-    if (findRefreshToken) {
-      if (!findRefreshToken.expirar) {
-        throw new UnauthorizedException('Access Denied');
-      }
-
-      if (new Date() > findRefreshToken.expirar) {
-        throw new UnauthorizedException('Access Denied');
-      }
-
-      await this.updateRtPassword(
-        user.id,
-        tokens.refresh_token,
-        findRefreshToken.id,
-      );
-    } else {
-      const rtMatches = await argon.verify(user.tokenRefresh, rt);
-      if (!rtMatches) throw new UnauthorizedException('Access Denied');
-
-      await this.updateRtPassword(user.id, tokens.refresh_token);
+    if (!findRefreshToken.expirar) {
+      throw new UnauthorizedException('Access Denied');
     }
+
+    if (new Date() > findRefreshToken.expirar) {
+      throw new UnauthorizedException('Access Denied');
+    }
+
+    await this.updateRtPassword(
+      findRefreshToken.usuario.id,
+      tokens.refresh_token,
+      findRefreshToken.id,
+      ip,
+      'refresh',
+    );
 
     return tokens;
   }
-  async signup(dto: AuthDto) {
+  async signup(dto: AuthDto, ip: string) {
     const findUser = await this.prisma.usuario.findUnique({
       where: {
         email: dto.email,
@@ -123,13 +162,24 @@ export class AuthService {
     });
 
     const tokens = await this.getTokens(createdUser.id, createdUser.email);
-    await this.updateRtPassword(createdUser.id, tokens.refresh_token);
+    await this.updateRtPassword(
+      createdUser.id,
+      tokens.refresh_token,
+      undefined,
+      ip,
+      'singup',
+    );
 
     return tokens;
   }
-  async signin(dto: AuthDto) {
+  async signin(dto: AuthDto, ip: string) {
     const user = await this.prisma.usuario.findUnique({
-      select: { senha: true, id: true, email: true, eAtivo: true },
+      select: {
+        id: true,
+        email: true,
+        senha: true,
+        eAtivo: true,
+      },
       where: {
         email: dto.email,
       },
@@ -141,7 +191,13 @@ export class AuthService {
     if (!passwordMatches) throw new UnauthorizedException('Access Denied');
 
     const tokens = await this.getTokens(user.id, user.email);
-    await this.updateRtPassword(user.id, tokens.refresh_token);
+    await this.updateRtPassword(
+      user.id,
+      tokens.refresh_token,
+      undefined,
+      ip,
+      'signin',
+    );
 
     return tokens;
   }
@@ -159,7 +215,10 @@ export class AuthService {
     });
     return true;
   }
-  async sso({ entity, sellerCod, email, timestamp, token }: JwtSsoPayload) {
+  async sso(
+    { entity, sellerCod, email, timestamp, token }: JwtSsoPayload,
+    ip: string,
+  ) {
     if (!timestamp) {
       throw new UnauthorizedException('Token malformed');
     }
@@ -245,7 +304,13 @@ export class AuthService {
           token: token,
         },
       });
-    await this.updateRtPassword(user.id, tokens.refresh_token);
+    await this.updateRtPassword(
+      user.id,
+      tokens.refresh_token,
+      undefined,
+      ip,
+      'sso',
+    );
 
     return tokens;
   }
@@ -279,6 +344,7 @@ export class AuthService {
       data: {
         sessoes: {
           create: {
+            acessoSite: 'painel',
             pin: code,
             expirar: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
           },
@@ -303,7 +369,7 @@ export class AuthService {
 
     return;
   }
-  async session(dto: AuthSessionDto) {
+  async session(dto: AuthSessionDto, ip: string) {
     const session = await this.prisma.sessao.findFirst({
       select: {
         id: true,
@@ -340,6 +406,9 @@ export class AuthService {
       session.usuario.id,
       tokens.refresh_token,
       session.id,
+      ip,
+      'signin',
+      'painel',
     );
 
     return tokens;
@@ -412,7 +481,10 @@ export class AuthService {
 
     return;
   }
-  async reset({ token, password }: { token: string; password: string }) {
+  async reset(
+    { token, password }: { token: string; password: string },
+    ip: string,
+  ) {
     const now = new Date();
     const findUser = await this.prisma.usuario.findFirst({
       select: {
@@ -442,7 +514,13 @@ export class AuthService {
     });
 
     const tokens = await this.getTokens(findUser.id, findUser.email);
-    await this.updateRtPassword(findUser.id, tokens.refresh_token);
+    await this.updateRtPassword(
+      findUser.id,
+      tokens.refresh_token,
+      undefined,
+      ip,
+      'resetPassword',
+    );
 
     return tokens;
   }
@@ -451,14 +529,17 @@ export class AuthService {
     userId: string,
     rt: string,
     sessionId?: string,
+    ip?: string,
+    type?: TipoRegistroSessao,
+    access?: AcessoSiteSessao,
   ): Promise<void> {
-    const tokenRefresh = await argon.hash(rt);
+    let session = sessionId;
 
     if (sessionId) {
       await this.prisma.sessao.update({
         data: {
           sessaoToken: rt,
-          expirar: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000), // 7 dias
+          expirar: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000), // 30 dias
           pin: null,
         },
         where: {
@@ -466,15 +547,26 @@ export class AuthService {
         },
       });
     } else {
-      await this.prisma.usuario.update({
-        where: {
-          id: userId,
-        },
+      const created = await this.prisma.sessao.create({
         data: {
-          tokenRefresh: tokenRefresh,
+          usuarioId: userId,
+          expirar: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000), // 30 dias
+          sessaoToken: rt,
+          acessoSite: access,
         },
       });
+
+      session = created.id;
     }
+
+    await this.prisma.registroSessao.create({
+      data: {
+        sessaoId: session,
+        createdAt: new Date(),
+        ip: ip,
+        tipo: type,
+      },
+    });
   }
   async getTokens(userId: string, email: string): Promise<Tokens> {
     const jwtPayload: JwtPayload = {
@@ -482,20 +574,168 @@ export class AuthService {
       email: email,
     };
 
-    const [at, rt] = await Promise.all([
-      this.jwtService.signAsync(jwtPayload, {
-        secret: this.config.get<string>('AT_SECRET'),
-        expiresIn: '1d',
-      }),
-      this.jwtService.signAsync(jwtPayload, {
-        secret: this.config.get<string>('RT_SECRET'),
-        expiresIn: '7d',
-      }),
-    ]);
+    const token = await this.jwtService.signAsync(jwtPayload, {
+      secret: this.config.get<string>('AT_SECRET'),
+      expiresIn: '1d',
+    });
+
+    const refresh_token = uuidv4();
 
     return {
-      access_token: at,
-      refresh_token: rt,
+      access_token: token,
+      refresh_token: refresh_token,
     };
+  }
+
+  async analytic(
+    period: '7-days' | '14-days' | '1-month' | '3-month' | '1-year' = '7-days',
+  ) {
+    const normalized: AccessAnalyticNormalized[] = [];
+
+    function normalizedAnalytic(contents: GetAccessAnalyticProps[]) {
+      for (const data of contents) {
+        const find = normalized.find((f) =>
+          dayjs(data.periodo).add(12, 'h').isSame(f.periodo),
+        );
+
+        if (find) {
+          find.itens.push({
+            quantidade: Number(data.quantidade),
+            tipoUsuario: data.tipoUsuario,
+          });
+        } else {
+          normalized.push({
+            periodo: dayjs(data.periodo).add(12, 'h').toDate(),
+
+            itens: [
+              {
+                tipoUsuario: data.tipoUsuario,
+                quantidade: Number(data.quantidade),
+              },
+            ],
+          });
+        }
+      }
+    }
+
+    switch (period) {
+      case '7-days':
+        const orders7Days = await this.prisma.$queryRaw<
+          GetAccessAnalyticProps[]
+        >`
+          SELECT 
+              DATE_TRUNC('day', r."createdAt") AS "periodo",
+              CASE
+                  WHEN u."eVendedor" THEN 'Representante'
+                  WHEN u."eAdmin" THEN 'Operador'
+                  WHEN u."eCliente" THEN 'Cliente'
+                  ELSE 'Operador'
+              END AS "tipoUsuario",
+              COUNT(*) AS "quantidade"
+          FROM "registrosSessao" r
+          INNER JOIN sessoes s ON s.id = r."sessaoId"
+          INNER JOIN usuarios u ON u.id = s."usuarioId"
+          where s."acessoSite" = 'app' and r."createdAt" >= (CURRENT_DATE - INTERVAL '7 days')
+          GROUP BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario"
+          ORDER BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario";
+        `;
+
+        normalizedAnalytic(orders7Days);
+
+        break;
+      case '14-days':
+        const orders14Days = await this.prisma.$queryRaw<
+          GetAccessAnalyticProps[]
+        >`
+          SELECT 
+              DATE_TRUNC('day', r."createdAt") AS "periodo",
+              CASE
+                  WHEN u."eVendedor" THEN 'Representante'
+                  WHEN u."eAdmin" THEN 'Operador'
+                  WHEN u."eCliente" THEN 'Cliente'
+                  ELSE 'Operador'
+              END AS "tipoUsuario",
+              COUNT(*) AS "quantidade"
+          FROM "registrosSessao" r
+          INNER JOIN sessoes s ON s.id = r."sessaoId"
+          INNER JOIN usuarios u ON u.id = s."usuarioId"
+          where s."acessoSite" = 'app' and r."createdAt" >= (CURRENT_DATE - INTERVAL '14 days')
+          GROUP BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario"
+          ORDER BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario";
+        `;
+        normalizedAnalytic(orders14Days);
+        break;
+      case '1-month':
+        const orders1Month = await this.prisma.$queryRaw<
+          GetAccessAnalyticProps[]
+        >`
+          SELECT 
+                DATE_TRUNC('day', r."createdAt") AS "periodo",
+                CASE
+                    WHEN u."eVendedor" THEN 'Representante'
+                    WHEN u."eAdmin" THEN 'Operador'
+                    WHEN u."eCliente" THEN 'Cliente'
+                    ELSE 'Operador'
+                END AS "tipoUsuario",
+                COUNT(*) AS "quantidade"
+            FROM "registrosSessao" r
+            INNER JOIN sessoes s ON s.id = r."sessaoId"
+            INNER JOIN usuarios u ON u.id = s."usuarioId"
+            where s."acessoSite" = 'app' and DATE_TRUNC('month', r."createdAt") = DATE_TRUNC('month', CURRENT_DATE)
+            GROUP BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario"
+            ORDER BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario";
+        `;
+        normalizedAnalytic(orders1Month);
+        break;
+      case '3-month':
+        const orders3Months = await this.prisma.$queryRaw<
+          GetAccessAnalyticProps[]
+        >`
+          SELECT 
+              DATE_TRUNC('month', r."createdAt") AS "periodo",
+              CASE
+                  WHEN u."eVendedor" THEN 'Representante'
+                  WHEN u."eAdmin" THEN 'Operador'
+                  WHEN u."eCliente" THEN 'Cliente'
+                  ELSE 'Operador'
+              END AS "tipoUsuario",
+              COUNT(*) AS "quantidade"
+          FROM "registrosSessao" r
+          INNER JOIN sessoes s ON s.id = r."sessaoId"
+          INNER JOIN usuarios u ON u.id = s."usuarioId"
+          WHERE s."acessoSite" = 'app' 
+            AND r."createdAt" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '2 months'
+          GROUP BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario"
+          ORDER BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario";
+        `;
+        normalizedAnalytic(orders3Months);
+        break;
+      case '1-year':
+        const orders1Year = await this.prisma.$queryRaw<
+          GetAccessAnalyticProps[]
+        >`
+          SELECT 
+            DATE_TRUNC('month', r."createdAt") AS "periodo",
+            CASE
+                WHEN u."eVendedor" THEN 'Representante'
+                WHEN u."eAdmin" THEN 'Operador'
+                WHEN u."eCliente" THEN 'Cliente'
+                ELSE 'Operador'
+            END AS "tipoUsuario",
+            COUNT(*) AS "quantidade"
+          FROM "registrosSessao" r
+          INNER JOIN sessoes s ON s.id = r."sessaoId"
+          INNER JOIN usuarios u ON u.id = s."usuarioId"
+          WHERE s."acessoSite" = 'app' 
+            AND DATE_TRUNC('year', s."createdAt") = DATE_TRUNC('year', CURRENT_DATE)
+          GROUP BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario"
+          ORDER BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario";
+        `;
+
+        normalizedAnalytic(orders1Year);
+        break;
+    }
+
+    return normalized;
   }
 }
