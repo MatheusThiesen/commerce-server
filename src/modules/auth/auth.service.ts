@@ -595,7 +595,7 @@ export class AuthService {
     function normalizedAnalytic(contents: GetAccessAnalyticProps[]) {
       for (const data of contents) {
         const find = normalized.find((f) =>
-          dayjs(data.periodo).add(12, 'h').isSame(f.periodo),
+          dayjs(data.periodo).add(100, 's').isSame(f.periodo),
         );
 
         if (find) {
@@ -605,7 +605,7 @@ export class AuthService {
           });
         } else {
           normalized.push({
-            periodo: dayjs(data.periodo).add(12, 'h').toDate(),
+            periodo: dayjs(data.periodo).add(100, 's').toDate(),
 
             itens: [
               {

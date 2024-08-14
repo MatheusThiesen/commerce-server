@@ -86,8 +86,8 @@ export class FilterOrderNormalized {
         if (filterGroup.value === 'salePrices') {
           newFilter = {
             precoVenda: {
-              gte: filterGroup.data[0].value,
-              lte: filterGroup.data[1].value,
+              gte: Number(filterGroup.data[0].value),
+              lte: Number(filterGroup.data[1].value),
             },
           };
         }

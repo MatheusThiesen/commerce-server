@@ -364,7 +364,7 @@ export class PanelOrdersService {
     function normalizedAnalytic(contents: GetOrderAnalyticProps[]) {
       for (const data of contents) {
         const find = normalizedPeriod.find((f) =>
-          dayjs(data.periodo).add(12, 'h').isSame(f.periodo),
+          dayjs(data.periodo).add(100, 's').isSame(f.periodo),
         );
 
         if (find) {
@@ -375,7 +375,7 @@ export class PanelOrdersService {
           });
         } else {
           normalizedPeriod.push({
-            periodo: dayjs(data.periodo).add(12, 'h').toDate(),
+            periodo: dayjs(data.periodo).add(100, 's').toDate(),
 
             itens: [
               {
