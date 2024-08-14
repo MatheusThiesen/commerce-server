@@ -635,7 +635,7 @@ export class AuthService {
           FROM "registrosSessao" r
           INNER JOIN sessoes s ON s.id = r."sessaoId"
           INNER JOIN usuarios u ON u.id = s."usuarioId"
-          where s."acessoSite" = 'app' and r."createdAt" >= (CURRENT_DATE - INTERVAL '7 days')
+          where s."acessoSite" = 'app' and u.email != 'importacao@alpardobrasil.com.br' and r."createdAt" >= (CURRENT_DATE - INTERVAL '7 days')
           GROUP BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario"
           ORDER BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario";
         `;
@@ -659,7 +659,7 @@ export class AuthService {
           FROM "registrosSessao" r
           INNER JOIN sessoes s ON s.id = r."sessaoId"
           INNER JOIN usuarios u ON u.id = s."usuarioId"
-          where s."acessoSite" = 'app' and r."createdAt" >= (CURRENT_DATE - INTERVAL '14 days')
+          where s."acessoSite" = 'app' and u.email != 'importacao@alpardobrasil.com.br' and r."createdAt" >= (CURRENT_DATE - INTERVAL '14 days')
           GROUP BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario"
           ORDER BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario";
         `;
@@ -681,7 +681,7 @@ export class AuthService {
             FROM "registrosSessao" r
             INNER JOIN sessoes s ON s.id = r."sessaoId"
             INNER JOIN usuarios u ON u.id = s."usuarioId"
-            where s."acessoSite" = 'app' and DATE_TRUNC('month', r."createdAt") = DATE_TRUNC('month', CURRENT_DATE)
+            where s."acessoSite" = 'app' and u.email != 'importacao@alpardobrasil.com.br' and DATE_TRUNC('month', r."createdAt") = DATE_TRUNC('month', CURRENT_DATE)
             GROUP BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario"
             ORDER BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario";
         `;
@@ -703,7 +703,7 @@ export class AuthService {
           FROM "registrosSessao" r
           INNER JOIN sessoes s ON s.id = r."sessaoId"
           INNER JOIN usuarios u ON u.id = s."usuarioId"
-          WHERE s."acessoSite" = 'app' 
+          WHERE s."acessoSite" = 'app' and u.email != 'importacao@alpardobrasil.com.br' 
             AND r."createdAt" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '2 months'
           GROUP BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario"
           ORDER BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario";
@@ -726,7 +726,7 @@ export class AuthService {
           FROM "registrosSessao" r
           INNER JOIN sessoes s ON s.id = r."sessaoId"
           INNER JOIN usuarios u ON u.id = s."usuarioId"
-          WHERE s."acessoSite" = 'app' 
+          WHERE s."acessoSite" = 'app' and u.email != 'importacao@alpardobrasil.com.br' 
             AND DATE_TRUNC('year', s."createdAt") = DATE_TRUNC('year', CURRENT_DATE)
           GROUP BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario"
           ORDER BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario";
