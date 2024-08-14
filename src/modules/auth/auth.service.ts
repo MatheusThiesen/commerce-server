@@ -595,7 +595,7 @@ export class AuthService {
     function normalizedAnalytic(contents: GetAccessAnalyticProps[]) {
       for (const data of contents) {
         const find = normalized.find((f) =>
-          dayjs(data.periodo).add(3, 'h').isSame(f.periodo),
+          dayjs(data.periodo).isSame(f.periodo),
         );
 
         if (find) {
@@ -605,7 +605,7 @@ export class AuthService {
           });
         } else {
           normalized.push({
-            periodo: dayjs(data.periodo).add(3, 'h').toDate(),
+            periodo: dayjs(data.periodo).toDate(),
 
             itens: [
               {
@@ -623,21 +623,29 @@ export class AuthService {
         const orders7Days = await this.prisma.$queryRaw<
           GetAccessAnalyticProps[]
         >`
-          SELECT 
-              DATE_TRUNC('day', r."createdAt") AS "periodo",
-              CASE
-                  WHEN u."eVendedor" THEN 'Representante'
-                  WHEN u."eAdmin" THEN 'Operador'
-                  WHEN u."eCliente" THEN 'Cliente'
-                  ELSE 'Operador'
-              END AS "tipoUsuario",
+         select 
+            DATE_TRUNC('day', s."createdAt") AS "periodo",
+            CASE
+                WHEN u."eVendedor" THEN 'Representante'
+                WHEN u."eAdmin" THEN 'Operador'
+                WHEN u."eCliente" THEN 'Cliente'
+                ELSE 'Operador'
+            END AS "tipoUsuario",
+            COUNT(*) AS "quantidade"
+          from (
+            SELECT 
+              s."usuarioId",
+              DATE_TRUNC('day', r."createdAt") AS "createdAt",
+              r.tipo,
               COUNT(*) AS "quantidade"
-          FROM "registrosSessao" r
-          INNER JOIN sessoes s ON s.id = r."sessaoId"
+            FROM "registrosSessao" r
+            INNER JOIN sessoes s ON s.id = r."sessaoId"
+            where s."acessoSite" = 'app'
+            GROUP BY DATE_TRUNC('day', r."createdAt"), s."usuarioId", r.tipo 
+            ) as s
           INNER JOIN usuarios u ON u.id = s."usuarioId"
-          where s."acessoSite" = 'app' and u.email != 'importacao@alpardobrasil.com.br' and r."createdAt" >= (CURRENT_DATE - INTERVAL '7 days')
-          GROUP BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario"
-          ORDER BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario";
+          where u.email != 'importacao@alpardobrasil.com.br' and s."createdAt" >= (CURRENT_DATE - INTERVAL '7 days')
+          GROUP BY DATE_TRUNC('day', s."createdAt"), "tipoUsuario";
         `;
 
         normalizedAnalytic(orders7Days);
@@ -647,75 +655,8 @@ export class AuthService {
         const orders14Days = await this.prisma.$queryRaw<
           GetAccessAnalyticProps[]
         >`
-          SELECT 
-              DATE_TRUNC('day', r."createdAt") AS "periodo",
-              CASE
-                  WHEN u."eVendedor" THEN 'Representante'
-                  WHEN u."eAdmin" THEN 'Operador'
-                  WHEN u."eCliente" THEN 'Cliente'
-                  ELSE 'Operador'
-              END AS "tipoUsuario",
-              COUNT(*) AS "quantidade"
-          FROM "registrosSessao" r
-          INNER JOIN sessoes s ON s.id = r."sessaoId"
-          INNER JOIN usuarios u ON u.id = s."usuarioId"
-          where s."acessoSite" = 'app' and u.email != 'importacao@alpardobrasil.com.br' and r."createdAt" >= (CURRENT_DATE - INTERVAL '14 days')
-          GROUP BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario"
-          ORDER BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario";
-        `;
-        normalizedAnalytic(orders14Days);
-        break;
-      case '1-month':
-        const orders1Month = await this.prisma.$queryRaw<
-          GetAccessAnalyticProps[]
-        >`
-          SELECT 
-                DATE_TRUNC('day', r."createdAt") AS "periodo",
-                CASE
-                    WHEN u."eVendedor" THEN 'Representante'
-                    WHEN u."eAdmin" THEN 'Operador'
-                    WHEN u."eCliente" THEN 'Cliente'
-                    ELSE 'Operador'
-                END AS "tipoUsuario",
-                COUNT(*) AS "quantidade"
-            FROM "registrosSessao" r
-            INNER JOIN sessoes s ON s.id = r."sessaoId"
-            INNER JOIN usuarios u ON u.id = s."usuarioId"
-            where s."acessoSite" = 'app' and u.email != 'importacao@alpardobrasil.com.br' and DATE_TRUNC('month', r."createdAt") = DATE_TRUNC('month', CURRENT_DATE)
-            GROUP BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario"
-            ORDER BY DATE_TRUNC('day', r."createdAt"), "tipoUsuario";
-        `;
-        normalizedAnalytic(orders1Month);
-        break;
-      case '3-month':
-        const orders3Months = await this.prisma.$queryRaw<
-          GetAccessAnalyticProps[]
-        >`
-          SELECT 
-              DATE_TRUNC('month', r."createdAt") AS "periodo",
-              CASE
-                  WHEN u."eVendedor" THEN 'Representante'
-                  WHEN u."eAdmin" THEN 'Operador'
-                  WHEN u."eCliente" THEN 'Cliente'
-                  ELSE 'Operador'
-              END AS "tipoUsuario",
-              COUNT(*) AS "quantidade"
-          FROM "registrosSessao" r
-          INNER JOIN sessoes s ON s.id = r."sessaoId"
-          INNER JOIN usuarios u ON u.id = s."usuarioId"
-          WHERE s."acessoSite" = 'app' and u.email != 'importacao@alpardobrasil.com.br' 
-            AND r."createdAt" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '2 months'
-          GROUP BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario"
-          ORDER BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario";
-        `;
-        normalizedAnalytic(orders3Months);
-        break;
-      case '1-year':
-        const orders1Year = await this.prisma.$queryRaw<
-          GetAccessAnalyticProps[]
-        >`
-          SELECT 
-            DATE_TRUNC('month', r."createdAt") AS "periodo",
+          select 
+            DATE_TRUNC('day', s."createdAt") AS "periodo",
             CASE
                 WHEN u."eVendedor" THEN 'Representante'
                 WHEN u."eAdmin" THEN 'Operador'
@@ -723,13 +664,110 @@ export class AuthService {
                 ELSE 'Operador'
             END AS "tipoUsuario",
             COUNT(*) AS "quantidade"
-          FROM "registrosSessao" r
-          INNER JOIN sessoes s ON s.id = r."sessaoId"
+          from (
+            SELECT 
+              s."usuarioId",
+              DATE_TRUNC('day', r."createdAt") AS "createdAt",
+              r.tipo,
+              COUNT(*) AS "quantidade"
+            FROM "registrosSessao" r
+            INNER JOIN sessoes s ON s.id = r."sessaoId"
+            where s."acessoSite" = 'app'
+            GROUP BY DATE_TRUNC('day', r."createdAt"), s."usuarioId", r.tipo 
+            ) as s
           INNER JOIN usuarios u ON u.id = s."usuarioId"
-          WHERE s."acessoSite" = 'app' and u.email != 'importacao@alpardobrasil.com.br' 
-            AND DATE_TRUNC('year', s."createdAt") = DATE_TRUNC('year', CURRENT_DATE)
-          GROUP BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario"
-          ORDER BY DATE_TRUNC('month', r."createdAt"), "tipoUsuario";
+          where u.email != 'importacao@alpardobrasil.com.br' and s."createdAt" >= (CURRENT_DATE - INTERVAL '14 days')
+          GROUP BY DATE_TRUNC('day', s."createdAt"), "tipoUsuario";
+        `;
+        normalizedAnalytic(orders14Days);
+        break;
+      case '1-month':
+        const orders1Month = await this.prisma.$queryRaw<
+          GetAccessAnalyticProps[]
+        >`
+        select 
+            DATE_TRUNC('day', s."createdAt") AS "periodo",
+            CASE
+                WHEN u."eVendedor" THEN 'Representante'
+                WHEN u."eAdmin" THEN 'Operador'
+                WHEN u."eCliente" THEN 'Cliente'
+                ELSE 'Operador'
+            END AS "tipoUsuario",
+            COUNT(*) AS "quantidade"
+          from (
+            SELECT 
+              s."usuarioId",
+              DATE_TRUNC('day', r."createdAt") AS "createdAt",
+              r.tipo,
+              COUNT(*) AS "quantidade"
+            FROM "registrosSessao" r
+            INNER JOIN sessoes s ON s.id = r."sessaoId"
+            where s."acessoSite" = 'app'
+            GROUP BY DATE_TRUNC('day', r."createdAt"), s."usuarioId", r.tipo 
+            ) as s
+          INNER JOIN usuarios u ON u.id = s."usuarioId"
+          where u.email != 'importacao@alpardobrasil.com.br' and DATE_TRUNC('month', s."createdAt") = DATE_TRUNC('month', CURRENT_DATE) 
+          GROUP BY DATE_TRUNC('day', s."createdAt"), "tipoUsuario";
+        `;
+        normalizedAnalytic(orders1Month);
+        break;
+      case '3-month':
+        const orders3Months = await this.prisma.$queryRaw<
+          GetAccessAnalyticProps[]
+        >`
+          select 
+            DATE_TRUNC('month', s."createdAt") AS "periodo",
+            CASE
+                WHEN u."eVendedor" THEN 'Representante'
+                WHEN u."eAdmin" THEN 'Operador'
+                WHEN u."eCliente" THEN 'Cliente'
+                ELSE 'Operador'
+            END AS "tipoUsuario",
+            COUNT(*) AS "quantidade"
+          from (
+            SELECT 
+              s."usuarioId",
+              DATE_TRUNC('day', r."createdAt") AS "createdAt",
+              r.tipo,
+              COUNT(*) AS "quantidade"
+            FROM "registrosSessao" r
+            INNER JOIN sessoes s ON s.id = r."sessaoId"
+            where s."acessoSite" = 'app'
+            GROUP BY DATE_TRUNC('day', r."createdAt"), s."usuarioId", r.tipo 
+            ) as s
+          INNER JOIN usuarios u ON u.id = s."usuarioId"
+          where u.email != 'importacao@alpardobrasil.com.br' and s."createdAt" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '2 months' 
+          GROUP BY DATE_TRUNC('month', s."createdAt"), "tipoUsuario";
+        `;
+        normalizedAnalytic(orders3Months);
+        break;
+      case '1-year':
+        const orders1Year = await this.prisma.$queryRaw<
+          GetAccessAnalyticProps[]
+        >`
+          select 
+              DATE_TRUNC('month', s."createdAt") AS "periodo",
+              CASE
+                  WHEN u."eVendedor" THEN 'Representante'
+                  WHEN u."eAdmin" THEN 'Operador'
+                  WHEN u."eCliente" THEN 'Cliente'
+                  ELSE 'Operador'
+              END AS "tipoUsuario",
+              COUNT(*) AS "quantidade"
+            from (
+              SELECT 
+                s."usuarioId",
+                DATE_TRUNC('day', r."createdAt") AS "createdAt",
+                r.tipo,
+                COUNT(*) AS "quantidade"
+              FROM "registrosSessao" r
+              INNER JOIN sessoes s ON s.id = r."sessaoId"
+              where s."acessoSite" = 'app'
+              GROUP BY DATE_TRUNC('day', r."createdAt"), s."usuarioId", r.tipo 
+              ) as s
+            INNER JOIN usuarios u ON u.id = s."usuarioId"
+            where u.email != 'importacao@alpardobrasil.com.br' and DATE_TRUNC('year', s."createdAt") = DATE_TRUNC('year', CURRENT_DATE)
+            GROUP BY DATE_TRUNC('month', s."createdAt"), "tipoUsuario";
         `;
 
         normalizedAnalytic(orders1Year);
