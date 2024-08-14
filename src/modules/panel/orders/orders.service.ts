@@ -389,6 +389,27 @@ export class PanelOrdersService {
       }
     }
 
+    function whereAnalytic(
+      period: '7-days' | '14-days' | '1-month' | '3-month' | '1-year',
+    ) {
+      switch (period) {
+        case '7-days':
+          return `p."eExluido" = false and p."createdAt" >= (CURRENT_DATE - INTERVAL '7 days')`;
+
+        case '14-days':
+          return `p."eExluido" = false and p."createdAt" >= (CURRENT_DATE - INTERVAL '14 days')`;
+
+        case '1-month':
+          return `p."eExluido" = false and DATE_TRUNC('month', p."createdAt") = DATE_TRUNC('month', CURRENT_DATE)`;
+
+        case '3-month':
+          return `p."eExluido" = false and p."createdAt" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '2 months'`;
+
+        case '1-year':
+          return `p."eExluido" = false and DATE_TRUNC('year', p."createdAt") = DATE_TRUNC('year', CURRENT_DATE)`;
+      }
+    }
+
     switch (period) {
       case '7-days':
         const orders7Days = await this.prisma.$queryRaw<
@@ -480,14 +501,16 @@ export class PanelOrdersService {
         break;
     }
 
-    const analytic = await this.prisma.$queryRaw<
+    const analytic = await this.prisma.$queryRawUnsafe<
       { valorTotal: number; quantidade: number }[]
-    >`
-      SELECT  
-	      SUM(p."valorTotal") AS "valorTotal", 
-	      COUNT(*) AS "quantidade"
-      FROM pedidos p; 
-    `;
+    >(`
+    SELECT  
+      SUM(p."valorTotal") AS "valorTotal", 
+      COUNT(*) AS "quantidade"
+    FROM pedidos p
+    WHERE ${whereAnalytic(period)}
+    ; 
+  `);
 
     return {
       analisePeriodo: normalizedPeriod,
