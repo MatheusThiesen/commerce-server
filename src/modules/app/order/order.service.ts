@@ -550,6 +550,7 @@ export class OrderService {
         },
       },
       data: {
+        createdAt: new Date(),
         dataFaturamento: orderNormalized.dataFaturamento,
         valorTotal: orderNormalized.valorTotal,
         clienteCodigo: orderNormalized.clienteCodigo,
@@ -776,7 +777,7 @@ export class OrderService {
       },
     });
 
-    if (!(user.eVendedor || user.eCliente)) {
+    if (!user.eVendedor) {
       throw new BadRequestException('only sellers having orders');
     }
 
