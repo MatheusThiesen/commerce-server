@@ -777,7 +777,7 @@ export class OrderService {
       },
     });
 
-    if (!user.eVendedor) {
+    if (!(user.eVendedor || user.eCliente)) {
       throw new BadRequestException('only sellers having orders');
     }
 

@@ -645,7 +645,8 @@ export class AuthService {
             ) as s
           INNER JOIN usuarios u ON u.id = s."usuarioId"
           where u.email != 'importacao@alpardobrasil.com.br' and s."createdAt" >= (CURRENT_DATE - INTERVAL '7 days')
-          GROUP BY DATE_TRUNC('day', s."createdAt"), "tipoUsuario";
+          GROUP BY DATE_TRUNC('day', s."createdAt"), "tipoUsuario"
+          order by "periodo" asc;
         `;
 
         normalizedAnalytic(orders7Days);
@@ -677,7 +678,8 @@ export class AuthService {
             ) as s
           INNER JOIN usuarios u ON u.id = s."usuarioId"
           where u.email != 'importacao@alpardobrasil.com.br' and s."createdAt" >= (CURRENT_DATE - INTERVAL '14 days')
-          GROUP BY DATE_TRUNC('day', s."createdAt"), "tipoUsuario";
+          GROUP BY DATE_TRUNC('day', s."createdAt"), "tipoUsuario"
+          order by "periodo" asc;
         `;
         normalizedAnalytic(orders14Days);
         break;
@@ -707,7 +709,8 @@ export class AuthService {
             ) as s
           INNER JOIN usuarios u ON u.id = s."usuarioId"
           where u.email != 'importacao@alpardobrasil.com.br' and DATE_TRUNC('month', s."createdAt") = DATE_TRUNC('month', CURRENT_DATE) 
-          GROUP BY DATE_TRUNC('day', s."createdAt"), "tipoUsuario";
+          GROUP BY DATE_TRUNC('day', s."createdAt"), "tipoUsuario"
+          order by "periodo" asc;
         `;
         normalizedAnalytic(orders1Month);
         break;
@@ -737,7 +740,8 @@ export class AuthService {
             ) as s
           INNER JOIN usuarios u ON u.id = s."usuarioId"
           where u.email != 'importacao@alpardobrasil.com.br' and s."createdAt" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '2 months' 
-          GROUP BY DATE_TRUNC('month', s."createdAt"), "tipoUsuario";
+          GROUP BY DATE_TRUNC('month', s."createdAt"), "tipoUsuario"
+          order by "periodo" asc;
         `;
         normalizedAnalytic(orders3Months);
         break;
@@ -767,7 +771,8 @@ export class AuthService {
               ) as s
             INNER JOIN usuarios u ON u.id = s."usuarioId"
             where u.email != 'importacao@alpardobrasil.com.br' and DATE_TRUNC('year', s."createdAt") = DATE_TRUNC('year', CURRENT_DATE)
-            GROUP BY DATE_TRUNC('month', s."createdAt"), "tipoUsuario";
+            GROUP BY DATE_TRUNC('month', s."createdAt"), "tipoUsuario"
+            order by "periodo" asc;
         `;
 
         normalizedAnalytic(orders1Year);
