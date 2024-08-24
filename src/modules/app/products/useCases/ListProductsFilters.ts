@@ -108,13 +108,13 @@ export class ListProductsFilters {
       },
     });
 
-    const references = await this.prisma.produto.findMany({
-      distinct: 'referencia',
-      where: where,
-      select: {
-        referencia: true,
-      },
-    });
+    // const references = await this.prisma.produto.findMany({
+    //   distinct: 'referencia',
+    //   where: where,
+    //   select: {
+    //     referencia: true,
+    //   },
+    // });
 
     const stockLocations = await this.prisma.localEstoque.findMany({
       distinct: 'periodo',
@@ -285,14 +285,6 @@ export class ListProductsFilters {
         data: concepts.map((concept) => ({
           name: concept.descricao,
           value: concept.codigo,
-        })),
-      },
-      {
-        label: 'Referência',
-        name: 'referencia',
-        data: references.map((reference) => ({
-          name: reference.referencia,
-          value: reference.referencia,
         })),
       },
       {
