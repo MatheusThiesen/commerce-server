@@ -11,7 +11,7 @@ RUN yarn
 COPY . .
 
 RUN npx prisma generate
-RUN npm run build
+RUN yarn build
 
 EXPOSE 4444
 
