@@ -553,7 +553,7 @@ export class ProductsService {
 
     const variacoes = await this.variationsProduct.execute({
       alternativeCode: product.codigoAlternativo,
-      query: this.listingRule.execute(),
+      query: { AND: [{ ...this.listingRule.execute() }, filterNormalized] },
     });
     const grades = await this.agroupGridProduct.execute({
       reference: product.referencia,
