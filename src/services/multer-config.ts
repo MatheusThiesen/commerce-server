@@ -15,7 +15,7 @@ const s3Config = new S3Client({
     secretAccessKey: configService.get('AWS_SECRET_ACCESS_KEY'),
   },
 });
-//@ts-ignore
+
 const multerConfig = {
   storage: multerS3({
     s3: s3Config,
