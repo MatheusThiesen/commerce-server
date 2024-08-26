@@ -172,41 +172,6 @@ export class ListProductsFilters {
             },
           },
         },
-        // locaisEstoque: {
-        //   some: {
-        //     periodo: {
-        //       in: stockLocations.map((item) => item.periodo),
-        //     },
-        //   },
-        // },
-        // linhas: {
-        //   some: {
-        //     codigo: {
-        //       in: lines.map((item) => item.linha.codigo),
-        //     },
-        //   },
-        // },
-        // grupos: {
-        //   some: {
-        //     codigo: {
-        //       in: groups.map((item) => item.grupo.codigo),
-        //     },
-        //   },
-        // },
-        // generos: {
-        //   some: {
-        //     codigo: {
-        //       in: genders.map((item) => item.genero.codigo),
-        //     },
-        //   },
-        // },
-        // colecoes: {
-        //   some: {
-        //     codigo: {
-        //       in: collections.map((item) => item.colecao.codigo),
-        //     },
-        //   },
-        // },
       },
     });
 

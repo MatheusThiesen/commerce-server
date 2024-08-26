@@ -20,6 +20,7 @@ export class TransformOrderToSendApiErp {
 
         eDiferenciado: true,
         descontoCalculado: true,
+        motivoDiferenciado: true,
 
         periodo: true,
 
@@ -87,7 +88,13 @@ export class TransformOrderToSendApiErp {
 
       additionalOrderData1: findOrder.eDiferenciado
         ? {
-            observationExternalOrder: `${findOrder.periodoEstoque.descricao} - PEDIDO DIFERENCIADO (APP)`,
+            observationExternalOrder: `${
+              findOrder.periodoEstoque.descricao
+            } - PEDIDO DIFERENCIADO (APP) ${
+              findOrder.motivoDiferenciado
+                ? `- ${findOrder.motivoDiferenciado}`
+                : ''
+            }`,
           }
         : undefined,
 
