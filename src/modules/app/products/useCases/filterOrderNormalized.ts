@@ -69,7 +69,7 @@ export class FilterOrderNormalized {
               regraProdutoConceito: {
                 some: {
                   conceitoCodigo: {
-                    in: filterGroup.data.map((item) => item.value),
+                    in: filterGroup.data.map((item) => Number(item.value)),
                   },
                 },
               },
@@ -144,7 +144,7 @@ export class FilterOrderNormalized {
               regraProdutoConceito: {
                 some: {
                   conceitoCodigo: findOneClient
-                    ? findOneClient.conceito.codigo
+                    ? Number(findOneClient.conceito.codigo)
                     : 0,
                 },
               },
