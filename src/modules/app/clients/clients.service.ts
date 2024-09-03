@@ -206,6 +206,7 @@ export class ClientsService {
         complemento: true,
         telefone: true,
         telefone2: true,
+        celular: true,
         obs: true,
         email: true,
         email2: true,
@@ -285,7 +286,9 @@ export class ClientsService {
         ...filterNormalized,
         ...groupFilters.map((filterGroup) => ({
           [filterGroup.value as string]: {
-            in: filterGroup.data.map((item) => item.value),
+            in: filterGroup.data.map((item) =>
+              isNaN(Number(item.value)) ? item.value : Number(item.value),
+            ),
           },
         })),
       ];
@@ -305,6 +308,18 @@ export class ClientsService {
         numero: true,
         cep: true,
         uf: true,
+        conceito: {
+          select: {
+            codigo: true,
+            descricao: true,
+          },
+        },
+        ramoAtividade: {
+          select: {
+            codigo: true,
+            descricao: true,
+          },
+        },
 
         titulo: {
           select: {
@@ -572,7 +587,6 @@ export class ClientsService {
 
   async userCreateOrUpdate(client: Client) {
     return;
-
     const findUser = await this.prisma.usuario.findFirst({
       select: {
         id: true,
@@ -601,9 +615,9 @@ export class ClientsService {
     }
 
     if (
-      findUser.eCliente &&
-      findUser.cliente.eAtivo === false &&
-      findUser.clienteCodigo !== client.codigo
+      findUser?.eCliente &&
+      findUser?.cliente?.eAtivo === false &&
+      findUser?.clienteCodigo !== client.codigo
     ) {
       await this.prisma.usuario.update({
         data: {

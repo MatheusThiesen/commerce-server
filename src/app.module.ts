@@ -40,6 +40,7 @@ import { PanelBannersModule } from './modules/panel/banners/banners.module';
 import { PanelBrandsModule } from './modules/panel/brands/brands.module';
 import { PanelClientsModule } from './modules/panel/clients/clients.module';
 import { PanelDifferentiatedHierarchiesModule } from './modules/panel/differentiated-hierarchies/differentiated-hierarchies.module';
+import { PanelGroupsModule } from './modules/panel/groups/groups.module';
 import { PanelOrdersModule } from './modules/panel/orders/orders.module';
 import { PanelProductsModule } from './modules/panel/products/products.module';
 import { PanelRulesModule } from './modules/panel/rules/rules.module';
@@ -114,6 +115,7 @@ import { UtilsModule } from './utils/utils.module';
     PanelSellersModule,
     PanelOrdersModule,
     PanelBrandsModule,
+    PanelGroupsModule,
     PanelStatesModule,
     PanelRulesModule,
     PanelBannersModule,

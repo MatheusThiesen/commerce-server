@@ -387,8 +387,6 @@ export class ProductsService {
       });
     }
 
-    const filterNormalized = await this.filterOrderNormalized.execute(filters);
-
     const cacheKey = `products-filters-${filters
       .map((item) => `${item.name}-${item.value}`)
       .join('-')}`;
@@ -396,17 +394,14 @@ export class ProductsService {
 
     if (getCache) {
       this.updateCacheProductsFiltersProducerService.execute({
-        filters: filterNormalized,
+        filters: filters,
         cacheKey,
       });
 
       return JSON.parse(getCache);
     } else {
       const normalized = await this.listProductsFilters.execute({
-        where: {
-          ...this.listingRule.execute(),
-          ...filterNormalized,
-        },
+        filters: filters,
       });
 
       await this.redis.set(

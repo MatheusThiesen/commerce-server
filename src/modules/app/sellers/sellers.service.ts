@@ -163,9 +163,9 @@ export class SellersService {
     }
 
     if (
-      findUser.vendedor.eAtivo === false &&
-      seller.eAtivo &&
-      findUser.vendedorCodigo !== seller.codigo
+      findUser?.vendedor?.eAtivo === false &&
+      seller?.eAtivo &&
+      findUser?.vendedorCodigo !== seller.codigo
     ) {
       await this.prisma.usuario.update({
         data: {
@@ -202,6 +202,8 @@ export class SellersService {
         situation,
         eGerente,
         eSupervisor,
+        tipoVendedor,
+        cnpj,
       ] = sellerArr;
 
       const seller = new Seller();
@@ -218,6 +220,8 @@ export class SellersService {
         eAtivo: situation ? Number(situation) === 1 : undefined,
         eGerente: eGerente ? eGerente === 's' : undefined,
         eSupervisor: eSupervisor ? eSupervisor === 's' : undefined,
+        tipoVendedor: tipoVendedor ?? undefined,
+        cnpj: cnpj ?? undefined,
       });
 
       const sellerExists = await this.prisma.vendedor.findUnique({
@@ -233,6 +237,7 @@ export class SellersService {
           await this.create(seller);
         }
       } catch (error) {
+        console.log(seller);
         console.log(error);
       }
     }

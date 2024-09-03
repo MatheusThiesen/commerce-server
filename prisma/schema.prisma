@@ -80,20 +80,29 @@ model RegistroSessao {
   @@map("registrosSessao")
 }
 
+enum TipoVendedor {
+  Representante
+  Vendedor
+  Televendas
+  Preposto
+}
+
 model Vendedor {
-  codigo        Int      @id @unique
+  codigo        Int          @id @unique
   nome          String
   nomeGuerra    String
   email         String?
+  cnpj          String?
+  tipoVendedor  TipoVendedor @default(Representante)
   codDiretor    Int?
   codGerente    Int?
   codSupervisor Int?
-  eAtivo        Boolean  @default(true)
-  eDiretor      Boolean  @default(false)
-  eGerente      Boolean  @default(false)
-  eSupervisor   Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  eAtivo        Boolean      @default(true)
+  eDiretor      Boolean      @default(false)
+  eGerente      Boolean      @default(false)
+  eSupervisor   Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   marcas         Marca[]
   Usuario        Usuario[]
@@ -289,10 +298,15 @@ model Produto {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  locaisEstoque LocalEstoque[]
-  itens         ItemPedido[]
-  listaPreco    ListaPreco[]
-  ordemCompra   OrdemCompra[]
+  locaisEstoque   LocalEstoque[]
+  itens           ItemPedido[]
+  listaPreco      ListaPreco[]
+  ordemCompra     OrdemCompra[]
+  catalogoProduto CatalogoProduto[]
+  imagens         ProdutoImagem[]
+  banner          Banner[]
+  itemsErp        ItemPedidoErp[]
+  eans            ProdutoEan[]
 
   corPrimaria         Cor?           @relation(fields: [corPrimariaCodigo], references: [codigo])
   corPrimariaCodigo   Int?
@@ -317,10 +331,6 @@ model Produto {
   unidade             UnidadeMedida? @relation(fields: [unidadeMedida], references: [unidade])
   unidadeMedida       String?
 
-  CatalogoProduto CatalogoProduto[]
-  imagens         ProdutoImagem[]
-  banner          Banner[]
-
   @@index([marcaCodigo, grupoCodigo, subGrupoId, eAtivo, linhaCodigo, colecaoCodigo, generoCodigo, possuiFoto])
   @@index([marcaCodigo])
   @@index([generoCodigo])
@@ -344,6 +354,19 @@ model ProdutoImagem {
 
   @@unique([produtoCodigo, nome, sequencia])
   @@map("produtoImagens")
+}
+
+model ProdutoEan {
+  id         String @id @default(uuid())
+  ean        String
+  sequencia  Int
+  tamanho    String
+  quantidade Int
+
+  produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
+  produtoCodigo Int
+
+  @@map("produtoEans")
 }
 
 model Grade {
@@ -558,6 +581,64 @@ model Diferenciado {
   @@map("diferenciados")
 }
 
+model PedidoErp {
+  codigo          Int      @id @unique @default(autoincrement())
+  dataFaturamento DateTime
+  valorTotal      Float
+
+  items ItemPedidoErp[]
+
+  pedido       Pedido? @relation(fields: [pedidoCodigo], references: [codigo])
+  pedidoCodigo Int?    @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("pedidosErp")
+}
+
+model ItemPedidoErp {
+  id            String @id @default(uuid())
+  quantidade    Int
+  sequencia     Int?
+  valorUnitario Float
+
+  situacao String
+  // 1 - Cancelado
+  // 2 - Nada faturado
+  // 3 - Faturado
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  motivoRecusa             MotivoPedidoErp? @relation(fields: [motivoRecusaCodigo], references: [codigo], name: "recusado")
+  motivoRecusaCodigo       Int?
+  motivoCancelamento       MotivoPedidoErp? @relation(fields: [motivoCancelamentoCodigo], references: [codigo], name: "cancelado")
+  motivoCancelamentoCodigo Int?
+
+  produto          Produto     @relation(fields: [produtoCodigo], references: [codigo])
+  produtoCodigo    Int
+  pedidoErp        PedidoErp   @relation(fields: [pedidoErpCodigo], references: [codigo])
+  pedidoErpCodigo  Int
+  itemPedido       ItemPedido? @relation(fields: [itemPedidoCodigo], references: [codigo])
+  itemPedidoCodigo String?     @unique
+
+  @@map("itensPedidoErp")
+}
+
+model MotivoPedidoErp {
+  codigo    Int    @id
+  descricao String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  itemsRecusados  ItemPedidoErp[] @relation(name: "recusado")
+  itemsCancelados ItemPedidoErp[] @relation(name: "cancelado")
+
+  @@map("motivosPedidoErp")
+}
+
 model Pedido {
   codigo          Int      @id @unique @default(autoincrement())
   dataFaturamento DateTime
@@ -593,6 +674,7 @@ model Pedido {
   marcaCodigo             Int
   localCobranca           LocalCobranca     @relation(fields: [localCobrancaCodigo], references: [codigo])
   localCobrancaCodigo     Int
+  pedidoErp               PedidoErp?
 
   itens         ItemPedido[]
   registros     Registro[]
@@ -637,10 +719,11 @@ model ItemPedido {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  pedido        Pedido  @relation(fields: [pedidoCodigo], references: [codigo])
+  pedido        Pedido         @relation(fields: [pedidoCodigo], references: [codigo])
   pedidoCodigo  Int
-  produto       Produto @relation(fields: [produtoCodigo], references: [codigo])
+  produto       Produto        @relation(fields: [produtoCodigo], references: [codigo])
   produtoCodigo Int
+  itemErp       ItemPedidoErp?
 
   @@unique([pedidoCodigo, produtoCodigo])
   @@map("itensPedido")

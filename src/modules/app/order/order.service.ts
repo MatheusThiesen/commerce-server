@@ -42,7 +42,7 @@ export class OrderService {
     ['bloqueado']: 2,
     ['bloqueado parcial']: 2,
     ['liberado']: 2,
-    ['recusado']: 2,
+    ['recusado']: 9,
     ['cancelado']: 4,
     ['faturado']: 3,
   };
@@ -92,7 +92,9 @@ export class OrderService {
     return filterNormalized;
   }
 
-  async verifyRelationship(order: Order): Promise<Order> {
+  async verifyRelationship(orderData: Order): Promise<Order> {
+    let order = orderData;
+
     if (order.itens.length <= 0) {
       throw new BadRequestException('Pedido sem itens');
     }
@@ -137,7 +139,7 @@ export class OrderService {
     }
 
     const alreadyExistsSeller = await this.prisma.vendedor.findFirst({
-      select: { codigo: true },
+      select: { codigo: true, tipoVendedor: true, cnpj: true },
       where: {
         codigo: Number(order.vendedorCodigo),
         eAtivo: true,
@@ -148,11 +150,26 @@ export class OrderService {
       throw new BadRequestException('Vendedor invalido');
     }
 
+    if (alreadyExistsSeller.tipoVendedor === 'Preposto') {
+      const findAgent = await this.prisma.vendedor.findFirst({
+        select: {
+          codigo: true,
+        },
+        where: {
+          tipoVendedor: {
+            not: 'Preposto',
+          },
+        },
+      });
+
+      order.prepostoCodigo = findAgent.codigo;
+    }
+
     if (order.prepostoCodigo) {
       const alreadyExistsSellerTwo = await this.prisma.vendedor.findFirst({
         select: { codigo: true },
         where: {
-          codigo: Number(order.prepostoCodigo),
+          codigo: Number(),
           eAtivo: true,
         },
       });
@@ -908,6 +925,26 @@ export class OrderService {
             quantidade: true,
             valorUnitario: true,
             sequencia: true,
+            itemErp: {
+              select: {
+                quantidade: true,
+                valorUnitario: true,
+                situacao: true,
+
+                motivoRecusa: {
+                  select: {
+                    codigo: true,
+                    descricao: true,
+                  },
+                },
+                motivoCancelamento: {
+                  select: {
+                    codigo: true,
+                    descricao: true,
+                  },
+                },
+              },
+            },
             produto: {
               select: {
                 codigo: true,
@@ -929,6 +966,15 @@ export class OrderService {
                 },
               },
             },
+          },
+          orderBy: {
+            sequencia: 'asc',
+          },
+        },
+        pedidoErp: {
+          select: {
+            dataFaturamento: true,
+            valorTotal: true,
           },
         },
       },
@@ -1116,7 +1162,22 @@ export class OrderService {
     const orders = await this.parseCsv.execute(file);
 
     for (const orderArr of orders) {
-      const [codigo, situacao] = orderArr;
+      const [
+        codigo,
+        dtFaturamento,
+        vlrTotalMercadoria,
+        id,
+        produtoCod,
+        sequencia,
+        vlrUnitario,
+        quantidade,
+        posicao,
+        situacao,
+        recusa,
+        recusaDescricao,
+        cancelamento,
+        cancelamentoDescricao,
+      ] = orderArr;
 
       const orderExits = await this.prisma.pedido.findUnique({
         where: {
@@ -1129,12 +1190,89 @@ export class OrderService {
           const statusCod = this.statusOrderErp[situacao];
 
           if (statusCod) {
-            await this.prisma.pedido.update({
+            const updatedOrder = await this.prisma.pedido.update({
               data: {
                 situacaoPedidoCodigo: statusCod,
+                pedidoErp: {
+                  upsert: {
+                    create: {
+                      codigo: Number(codigo),
+                      dataFaturamento: dtFaturamento,
+                      valorTotal: Number(vlrTotalMercadoria),
+                    },
+                    update: {
+                      dataFaturamento: dtFaturamento,
+                      valorTotal: Number(vlrTotalMercadoria),
+                    },
+                  },
+                },
               },
               where: {
                 codigoErp: Number(codigo),
+              },
+            });
+
+            await this.prisma.motivoPedidoErp.upsert({
+              where: {
+                codigo: Number(recusa),
+              },
+              create: {
+                codigo: Number(recusa),
+                descricao: String(recusaDescricao),
+              },
+              update: {
+                descricao: String(recusaDescricao),
+              },
+            });
+            await this.prisma.motivoPedidoErp.upsert({
+              where: {
+                codigo: Number(cancelamento),
+              },
+              create: {
+                codigo: Number(cancelamento),
+                descricao: String(cancelamentoDescricao),
+              },
+              update: {
+                descricao: String(cancelamentoDescricao),
+              },
+            });
+
+            await this.prisma.itemPedido.update({
+              data: {
+                itemErp: {
+                  upsert: {
+                    update: {
+                      quantidade: Number(quantidade),
+                      valorUnitario: Number(vlrUnitario),
+                      situacao: String(posicao),
+                      sequencia: Number(sequencia),
+                      motivoRecusaCodigo: recusa ? Number(recusa) : null,
+                      motivoCancelamentoCodigo: cancelamento
+                        ? Number(cancelamento)
+                        : null,
+                    },
+
+                    create: {
+                      id: String(id),
+                      quantidade: Number(quantidade),
+                      valorUnitario: Number(vlrUnitario),
+                      situacao: String(posicao),
+                      pedidoErpCodigo: Number(codigo),
+                      produtoCodigo: Number(produtoCod),
+                      sequencia: Number(sequencia),
+                      motivoRecusaCodigo: recusa ? Number(recusa) : null,
+                      motivoCancelamentoCodigo: cancelamento
+                        ? Number(cancelamento)
+                        : null,
+                    },
+                  },
+                },
+              },
+              where: {
+                pedidoCodigo_produtoCodigo: {
+                  produtoCodigo: Number(produtoCod),
+                  pedidoCodigo: Number(updatedOrder.codigo),
+                },
               },
             });
           }

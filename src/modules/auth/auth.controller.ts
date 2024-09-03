@@ -56,6 +56,11 @@ export class AuthController {
     return this.authService.logout(userId);
   }
 
+  @Post('sso-portal')
+  ssoPortal(@GetCurrentUserId() userId: string) {
+    return this.authService.ssoPortal(userId);
+  }
+
   @Post('password')
   changePassword(@Body() dto: PasswordDto, @GetCurrentUserId() userId: string) {
     return this.authService.changePassword(userId, dto);

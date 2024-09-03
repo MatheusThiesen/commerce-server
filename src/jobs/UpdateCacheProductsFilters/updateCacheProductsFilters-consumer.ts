@@ -1,4 +1,3 @@
-import { ListingRule } from '@/modules/app/products/useCases/ListingRule';
 import { ListProductsFilters } from '@/modules/app/products/useCases/ListProductsFilters';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import {
@@ -14,7 +13,6 @@ import Redis from 'ioredis';
 @Processor('updateCacheProductsFilters-queue')
 class UpdateCacheProductsFiltersConsumer {
   constructor(
-    private readonly listingRule: ListingRule,
     private listProductsFilters: ListProductsFilters,
     @InjectRedis() private readonly redis: Redis,
   ) {}
@@ -22,10 +20,7 @@ class UpdateCacheProductsFiltersConsumer {
   @Process('updateCacheProductsFilters-job')
   async executeJob(job: Job<any>) {
     const normalized = await this.listProductsFilters.execute({
-      where: {
-        ...this.listingRule.execute(),
-        ...job.data.filters,
-      },
+      filters: job.data.filters,
     });
 
     await this.redis.set(

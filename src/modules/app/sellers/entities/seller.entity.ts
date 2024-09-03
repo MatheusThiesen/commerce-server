@@ -1,3 +1,5 @@
+import { TipoVendedor } from '@prisma/client';
+
 export class Seller {
   usuarioId?: string;
   codigo: number;
@@ -9,6 +11,7 @@ export class Seller {
   eAtivo: boolean;
   eGerente: boolean;
   eSupervisor: boolean;
+  tipoVendedor: TipoVendedor;
   createdAt?: Date;
   updatedAt?: Date;
 

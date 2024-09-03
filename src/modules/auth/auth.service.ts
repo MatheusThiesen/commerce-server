@@ -12,6 +12,7 @@ import * as argon from 'argon2';
 import { hash } from 'argon2';
 import * as crypto from 'crypto';
 import * as dayjs from 'dayjs';
+import * as jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '../../database/prisma.service';
 import { AuthGetPinDto, AuthSessionDto } from './dto/auth-session.dto';
@@ -313,6 +314,32 @@ export class AuthService {
     );
 
     return tokens;
+  }
+  async ssoPortal(userId: string) {
+    const user = await this.prisma.usuario.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!(user.eCliente || user.eVendedor)) {
+      throw new Error('Only client or seller');
+    }
+
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 10);
+    const timestamp = now.getTime();
+
+    const payload = {
+      entidade: Number(user.eCliente) === 1 ? 'cliente' : 'representante',
+      codigoentidade:
+        Number(user.eCliente) === 1 ? user.clienteCodigo : user.vendedorCodigo,
+      timestamp: Math.floor(timestamp / 1000),
+    };
+
+    const token = jwt.sign(payload, process.env.SSO_PORTAL_SECRET);
+    console.log(token);
+    return `https://portal.alpardobrasil.com.br/sso/${token}`;
   }
 
   async generatePin(dto: AuthGetPinDto) {

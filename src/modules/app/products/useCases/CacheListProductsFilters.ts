@@ -4,17 +4,13 @@ import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import Redis from 'ioredis';
 import { ListProductsFilters } from './ListProductsFilters';
-import { ListingRule } from './ListingRule';
-import { FilterOrderNormalized } from './filterOrderNormalized';
 
 @Injectable()
 export class CacheListProductsFilters {
   constructor(
     @InjectRedis() private readonly redis: Redis,
     private listProductsFilters: ListProductsFilters,
-    private readonly filterOrderNormalized: FilterOrderNormalized,
     private prisma: PrismaService,
-    private readonly listingRule: ListingRule,
   ) {}
 
   @Cron('0 0 7,12 */1 * *', {
@@ -39,11 +35,7 @@ export class CacheListProductsFilters {
 
     const cacheKey = `products-filters-`;
 
-    const getFiltersAllBrand = await this.listProductsFilters.execute({
-      where: {
-        ...this.listingRule.execute(),
-      },
-    });
+    const getFiltersAllBrand = await this.listProductsFilters.execute({});
 
     await this.redis.set(
       `${cacheKey}`,
@@ -58,19 +50,15 @@ export class CacheListProductsFilters {
         name: 'marcaCodigo',
       }));
 
-      const filterNormalized = await this.filterOrderNormalized.execute(
-        filters,
-      );
-
       const cacheKeySeller = `${cacheKey}${filters
         .map((item) => `${item.name}-${item.value}`)
         .join('-')}`;
 
       const normalized = await this.listProductsFilters.execute({
-        where: {
-          ...this.listingRule.execute(),
-          ...filterNormalized,
-        },
+        filters: seller.marcas.map((brand) => ({
+          name: 'marcaCodigo',
+          value: brand.codigo,
+        })),
       });
 
       await this.redis.set(

@@ -1,10 +1,10 @@
-import { FilterListProps } from '@/@types/FilterList';
+import { FilterListProps, ItemFilter } from '@/@types/FilterList';
 import { Injectable } from '@nestjs/common';
-import { ProdutoWhereInput } from 'prisma';
 import { PrismaService } from '../../../../database/prisma.service';
+import { FetchProducts, ROLE_PRODUCT_ACTIVE } from './FetchProducts';
 
 interface ListProductsFiltersProps {
-  where?: ProdutoWhereInput;
+  filters?: ItemFilter[];
 }
 
 /*
@@ -15,147 +15,156 @@ interface ListProductsFiltersProps {
 
 @Injectable()
 export class ListProductsFilters {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private fetchProducts: FetchProducts,
+  ) {}
 
-  async execute({ where }: ListProductsFiltersProps) {
+  async execute({ filters }: ListProductsFiltersProps) {
     const filterList: FilterListProps[] = [];
 
-    const salePrices = await this.prisma.produto.aggregate({
-      _max: {
-        precoVenda: true,
-      },
-      _min: {
-        precoVenda: true,
-      },
-      where: where,
-    });
+    const whereNormalized = await this.fetchProducts.whereNormalized(filters);
 
-    const brands = await this.prisma.produto.findMany({
-      distinct: 'marcaCodigo',
-      where: where,
-      select: {
-        marca: {
-          select: {
-            codigo: true,
-            descricao: true,
-          },
-        },
-      },
-    });
+    const salePrices = await this.prisma.$queryRawUnsafe<{ max: number }[]>(
+      `
+    select MAX(p."precoVenda") as "max"from produtos p
+    inner join "locaisEstoque" le on le."produtoCodigo" = p.codigo
+    inner join marcas m on p."marcaCodigo" = m.codigo 
+    inner join grupos g on p."grupoCodigo" = g.codigo 
+    inner join generos gen on p."generoCodigo" = gen.codigo 
+    where 
+      ${ROLE_PRODUCT_ACTIVE}
+      ${whereNormalized}
+  `,
+    );
 
-    const lines = await this.prisma.produto.findMany({
-      distinct: 'linhaCodigo',
-      where: where,
-      select: {
-        linha: {
-          select: {
-            codigo: true,
-            descricao: true,
-          },
-        },
-      },
-    });
+    const brands = await this.prisma.$queryRawUnsafe<
+      { codigo: number; descricao: string }[]
+    >(
+      `
+      select distinct m.codigo, m.descricao from produtos p
+      inner join "locaisEstoque" le on le."produtoCodigo" = p.codigo
+      inner join marcas m on p."marcaCodigo" = m.codigo 
+      inner join grupos g on p."grupoCodigo" = g.codigo 
+      inner join generos gen on p."generoCodigo" = gen.codigo 
+      where 
+        ${ROLE_PRODUCT_ACTIVE}
+        ${whereNormalized}
+    `,
+    );
 
-    const collections = await this.prisma.produto.findMany({
-      distinct: 'colecaoCodigo',
-      where: where,
-      select: {
-        colecao: {
-          select: {
-            codigo: true,
-            descricao: true,
-          },
-        },
-      },
-    });
+    const lines = await this.prisma.$queryRawUnsafe<
+      { codigo: number; descricao: string }[]
+    >(
+      `
+      select distinct l.codigo, l.descricao from produtos p
+      inner join linhas l on p."linhaCodigo" = l.codigo
+      inner join "locaisEstoque" le on le."produtoCodigo" = p.codigo
+      inner join marcas m on p."marcaCodigo" = m.codigo 
+      inner join grupos g on p."grupoCodigo" = g.codigo 
+      inner join generos gen on p."generoCodigo" = gen.codigo 
+      where 
+        ${ROLE_PRODUCT_ACTIVE}
+        ${whereNormalized}
+  `,
+    );
 
-    const groups = await this.prisma.produto.findMany({
-      distinct: 'grupoCodigo',
-      where: where,
-      select: {
-        grupo: {
-          select: {
-            codigo: true,
-            descricao: true,
-          },
-        },
-      },
-    });
+    const collections = await this.prisma.$queryRawUnsafe<
+      { codigo: number; descricao: string }[]
+    >(
+      `
+      select distinct c.codigo, c.descricao from produtos p
+      inner join colecoes c on p."colecaoCodigo" = c.codigo
+      inner join "locaisEstoque" le on le."produtoCodigo" = p.codigo
+      inner join marcas m on p."marcaCodigo" = m.codigo 
+      inner join grupos g on p."grupoCodigo" = g.codigo 
+      inner join generos gen on p."generoCodigo" = gen.codigo 
+      where 
+        ${ROLE_PRODUCT_ACTIVE}
+        ${whereNormalized}
+`,
+    );
 
-    const subgroups = await this.prisma.produto.findMany({
-      distinct: 'subGrupoId',
-      where: where,
-      select: {
-        subGrupo: {
-          select: {
-            id: true,
-            descricao: true,
-          },
-        },
-      },
-    });
+    const groups = await this.prisma.$queryRawUnsafe<
+      { codigo: number; descricao: string }[]
+    >(
+      `
+    select distinct g.codigo, g.descricao from produtos p
+    inner join "locaisEstoque" le on le."produtoCodigo" = p.codigo
+    inner join marcas m on p."marcaCodigo" = m.codigo 
+    inner join grupos g on p."grupoCodigo" = g.codigo 
+    inner join generos gen on p."generoCodigo" = gen.codigo 
+    where 
+      ${ROLE_PRODUCT_ACTIVE}
+      ${whereNormalized}
+`,
+    );
 
-    const genders = await this.prisma.produto.findMany({
-      distinct: 'generoCodigo',
-      where: where,
-      select: {
-        genero: {
-          select: {
-            codigo: true,
-            descricao: true,
-          },
-        },
-      },
-    });
+    const subgroups = await this.prisma.$queryRawUnsafe<
+      { id: string; descricao: string }[]
+    >(
+      `
+      select distinct s.id, s.descricao from produtos p
+      inner join subgrupos s on p."subGrupoId" = s.id
+      inner join "locaisEstoque" le on le."produtoCodigo" = p.codigo
+      inner join marcas m on p."marcaCodigo" = m.codigo 
+      inner join grupos g on p."grupoCodigo" = g.codigo 
+      inner join generos gen on p."generoCodigo" = gen.codigo 
+      where 
+        ${ROLE_PRODUCT_ACTIVE}
+        ${whereNormalized}
+`,
+    );
 
-    // const references = await this.prisma.produto.findMany({
-    //   distinct: 'referencia',
-    //   where: where,
-    //   select: {
-    //     referencia: true,
-    //   },
-    // });
+    const genders = await this.prisma.$queryRawUnsafe<
+      { codigo: number; descricao: string }[]
+    >(
+      `
+      select distinct ge.codigo, ge.descricao from produtos p
+      inner join generos ge on p."generoCodigo" = ge.codigo
+      inner join "locaisEstoque" le on le."produtoCodigo" = p.codigo
+      inner join marcas m on p."marcaCodigo" = m.codigo 
+      inner join grupos g on p."grupoCodigo" = g.codigo 
+      inner join generos gen on p."generoCodigo" = gen.codigo 
+      where 
+        ${ROLE_PRODUCT_ACTIVE}
+        ${whereNormalized}
+`,
+    );
 
-    const stockLocations = await this.prisma.localEstoque.findMany({
-      distinct: 'periodo',
-      where: { produto: where, ...where.locaisEstoque.some },
-      select: {
-        periodo: true,
-        descricao: true,
-      },
-      orderBy: {
-        data: 'asc',
-      },
-    });
+    const stockLocations = await this.prisma.$queryRawUnsafe<
+      { periodo: string; descricao: string }[]
+    >(
+      `
+    select distinct le.periodo, le.descricao, le."data"  from produtos p
+    inner join "locaisEstoque" le on le."produtoCodigo" = p.codigo
+    inner join marcas m on p."marcaCodigo" = m.codigo 
+    inner join grupos g on p."grupoCodigo" = g.codigo 
+    inner join generos gen on p."generoCodigo" = gen.codigo 
+    where 
+      ${ROLE_PRODUCT_ACTIVE}
+      ${whereNormalized}
+    order by le."data" 
+`,
+    );
 
-    const concepts = await this.prisma.conceito.findMany({
-      select: {
-        codigo: true,
-        descricao: true,
-        regraProdutoConceito: {
-          select: {
-            subGrupo: {
-              select: {
-                codigo: true,
-                descricao: true,
-              },
-            },
-          },
-        },
-      },
-      where: {
-        eAtivo: true,
-        regraProdutoConceito: {
-          some: {
-            subGrupo: {
-              id: {
-                in: subgroups.map((subgroup) => subgroup.subGrupo.id),
-              },
-            },
-          },
-        },
-      },
-    });
+    const concepts = await this.prisma.$queryRawUnsafe<
+      { codigo: number; descricao: string }[]
+    >(
+      `
+      select c.codigo, c.descricao from conceitos c 
+      inner join "regrasProdutoConceito" r on c.codigo = r."conceitoCodigo"
+      where c."eAtivo" = true 
+      ${
+        subgroups.length > 0
+          ? `and r."subGrupoId" in (${subgroups.map(
+              (subgroup) => `'${subgroup.id}'`,
+            )})`
+          : ''
+      }
+      
+`,
+    );
 
     const banners = await this.prisma.banner.findMany({
       select: {
@@ -168,7 +177,7 @@ export class ListProductsFilters {
         marcas: {
           some: {
             codigo: {
-              in: brands.map((item) => item.marca.codigo),
+              in: brands.map((item) => item.codigo),
             },
           },
         },
@@ -180,7 +189,6 @@ export class ListProductsFilters {
         label: 'Locais Estoque',
         name: 'locaisEstoque',
         data: stockLocations
-          .filter((f) => f.periodo)
           .map((stockLocation) => ({
             name: stockLocation.descricao,
             value: stockLocation.periodo,
@@ -191,58 +199,50 @@ export class ListProductsFilters {
         label: 'Marca',
         name: 'marcaCodigo',
         data: brands.map((brand) => ({
-          name: brand.marca.descricao,
-          value: brand.marca.codigo,
+          name: brand.descricao,
+          value: brand.codigo,
         })),
       },
       {
         label: 'Grupo',
         name: 'grupoCodigo',
         data: groups.map((group) => ({
-          name: group.grupo.descricao,
-          value: group.grupo.codigo,
+          name: group.descricao,
+          value: group.codigo,
         })),
       },
       {
         label: 'Subgrupo',
         name: 'subGrupoId',
-        data: subgroups
-          .filter((f) => f.subGrupo)
-          .map((subgroup) => ({
-            name: subgroup.subGrupo.descricao,
-            value: subgroup.subGrupo.id,
-          })),
+        data: subgroups.map((subgroup) => ({
+          name: subgroup.descricao,
+          value: subgroup.id,
+        })),
       },
 
       {
         label: 'Gênero',
         name: 'generoCodigo',
-        data: genders
-          .filter((f) => f.genero)
-          .map((gender) => ({
-            name: gender.genero.descricao,
-            value: gender.genero.codigo,
-          })),
+        data: genders.map((gender) => ({
+          name: gender.descricao,
+          value: gender.codigo,
+        })),
       },
       {
         label: 'Linha',
         name: 'linhaCodigo',
-        data: lines
-          .filter((f) => f.linha)
-          .map((line) => ({
-            name: line.linha.descricao,
-            value: line.linha.codigo,
-          })),
+        data: lines.map((line) => ({
+          name: line.descricao,
+          value: line.codigo,
+        })),
       },
       {
         label: 'Coleção',
         name: 'colecaoCodigo',
-        data: collections
-          .filter((f) => f.colecao)
-          .map((collection) => ({
-            name: collection.colecao.descricao,
-            value: collection.colecao.codigo,
-          })),
+        data: collections.map((collection) => ({
+          name: collection.descricao,
+          value: collection.codigo,
+        })),
       },
       {
         label: 'Conceito',
@@ -280,11 +280,11 @@ export class ListProductsFilters {
         data: [
           {
             name: 'min',
-            value: salePrices._min.precoVenda,
+            value: 0,
           },
           {
             name: 'max',
-            value: salePrices._max.precoVenda,
+            value: Number(salePrices?.[0].max),
           },
         ],
       },

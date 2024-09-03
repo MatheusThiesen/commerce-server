@@ -29,6 +29,13 @@ interface FetchProductsResponse {
   products: any[];
 }
 
+export const ROLE_PRODUCT_ACTIVE = `
+  p."eAtivo" and
+  m."eVenda" and
+  g."eVenda" and
+  le."eAtivo" and le.quantidade > 0 
+`;
+
 @Injectable()
 export class FetchProducts {
   constructor(
@@ -73,11 +80,7 @@ export class FetchProducts {
         inner join grupos g on p."grupoCodigo" = g.codigo 
         inner join generos gen on p."generoCodigo" = gen.codigo 
         where 
-          -- Regra de produto ativo
-          p."eAtivo" and
-          m."eVenda" and
-          g."eVenda" and
-          le."eAtivo" and le.quantidade > 0 
+          ${ROLE_PRODUCT_ACTIVE}
           ${brandsForSeller}
           -- Filtros adicionais
           ${whereNormalized}
@@ -209,7 +212,7 @@ export class FetchProducts {
           );
           break;
         case 'clientCod':
-          const findOneClient = await this.prisma.cliente.findUnique({
+          const findOneClient = await this.prisma.cliente.findUniqueOrThrow({
             select: {
               bloqueios: {
                 select: {

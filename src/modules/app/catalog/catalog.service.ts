@@ -209,7 +209,7 @@ export class CatalogService {
           },
         ],
 
-        CatalogoProduto: {
+        catalogoProduto: {
           some: {
             id: catalogo.id,
           },
@@ -405,7 +405,7 @@ export class CatalogService {
           },
         ],
 
-        CatalogoProduto: {
+        catalogoProduto: {
           some: {
             id: catalogo.id,
           },

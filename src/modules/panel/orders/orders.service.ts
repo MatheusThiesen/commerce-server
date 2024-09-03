@@ -175,7 +175,26 @@ export class PanelOrdersService {
             quantidade: true,
             valorUnitario: true,
             sequencia: true,
+            itemErp: {
+              select: {
+                quantidade: true,
+                valorUnitario: true,
+                situacao: true,
 
+                motivoRecusa: {
+                  select: {
+                    codigo: true,
+                    descricao: true,
+                  },
+                },
+                motivoCancelamento: {
+                  select: {
+                    codigo: true,
+                    descricao: true,
+                  },
+                },
+              },
+            },
             produto: {
               select: {
                 codigo: true,
@@ -187,6 +206,12 @@ export class PanelOrdersService {
                 imagemPreview: true,
               },
             },
+          },
+        },
+        pedidoErp: {
+          select: {
+            dataFaturamento: true,
+            valorTotal: true,
           },
         },
         registros: {
