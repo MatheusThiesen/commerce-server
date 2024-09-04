@@ -11,6 +11,9 @@ type listAllProps = {
   pagesize: number;
   orderby?: string;
   search?: string;
+
+  isDifferentiated?: string;
+  status?: string[];
 };
 
 type GetOrderAnalyticProps = {
@@ -262,7 +265,15 @@ export class PanelOrdersService {
     return normalized;
   }
 
-  async findAll({ page, pagesize, orderby, search }: listAllProps) {
+  async findAll({
+    page,
+    pagesize,
+    orderby,
+    search,
+
+    isDifferentiated,
+    status,
+  }: listAllProps) {
     const orderByNormalized = this.orderbyNormalized.execute(orderby);
 
     const orders = await this.prisma.pedido.findMany({
@@ -321,6 +332,22 @@ export class PanelOrdersService {
           {
             OR: this.searchFilter.execute(search, this.fieldsSearch),
           },
+          {
+            eDiferenciado:
+              isDifferentiated !== undefined
+                ? +isDifferentiated === 1
+                : undefined,
+          },
+          {
+            situacaoPedido:
+              status && status.filter((f) => f).length > 0
+                ? {
+                    descricao: {
+                      in: status,
+                    },
+                  }
+                : undefined,
+          },
         ],
       },
     });
@@ -331,6 +358,22 @@ export class PanelOrdersService {
         AND: [
           {
             OR: this.searchFilter.execute(search, this.fieldsSearch),
+          },
+          {
+            eDiferenciado:
+              isDifferentiated !== undefined
+                ? +isDifferentiated === 1
+                : undefined,
+          },
+          {
+            situacaoPedido:
+              status && status.filter((f) => f).length > 0
+                ? {
+                    descricao: {
+                      in: status,
+                    },
+                  }
+                : undefined,
           },
         ],
       },

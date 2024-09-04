@@ -16,13 +16,15 @@ export class PanelOrdersController {
   @Get()
   findAll(
     @Query()
-    { page = '0', pagesize = '10', orderby, search },
+    { page = '0', pagesize = '10', orderby, search, isDifferentiated, status },
   ) {
     return this.ordersService.findAll({
       page: Number(page),
       pagesize: Number(pagesize),
       orderby: orderby,
       search: search,
+      isDifferentiated,
+      status,
     });
   }
 

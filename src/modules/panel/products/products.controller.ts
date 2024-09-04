@@ -9,13 +9,23 @@ export class ProductsController {
   @Get()
   findAll(
     @Query()
-    { page = '0', pagesize = '10', orderby, search },
+    {
+      page = '0',
+      pagesize = '10',
+      orderby,
+      search,
+
+      isImage,
+      isSale,
+    },
   ) {
     return this.productsService.findAll({
       page: Number(page),
       pagesize: Number(pagesize),
       orderby,
       search,
+      isImage,
+      isSale,
     });
   }
 

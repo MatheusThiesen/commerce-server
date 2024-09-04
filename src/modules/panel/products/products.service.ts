@@ -11,6 +11,9 @@ type listAllProps = {
   pagesize: number;
   orderby?: string;
   search?: string;
+
+  isImage?: string;
+  isSale?: string;
 };
 
 @Injectable()
@@ -45,8 +48,46 @@ export class ProductsService {
     private readonly orderbyNormalized: OrderBy,
   ) {}
 
-  async findAll({ page, pagesize, search, orderby }: listAllProps) {
+  async findAll({
+    page,
+    pagesize,
+    search,
+    orderby,
+    isImage,
+    isSale,
+  }: listAllProps) {
     const orderByNormalized = this.orderbyNormalized.execute(orderby);
+
+    const AND: any[] = [
+      {
+        OR: this.searchFilter.execute(search, this.fieldsSearch),
+      },
+    ];
+
+    if (isImage) {
+      AND.push({
+        possuiFoto: isImage !== undefined ? +isImage === 1 : undefined,
+      });
+    }
+    if (isSale) {
+      AND.push({
+        marca: {
+          eVenda: true,
+        },
+        grupo: {
+          eVenda: true,
+        },
+        eAtivo: true,
+        locaisEstoque: {
+          some: {
+            quantidade: {
+              gt: 0,
+            },
+            eAtivo: true,
+          },
+        },
+      });
+    }
 
     const products = await this.prisma.produto.findMany({
       take: pagesize,
@@ -63,21 +104,13 @@ export class ProductsService {
       },
       orderBy: [orderByNormalized] ?? [{ codigo: 'desc' }],
       where: {
-        AND: [
-          {
-            OR: this.searchFilter.execute(search, this.fieldsSearch),
-          },
-        ],
+        AND: AND,
       },
     });
 
     const total = await this.prisma.produto.count({
       where: {
-        AND: [
-          {
-            OR: this.searchFilter.execute(search, this.fieldsSearch),
-          },
-        ],
+        AND: AND,
       },
     });
 
