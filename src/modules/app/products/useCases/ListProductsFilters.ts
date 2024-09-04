@@ -152,7 +152,7 @@ export class ListProductsFilters {
       { codigo: number; descricao: string }[]
     >(
       `
-      select c.codigo, c.descricao from conceitos c 
+      select distinct c.codigo, c.descricao from conceitos c 
       inner join "regrasProdutoConceito" r on c.codigo = r."conceitoCodigo"
       where c."eAtivo" = true 
       ${
