@@ -586,7 +586,6 @@ export class ClientsService {
   }
 
   async userCreateOrUpdate(client: Client) {
-    return;
     const findUser = await this.prisma.usuario.findFirst({
       select: {
         id: true,
