@@ -180,6 +180,7 @@ export class AuthService {
         email: true,
         senha: true,
         eAtivo: true,
+        eCliente: true,
       },
       where: {
         email: dto.email,
@@ -187,6 +188,8 @@ export class AuthService {
     });
 
     if (!user || !user.eAtivo) throw new UnauthorizedException('Access Denied');
+
+    if (user.eCliente) throw new UnauthorizedException('Access Denied');
 
     const passwordMatches = await argon.verify(user.senha, dto.senha);
     if (!passwordMatches) throw new UnauthorizedException('Access Denied');
@@ -242,7 +245,7 @@ export class AuthService {
 
     // if (existToken) throw new UnauthorizedException('expired token');
 
-    if (entity !== 'seller' && entity !== 'user') {
+    if (entity !== 'seller' && entity !== 'user' && entity !== 'client') {
       throw new BadRequestException('User malformed exists');
     }
 
