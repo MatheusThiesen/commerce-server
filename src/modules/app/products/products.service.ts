@@ -168,6 +168,7 @@ export class ProductsService {
     const user = await this.prisma.usuario.findUnique({
       select: {
         eVendedor: true,
+        eCliente: true,
         vendedor: {
           select: {
             marcas: {
@@ -182,6 +183,15 @@ export class ProductsService {
         id: userId,
       },
     });
+
+    if (user.eCliente) {
+      return {
+        data: [],
+        page,
+        pagesize,
+        hasNextPage: false,
+      };
+    }
 
     const orderByNormalized = this.orderBy.execute(orderBy);
 
