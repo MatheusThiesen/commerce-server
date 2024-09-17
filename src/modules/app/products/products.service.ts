@@ -167,8 +167,9 @@ export class ProductsService {
   }: listAllProps) {
     const user = await this.prisma.usuario.findUnique({
       select: {
-        eVendedor: true,
         eCliente: true,
+        clienteCodigo: true,
+        eVendedor: true,
         vendedor: {
           select: {
             marcas: {
@@ -185,12 +186,10 @@ export class ProductsService {
     });
 
     if (user.eCliente) {
-      return {
-        data: [],
-        page,
-        pagesize,
-        hasNextPage: false,
-      };
+      filters.push({
+        value: user.clienteCodigo,
+        name: 'clientCod',
+      });
     }
 
     const orderByNormalized = this.orderBy.execute(orderBy);
@@ -364,6 +363,8 @@ export class ProductsService {
   async getFiltersForFindAll(userId: string, filters?: ItemFilter[]) {
     const user = await this.prisma.usuario.findUnique({
       select: {
+        eCliente: true,
+        clienteCodigo: true,
         eVendedor: true,
         vendedorCodigo: true,
         vendedor: {
@@ -397,10 +398,19 @@ export class ProductsService {
       });
     }
 
+    if (user.eCliente) {
+      filters.push({
+        value: user.clienteCodigo,
+        name: 'clientCod',
+      });
+    }
+
     const cacheKey = `products-filters-${filters
       .map((item) => `${item.name}-${item.value}`)
       .join('-')}`;
     const getCache = await this.redis.get(cacheKey);
+
+    let filtersNormalized = [];
 
     if (getCache) {
       this.updateCacheProductsFiltersProducerService.execute({
@@ -408,7 +418,7 @@ export class ProductsService {
         cacheKey,
       });
 
-      return JSON.parse(getCache);
+      filtersNormalized = JSON.parse(getCache);
     } else {
       const normalized = await this.listProductsFilters.execute({
         filters: filters,
@@ -420,8 +430,12 @@ export class ProductsService {
         'EX',
         60 * 60 * 24 * 1,
       );
-      return normalized;
+      filtersNormalized = normalized;
     }
+
+    return filtersNormalized.filter((f) =>
+      user.eCliente ? f.name !== 'concept' : true,
+    );
   }
 
   async findOne(codigo: number, clientCod?: number) {

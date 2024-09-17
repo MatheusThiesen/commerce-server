@@ -189,8 +189,6 @@ export class AuthService {
 
     if (!user || !user.eAtivo) throw new UnauthorizedException('Access Denied');
 
-    if (user.eCliente) throw new UnauthorizedException('Access Denied');
-
     const passwordMatches = await argon.verify(user.senha, dto.senha);
     if (!passwordMatches) throw new UnauthorizedException('Access Denied');
 
@@ -271,6 +269,10 @@ export class AuthService {
         where: { email },
         select: { id: true },
       });
+
+      if (entity === 'client' && !user) {
+        throw new BadRequestException('User malformed exists');
+      }
 
       if (user) {
         userId = user.id;

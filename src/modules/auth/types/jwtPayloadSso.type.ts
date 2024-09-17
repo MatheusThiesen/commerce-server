@@ -1,5 +1,5 @@
 export type JwtSsoPayload = {
-  entity: 'seller' | 'user';
+  entity: 'seller' | 'user' | 'client';
   sellerCod?: string;
   email?: string;
   timestamp: string;
