@@ -487,12 +487,12 @@ export class PanelOrdersService {
               s.descricao AS "situacao", 
               SUM(p."valorTotal") AS "valorTotal", 
               COUNT(*) AS "quantidade", 
-              DATE_TRUNC('day', p."createdAt") AS "periodo" 
+              DATE_TRUNC('day', p."createdAt" - INTERVAL '3 hours') AS "periodo" 
           FROM pedidos p
           INNER JOIN "situacoesPedido" s ON s.codigo = p."situacaoPedidoCodigo" 
           WHERE p."eExluido" = false and p."createdAt" >= (CURRENT_DATE - INTERVAL '7 days')
-          GROUP BY s.descricao, DATE_TRUNC('day', p."createdAt") 
-          ORDER BY DATE_TRUNC('day', p."createdAt") ;
+          GROUP BY s.descricao, DATE_TRUNC('day', p."createdAt" - INTERVAL '3 hours') 
+          ORDER BY "periodo";
         `;
 
         normalizedAnalytic(orders7Days);
@@ -506,12 +506,12 @@ export class PanelOrdersService {
               s.descricao AS "situacao", 
               SUM(p."valorTotal") AS "valorTotal", 
               COUNT(*) AS "quantidade", 
-              DATE_TRUNC('day', p."createdAt") AS "periodo" 
+              DATE_TRUNC('day', p."createdAt" - INTERVAL '3 hours') AS "periodo" 
           FROM pedidos p
           INNER JOIN "situacoesPedido" s ON s.codigo = p."situacaoPedidoCodigo" 
           WHERE p."eExluido" = false and p."createdAt" >= (CURRENT_DATE - INTERVAL '14 days')
-          GROUP BY s.descricao, DATE_TRUNC('day', p."createdAt") 
-          ORDER BY DATE_TRUNC('day', p."createdAt") ;
+          GROUP BY s.descricao, DATE_TRUNC('day', p."createdAt" - INTERVAL '3 hours') 
+          ORDER BY "periodo" ;
         `;
         normalizedAnalytic(orders14Days);
         break;
@@ -523,12 +523,12 @@ export class PanelOrdersService {
               s.descricao AS "situacao", 
               SUM(p."valorTotal") AS "valorTotal", 
               COUNT(*) AS "quantidade", 
-              DATE_TRUNC('day', p."createdAt") AS "periodo" 
+              DATE_TRUNC('day', p."createdAt" - INTERVAL '3 hours') AS "periodo" 
           FROM pedidos p
           INNER JOIN "situacoesPedido" s ON s.codigo = p."situacaoPedidoCodigo" 
           WHERE p."eExluido" = false and DATE_TRUNC('month', p."createdAt") = DATE_TRUNC('month', CURRENT_DATE)
-          GROUP BY s.descricao, DATE_TRUNC('day', p."createdAt") 
-          ORDER BY DATE_TRUNC('day', p."createdAt") ;
+          GROUP BY s.descricao, DATE_TRUNC('day', p."createdAt" - INTERVAL '3 hours') 
+          ORDER BY "periodo" ;
         `;
         normalizedAnalytic(orders1Month);
         break;
@@ -540,12 +540,12 @@ export class PanelOrdersService {
               s.descricao AS "situacao", 
               SUM(p."valorTotal") AS "valorTotal", 
               COUNT(*) AS "quantidade", 
-              DATE_TRUNC('month', p."createdAt") AS "periodo"
+              DATE_TRUNC('month', p."createdAt" - INTERVAL '3 hours') AS "periodo"
           FROM pedidos p
           INNER JOIN "situacoesPedido" s ON s.codigo = p."situacaoPedidoCodigo" 
           WHERE p."eExluido" = false and p."createdAt" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '2 months'
-          GROUP BY s.descricao, DATE_TRUNC('month', p."createdAt")
-          ORDER BY DATE_TRUNC('month', p."createdAt");
+          GROUP BY s.descricao, DATE_TRUNC('month', p."createdAt" - INTERVAL '3 hours')
+          ORDER BY "periodo";
         `;
         normalizedAnalytic(orders3Months);
         break;
@@ -557,12 +557,12 @@ export class PanelOrdersService {
             s.descricao AS "situacao", 
             SUM(p."valorTotal") AS "valorTotal", 
             COUNT(*) AS "quantidade", 
-            DATE_TRUNC('month', p."createdAt") AS "periodo"
+            DATE_TRUNC('month', p."createdAt" - INTERVAL '3 hours') AS "periodo"
         FROM pedidos p
         INNER JOIN "situacoesPedido" s ON s.codigo = p."situacaoPedidoCodigo" 
         WHERE p."eExluido" = false and DATE_TRUNC('year', p."createdAt") = DATE_TRUNC('year', CURRENT_DATE)
-        GROUP BY s.descricao, DATE_TRUNC('month', p."createdAt")
-        ORDER BY DATE_TRUNC('month', p."createdAt");
+        GROUP BY s.descricao, DATE_TRUNC('month', p."createdAt" - INTERVAL '3 hours')
+        ORDER BY "periodo";
         `;
 
         normalizedAnalytic(orders1Year);

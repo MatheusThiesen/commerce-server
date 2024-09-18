@@ -65,6 +65,19 @@ export class AuthService {
             codigo: true,
             cnpj: true,
             nomeFantasia: true,
+            razaoSocial: true,
+            logradouro: true,
+            cep: true,
+            numero: true,
+            bairro: true,
+            cidade: true,
+            uf: true,
+            conceito: {
+              select: {
+                codigo: true,
+                descricao: true,
+              },
+            },
           },
         },
 
@@ -667,13 +680,13 @@ export class AuthService {
           from (
             SELECT 
               s."usuarioId",
-              DATE_TRUNC('day', r."createdAt") AS "createdAt",
+              DATE_TRUNC('day', r."createdAt" - INTERVAL '3 hours') AS "createdAt",
               r.tipo,
               COUNT(*) AS "quantidade"
             FROM "registrosSessao" r
             INNER JOIN sessoes s ON s.id = r."sessaoId"
             where s."acessoSite" = 'app'
-            GROUP BY DATE_TRUNC('day', r."createdAt"), s."usuarioId", r.tipo 
+            GROUP BY DATE_TRUNC('day', r."createdAt" - INTERVAL '3 hours'), s."usuarioId", r.tipo 
             ) as s
           INNER JOIN usuarios u ON u.id = s."usuarioId"
           where u.email != 'importacao@alpardobrasil.com.br' and s."createdAt" >= (CURRENT_DATE - INTERVAL '7 days')
@@ -700,13 +713,13 @@ export class AuthService {
           from (
             SELECT 
               s."usuarioId",
-              DATE_TRUNC('day', r."createdAt") AS "createdAt",
+              DATE_TRUNC('day', r."createdAt" - INTERVAL '3 hours') AS "createdAt",
               r.tipo,
               COUNT(*) AS "quantidade"
             FROM "registrosSessao" r
             INNER JOIN sessoes s ON s.id = r."sessaoId"
             where s."acessoSite" = 'app'
-            GROUP BY DATE_TRUNC('day', r."createdAt"), s."usuarioId", r.tipo 
+            GROUP BY DATE_TRUNC('day', r."createdAt" - INTERVAL '3 hours'), s."usuarioId", r.tipo 
             ) as s
           INNER JOIN usuarios u ON u.id = s."usuarioId"
           where u.email != 'importacao@alpardobrasil.com.br' and s."createdAt" >= (CURRENT_DATE - INTERVAL '14 days')
@@ -731,13 +744,13 @@ export class AuthService {
           from (
             SELECT 
               s."usuarioId",
-              DATE_TRUNC('day', r."createdAt") AS "createdAt",
+              DATE_TRUNC('day', r."createdAt" - INTERVAL '3 hours') AS "createdAt",
               r.tipo,
               COUNT(*) AS "quantidade"
             FROM "registrosSessao" r
             INNER JOIN sessoes s ON s.id = r."sessaoId"
             where s."acessoSite" = 'app'
-            GROUP BY DATE_TRUNC('day', r."createdAt"), s."usuarioId", r.tipo 
+            GROUP BY DATE_TRUNC('day', r."createdAt" - INTERVAL '3 hours'), s."usuarioId", r.tipo 
             ) as s
           INNER JOIN usuarios u ON u.id = s."usuarioId"
           where u.email != 'importacao@alpardobrasil.com.br' and DATE_TRUNC('month', s."createdAt") = DATE_TRUNC('month', CURRENT_DATE) 
@@ -762,13 +775,13 @@ export class AuthService {
           from (
             SELECT 
               s."usuarioId",
-              DATE_TRUNC('day', r."createdAt") AS "createdAt",
+              DATE_TRUNC('day', r."createdAt" - INTERVAL '3 hours') AS "createdAt",
               r.tipo,
               COUNT(*) AS "quantidade"
             FROM "registrosSessao" r
             INNER JOIN sessoes s ON s.id = r."sessaoId"
             where s."acessoSite" = 'app'
-            GROUP BY DATE_TRUNC('day', r."createdAt"), s."usuarioId", r.tipo 
+            GROUP BY DATE_TRUNC('day', r."createdAt" - INTERVAL '3 hours'), s."usuarioId", r.tipo 
             ) as s
           INNER JOIN usuarios u ON u.id = s."usuarioId"
           where u.email != 'importacao@alpardobrasil.com.br' and s."createdAt" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '2 months' 
@@ -793,13 +806,13 @@ export class AuthService {
             from (
               SELECT 
                 s."usuarioId",
-                DATE_TRUNC('day', r."createdAt") AS "createdAt",
+                DATE_TRUNC('day', r."createdAt" - INTERVAL '3 hours') AS "createdAt",
                 r.tipo,
                 COUNT(*) AS "quantidade"
               FROM "registrosSessao" r
               INNER JOIN sessoes s ON s.id = r."sessaoId"
               where s."acessoSite" = 'app'
-              GROUP BY DATE_TRUNC('day', r."createdAt"), s."usuarioId", r.tipo 
+              GROUP BY DATE_TRUNC('day', r."createdAt" - INTERVAL '3 hours'), s."usuarioId", r.tipo 
               ) as s
             INNER JOIN usuarios u ON u.id = s."usuarioId"
             where u.email != 'importacao@alpardobrasil.com.br' and DATE_TRUNC('year', s."createdAt") = DATE_TRUNC('year', CURRENT_DATE)
