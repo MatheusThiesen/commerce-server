@@ -20,9 +20,6 @@ export class CreateOrderDto extends Order {
   marcaCodigo;
   @IsNotEmpty()
   @IsNumber()
-  vendedorCodigo;
-  @IsNotEmpty()
-  @IsNumber()
   condicaoPagamentoCodigo;
   @IsNotEmpty()
   @IsString()

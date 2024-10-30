@@ -240,12 +240,14 @@ export class SketchOrderValid {
       },
       where: {
         codigo: orderCode,
-        eRascunho: true,
-        vendedores: {
-          some: {
-            vendedorCodigo: sellerCod,
-          },
-        },
+        OR: [{ eRascunho: true }, { ePendente: true }],
+        vendedores: sellerCod
+          ? {
+              some: {
+                vendedorCodigo: sellerCod,
+              },
+            }
+          : undefined,
       },
     });
 

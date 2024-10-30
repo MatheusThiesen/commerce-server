@@ -24,7 +24,7 @@ export class AddTagDifferentiatedRequestOrderApiErp {
 
   async execute(order: OrderApiErp) {
     const url =
-      process.env.ERP_URL + '/api/v1/alter' + '?entity=order&organization=018';
+      process.env.ERP_URL + '/api/v1/alter' + '?entity=order&organization=045';
 
     const response = await firstValueFrom(
       this.httpService

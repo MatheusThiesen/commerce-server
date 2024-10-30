@@ -438,8 +438,20 @@ export class ProductsService {
     );
   }
 
-  async findOne(codigo: number, clientCod?: number) {
+  async findOne(codigo: number, userId: string, clientCod?: number) {
     if (!codigo) throw new BadRequestException('codigo not valid');
+
+    const user = await this.prisma.usuario.findUniqueOrThrow({
+      select: {
+        eCliente: true,
+        clienteCodigo: true,
+      },
+      where: {
+        id: userId,
+      },
+    });
+
+    if (user.eCliente) clientCod = user.clienteCodigo;
 
     const filterNormalized = clientCod
       ? await this.filterOrderNormalized.execute([

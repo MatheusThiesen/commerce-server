@@ -10,8 +10,10 @@ import { AxiosError } from 'axios';
 import { GetPendencyBySellerCod } from '../differentiated/useCases/GetPendencyBySellerCod';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { Item } from './entities/item.entity';
 import { Order } from './entities/order.entity';
 import { AddTagDifferentiatedRequestOrderApiErp } from './useCases/AddTagDifferentiatedRequestOrderApiErp';
+import { GetSellerToOrder } from './useCases/GetSellerToOrder';
 import { RequestOrderApiErp } from './useCases/RequestOrderApiErp';
 import { SketchOrderValid } from './useCases/SketchOrderValid';
 import { TransformOrderToSendApiErp } from './useCases/TransformOrderToSendApiErp';
@@ -59,6 +61,7 @@ export class OrderService {
     private readonly sketchOrderValid: SketchOrderValid,
     private parseCsv: ParseCsv,
     private getPendencyBySellerCod: GetPendencyBySellerCod,
+    private getSellerToOrder: GetSellerToOrder,
   ) {}
 
   normalizedFiltersAll(filters?: ItemFilter[]) {
@@ -93,7 +96,7 @@ export class OrderService {
   }
 
   async verifyRelationship(orderData: Order): Promise<Order> {
-    let order = orderData;
+    const order = orderData;
 
     if (order.itens.length <= 0) {
       throw new BadRequestException('Pedido sem itens');
@@ -138,31 +141,31 @@ export class OrderService {
       throw new BadRequestException('Valor pedido mínimo invalido');
     }
 
-    const alreadyExistsSeller = await this.prisma.vendedor.findFirst({
-      select: { codigo: true, tipoVendedor: true, cnpj: true },
-      where: {
-        codigo: Number(order.vendedorCodigo),
-        eAtivo: true,
-      },
-    });
-
-    if (!alreadyExistsSeller) {
-      throw new BadRequestException('Vendedor invalido');
-    }
-
-    if (alreadyExistsSeller.tipoVendedor === 'Preposto') {
-      const findAgent = await this.prisma.vendedor.findFirst({
-        select: {
-          codigo: true,
-        },
+    if (order.vendedorCodigo) {
+      const alreadyExistsSeller = await this.prisma.vendedor.findFirst({
+        select: { codigo: true, tipoVendedor: true, cnpj: true },
         where: {
-          tipoVendedor: {
-            not: 'Preposto',
-          },
+          codigo: Number(order.vendedorCodigo),
+          eAtivo: true,
         },
       });
+      if (!alreadyExistsSeller) {
+        throw new BadRequestException('Vendedor invalido');
+      }
+      if (alreadyExistsSeller.tipoVendedor === 'Preposto') {
+        const findAgent = await this.prisma.vendedor.findFirst({
+          select: {
+            codigo: true,
+          },
+          where: {
+            tipoVendedor: {
+              not: 'Preposto',
+            },
+          },
+        });
 
-      order.prepostoCodigo = findAgent.codigo;
+        order.prepostoCodigo = findAgent.codigo;
+      }
     }
 
     if (order.prepostoCodigo) {
@@ -357,13 +360,32 @@ export class OrderService {
     }
   }
 
-  async create(createOrderDto: CreateOrderDto) {
+  async create(createOrderDto: CreateOrderDto, userId: string) {
+    const findUser = await this.prisma.usuario.findUniqueOrThrow({
+      where: {
+        id: userId,
+      },
+    });
+
     const order = new Order();
     Object.assign(order, {
       ...createOrderDto,
     });
 
     const orderNormalized = await this.verifyRelationship(order);
+
+    if (findUser.eCliente) {
+      const verifySellerToOrder = await this.getSellerToOrder.execute({
+        brandCode: order.marcaCodigo,
+        clientCode: order.clienteCodigo,
+      });
+
+      if (verifySellerToOrder) {
+        orderNormalized.vendedorCodigo = verifySellerToOrder.vendedorCodigo;
+        orderNormalized.prepostoCodigo = verifySellerToOrder.prepostoCodigo;
+        orderNormalized.ePendente = true;
+      }
+    }
 
     const created = await this.prisma.pedido.create({
       select: {
@@ -373,6 +395,7 @@ export class OrderService {
         valorTotal: true,
         eRascunho: true,
         eDiferenciado: true,
+        ePendente: true,
         vendedores: {
           select: {
             tipo: true,
@@ -462,7 +485,13 @@ export class OrderService {
           ? 7
           : orderNormalized.eDiferenciado
           ? 6
+          : findUser.eCliente
+          ? 10
           : 1,
+
+        ePendente: orderNormalized.ePendente,
+        eCriadoPeloCliente: findUser.eCliente,
+
         itens: {
           createMany: {
             data: orderNormalized.itens.map((item, index) => ({
@@ -473,21 +502,27 @@ export class OrderService {
             })),
           },
         },
-        vendedores: {
-          createMany: {
-            data: [
-              { tipo: 1, vendedorCodigo: orderNormalized.vendedorCodigo },
-              orderNormalized.prepostoCodigo && {
-                tipo: 2,
-                vendedorCodigo: orderNormalized.prepostoCodigo,
+        vendedores: !!orderNormalized.vendedorCodigo
+          ? {
+              createMany: {
+                data: [
+                  { tipo: 1, vendedorCodigo: orderNormalized.vendedorCodigo },
+                  orderNormalized.prepostoCodigo && {
+                    tipo: 2,
+                    vendedorCodigo: orderNormalized.prepostoCodigo,
+                  },
+                ],
               },
-            ],
-          },
-        },
+            }
+          : undefined,
       },
     });
 
-    if (created.eRascunho === false && created.eDiferenciado === false) {
+    if (
+      created.eRascunho === false &&
+      created.eDiferenciado === false &&
+      created.ePendente === false
+    ) {
       await this.sendOrderErpApiProducerService.execute({
         orderCode: created.codigo,
       });
@@ -629,7 +664,11 @@ export class OrderService {
       },
     });
 
-    if (updated.eRascunho === false && updated.eDiferenciado === false) {
+    if (
+      orderNormalized.eRascunho === false &&
+      orderNormalized.eDiferenciado === false &&
+      orderNormalized.ePendente === false
+    ) {
       await this.sendOrderErpApiProducerService.execute({
         orderCode: updated.codigo,
       });
@@ -653,6 +692,81 @@ export class OrderService {
         codigo: order.codigo,
       },
     });
+
+    return;
+  }
+
+  async cancel(codigo: number, userId: string) {
+    const order = await this.findOne(codigo, userId);
+
+    if (isNaN(Number(order.codigoErp))) {
+      throw new BadRequestException('Not possible edit order sended');
+    }
+
+    await this.prisma.pedido.update({
+      data: {
+        situacaoPedidoCodigo: 11,
+        ePendente: false,
+      },
+      where: {
+        codigo: order.codigo,
+      },
+    });
+
+    return;
+  }
+
+  async send(codigo: number, userId: string, itens: Item[]) {
+    const order = await this.findOne(codigo, userId);
+
+    if (isNaN(Number(order.codigoErp))) {
+      throw new BadRequestException('Not possible edit order sended');
+    }
+
+    if (itens.length >= 1) {
+      for (const item of order.itens) {
+        await this.prisma.itemPedido.delete({
+          where: {
+            codigo: item.codigo,
+          },
+        });
+      }
+    }
+
+    const updated = await this.prisma.pedido.update({
+      data: {
+        situacaoPedidoCodigo: 1,
+        ePendente: false,
+        eRascunho: false,
+
+        itens:
+          itens.length >= 1
+            ? {
+                createMany: {
+                  data: itens.map((item, index) => ({
+                    produtoCodigo: item.produtoCodigo,
+                    quantidade: item.quantidade,
+                    valorUnitario: item.valorUnitario,
+                    sequencia: index + 1,
+                  })),
+                },
+              }
+            : undefined,
+      },
+      where: {
+        codigo: order.codigo,
+      },
+    });
+
+    if (
+      updated.eRascunho === false &&
+      updated.eDiferenciado === false &&
+      updated.ePendente === false
+    ) {
+      await this.sendOrderErpApiProducerService.execute({
+        orderCode: updated.codigo,
+      });
+    }
 
     return;
   }
@@ -715,9 +829,16 @@ export class OrderService {
     }
 
     if (user.eCliente) {
-      where.AND.push({
-        clienteCodigo: user.clienteCodigo,
-      });
+      where.AND.push(
+        {
+          clienteCodigo: user.clienteCodigo,
+        },
+        {
+          situacaoPedidoCodigo: {
+            notIn: [7],
+          },
+        },
+      );
     }
 
     const orders = await this.prisma.pedido.findMany({
@@ -839,6 +960,7 @@ export class OrderService {
         eRascunho: true,
         createdAt: true,
 
+        ePendente: true,
         eDiferenciado: true,
         tipoDesconto: true,
         descontoCalculado: true,

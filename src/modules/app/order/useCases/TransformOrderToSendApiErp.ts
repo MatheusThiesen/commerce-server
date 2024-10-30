@@ -22,6 +22,8 @@ export class TransformOrderToSendApiErp {
         descontoCalculado: true,
         motivoDiferenciado: true,
 
+        tabelaPrecoCodigo: true,
+
         periodo: true,
 
         periodoEstoque: {
@@ -31,6 +33,7 @@ export class TransformOrderToSendApiErp {
         },
         itens: {
           select: {
+            codigo: true,
             produtoCodigo: true,
             quantidade: true,
             valorUnitario: true,
@@ -104,6 +107,10 @@ export class TransformOrderToSendApiErp {
         quantity: item.quantidade,
         stockLocation: 20,
         discountAmount: discountForItem,
+        priceList: findOrder.tabelaPrecoCodigo,
+        productionOfSalesItems2: {
+          batchOsPlan: item.codigo,
+        },
       })),
     };
   }

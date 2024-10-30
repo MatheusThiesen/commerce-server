@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -21,8 +22,11 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+  create(
+    @GetCurrentUserId() userId: string,
+    @Body() createOrderDto: CreateOrderDto,
+  ) {
+    return this.orderService.create(createOrderDto, userId);
   }
 
   @Put(':codigo')
@@ -74,5 +78,18 @@ export class OrderController {
   @Delete(':codigo')
   delete(@Param('codigo') codigo: string, @GetCurrentUserId() userId: string) {
     return this.orderService.delete(+codigo, userId);
+  }
+
+  @Patch('cancel/:codigo')
+  cancel(@Param('codigo') codigo: string, @GetCurrentUserId() userId: string) {
+    return this.orderService.cancel(+codigo, userId);
+  }
+  @Patch('send/:codigo')
+  send(
+    @Param('codigo') codigo: string,
+    @GetCurrentUserId() userId: string,
+    @Body() dto: { itens: [] },
+  ) {
+    return this.orderService.send(+codigo, userId, dto.itens ?? []);
   }
 }

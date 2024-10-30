@@ -9,6 +9,7 @@ import { ProductsService } from '../products/products.service';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 import { AddTagDifferentiatedRequestOrderApiErp } from './useCases/AddTagDifferentiatedRequestOrderApiErp';
+import { GetSellerToOrder } from './useCases/GetSellerToOrder';
 import { RequestOrderApiErp } from './useCases/RequestOrderApiErp';
 import { RoutineSendAllOrdersApiErp } from './useCases/RoutineSendAllOrdersApiErp';
 import { SketchOrderValid } from './useCases/SketchOrderValid';
@@ -34,6 +35,7 @@ import { TransformOrderToSendApiErp } from './useCases/TransformOrderToSendApiEr
     ProductsService,
     GetPendencyBySellerCod,
     GetRoleBySeller,
+    GetSellerToOrder,
   ],
   exports: [
     OrderService,
@@ -47,6 +49,7 @@ import { TransformOrderToSendApiErp } from './useCases/TransformOrderToSendApiEr
     ProductsService,
     GetPendencyBySellerCod,
     GetRoleBySeller,
+    GetSellerToOrder,
   ],
 })
 export class OrderModule {}

@@ -22,5 +22,9 @@ export class Order {
   tipoDesconto?: 'VALOR' | 'PERCENTUAL';
   motivoDiferenciado?: string;
 
+  eCriadoPeloCliente?: boolean;
+  ePendente?: boolean;
+  vendedorPendenteCodigo?: number;
+
   itens: Item[];
 }

@@ -647,6 +647,9 @@ model Pedido {
   eExluido        Boolean  @default(false)
   codigoErp       Int?     @unique
 
+  eCriadoPeloCliente Boolean @default(false)
+  ePendente          Boolean @default(false)
+
   eDiferenciado                      Boolean                   @default(false)
   eDiferenciadoFinalizado            Boolean                   @default(false)
   vendedorPendenteDiferenciadoCodigo Int?

@@ -17,6 +17,11 @@ export type OrderApiErp = {
     quantity: number;
     stockLocation: number;
     discountAmount?: number;
+    priceList: number;
+
+    productionOfSalesItems2?: {
+      batchOsPlan: string;
+    };
   }[];
 
   additionalOrderData1?: {
