@@ -166,12 +166,11 @@ model Grupo {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  subGrupos           SubGrupo[]
-  produtos            Produto[]
-  bloqueiosCliente    BloqueiosCliente[]
-  BloqueiosVendedor   BloqueiosVendedor? @relation(fields: [bloqueiosVendedorId], references: [id])
-  bloqueiosVendedorId String?
-  banners             Banner[]
+  subGrupos         SubGrupo[]
+  produtos          Produto[]
+  bloqueiosCliente  BloqueiosCliente[]
+  bloqueiosVendedor BloqueiosVendedor[]
+  banners           Banner[]
 
   @@map("grupos")
 }

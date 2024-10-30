@@ -34,7 +34,7 @@ export class PanelSellersController {
     @Param('codigo') codigo: string,
 
     @Body()
-    { stocksLocation = [], groups = [] },
+    { stocksLocation, groups },
   ) {
     return this.sellerService.blockSet({
       sellerCode: +codigo,

@@ -20,8 +20,8 @@ type SellerSetBlocks = {
   sellerCode: number;
 
   blocks: {
-    groups: string[] | [];
-    stocksLocation: string[] | [];
+    groups?: string[] | [];
+    stocksLocation?: string[] | [];
   };
 };
 
@@ -223,13 +223,17 @@ export class PanelSellersService {
     if (findBlock) {
       await this.prisma.bloqueiosVendedor.update({
         data: {
-          periodosEstoque: {
-            set: blocks.stocksLocation.map((item) => ({ periodo: item })),
-          },
+          periodosEstoque: !!blocks?.stocksLocation
+            ? {
+                set: blocks.stocksLocation.map((item) => ({ periodo: item })),
+              }
+            : undefined,
 
-          grupos: {
-            set: blocks.groups.map((item) => ({ codigo: +item })),
-          },
+          grupos: !!blocks?.groups
+            ? {
+                set: blocks.groups.map((item) => ({ codigo: +item })),
+              }
+            : undefined,
         },
         where: {
           id: findBlock.id,
@@ -238,13 +242,19 @@ export class PanelSellersService {
     } else {
       await this.prisma.bloqueiosVendedor.create({
         data: {
-          periodosEstoque: {
-            connect: blocks.stocksLocation.map((item) => ({ periodo: item })),
-          },
+          periodosEstoque: !!blocks?.stocksLocation
+            ? {
+                connect: blocks.stocksLocation.map((item) => ({
+                  periodo: item,
+                })),
+              }
+            : undefined,
 
-          grupos: {
-            connect: blocks.groups.map((item) => ({ codigo: +item })),
-          },
+          grupos: !!blocks?.groups
+            ? {
+                connect: blocks.groups.map((item) => ({ codigo: +item })),
+              }
+            : undefined,
           vendedorCodigo: sellerCode,
         },
       });
